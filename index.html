@@ -486,7 +486,7 @@ setTimeout(syncProfileHeader,500); setTimeout(syncProfileHeader,1500); setInterv
         var user=s.data && s.data.user;
         if(user){
           emailVerified=!!user.email_confirmed_at;
-          var q=await window.supabase.from('verification_requests').select('status'); alert('DEBUG UID:'+user.id+' ERR:'+JSON.stringify(q.error)+' DATA:'+JSON.stringify(q.data)).eq('user_id',user.id).eq('type','photo').order('created_at',{ascending:false}).limit(1);
+          var q=await window.supabase.from('verification_requests').select('status').eq('user_id',user.id).eq('type','photo').order('created_at',{ascending:false}).limit(1); alert('DEBUG2 UID:'+user.id+' ERR:'+JSON.stringify(q.error)+' DATA:'+JSON.stringify(q.data));
           if(!q.error && q.data && q.data[0]){
             photoVerified=q.data[0].status==='approved';
             photoPending=q.data[0].status==='pending';
