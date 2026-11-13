@@ -38,7 +38,7 @@ section.active{display:block}
 </div><div style="background:linear-gradient(135deg,#ff5a8a,#ff8a5c);border-radius:20px;padding:20px;color:white;margin-bottom:16px">
 <div style="display:flex;align-items:center;gap:14px">
 <div id="p-avatar-preview" style="width:84px;height:84px;border-radius:50%;background:white;color:#ff5a8a;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;overflow:hidden;flex-shrink:0;border:3px solid white">😊</div>
-<div><div style="font-size:22px;font-weight:900;line-height:1.1">My Profile</div><div style="opacity:0.9;font-size:13px;margin-top:4px">Make it beautiful, get more matches ✨</div><div id="p-preview-name" style="margin-top:8px;background:rgba(255,255,255,0.22);display:inline-block;padding:5px 10px;border-radius:20px;font-size:13px;font-weight:700">Your Name • Age</div></div>
+<div><div id="p-header-name" style="font-size:26px;font-weight:900;line-height:1.1">Your Name</div><div id="p-header-age" style="margin-top:6px;background:white;color:#ff5a8a;display:inline-block;padding:5px 12px;border-radius:20px;font-size:15px;font-weight:800">Age • --</div><div style="opacity:0.9;font-size:13px;margin-top:6px">Make it beautiful, get more matches ✨</div><div id="p-preview-name" style="display:none">Your Name • Age</div></div>
 </div></div>
 <div style="background:white;border-radius:18px;padding:16px;box-shadow:0 4px 20px rgba(0,0,0,0.08);margin-bottom:14px">
 <div style="font-weight:800;font-size:15px;margin-bottom:10px;color:#222">📸 Profile Photos <span style="font-weight:400;color:#888;font-size:12px">- tap a block to add (1st is main)</span></div>
@@ -257,6 +257,21 @@ document.addEventListener("DOMContentLoaded", function(){ initPhotoBlocks(); upd
   return;
   var bold = av.dataset.bold==="1"; var bold = av.dataset.bold==="1"; av.dataset.bold = bold?"0":"1"; av.style.transition = "all 0.25s ease"; av.style.border = bold ? "3px solid white" : "8px solid #ff5a8a"; av.style.boxShadow = bold ? "none" : "0 0 0 4px white, 0 0 0 10px #ff5a8a, 0 12px 32px rgba(255,90,138,0.7)"; av.style.transform = bold ? "scale(1)" : "scale(1.22)"; av.style.outline = bold ? "none" : "3px solid #ff8a5c"; }; } });
 initPhotoBlocks(); updateAvatar();
+</script>
+<script>
+function syncProfileHeader(){
+  var nameEl=document.getElementById('p-name'); var ageEl=document.getElementById('p-age');
+  var name=(nameEl&&nameEl.value.trim())||'';
+  var age=(ageEl&&ageEl.value.trim())||'';
+  if(!name){ try{ var s=JSON.parse(localStorage.getItem('my_profile')||'{}'); name=s.name||''; age=s.age||age; }catch(e){} }
+  if(!name){ var pf=document.getElementById('pf-name'); if(pf&&pf.value.trim()) name=pf.value.trim(); }
+  var hn=document.getElementById('p-header-name'); if(hn) hn.textContent=name||'Your Name';
+  var ha=document.getElementById('p-header-age'); if(ha) ha.textContent=(age?age+' years old':'Age • --');
+  var pv=document.getElementById('p-preview-name'); if(pv) pv.textContent=(name||'Your Name')+' • '+(age||'Age');
+}
+document.addEventListener('input',function(e){ if(e.target&&(e.target.id=='p-name'||e.target.id=='p-age'||e.target.id=='pf-name')) syncProfileHeader(); });
+document.addEventListener('DOMContentLoaded',syncProfileHeader);
+setTimeout(syncProfileHeader,500); setTimeout(syncProfileHeader,1500);
 </script>
 </body>
 </html>
