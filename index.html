@@ -194,6 +194,7 @@ async function loginUser(){
   document.getElementById('auth-status').textContent=error?error.message:'Logged in as '+email;
   if(!error) document.getElementById('login-box').style.display='none';
 }
+renderCircles(); renderSwipe();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase.js"></script>
