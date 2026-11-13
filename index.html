@@ -46,8 +46,8 @@ section.active{display:block}
 </div>
 <div style="background:white;border-radius:18px;padding:16px;box-shadow:0 4px 20px rgba(0,0,0,0.08);margin-bottom:14px">
 <div style="font-weight:800;font-size:15px;margin-bottom:10px;color:#222">👤 About You</div>
-<input id="p-name" placeholder="Your name" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8;font-size:15px">
-<div style="display:flex;gap:8px"><input id="p-age" type="number" placeholder="Age" style="flex:1;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><select id="p-gender" style="flex:1;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><option value="">Gender</option><option>Female</option><option>Male</option><option>Other</option></select></div>
+<input oninput="syncProfileHeader()" id="p-name" placeholder="Your name" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8;font-size:15px">
+<div style="display:flex;gap:8px"><input oninput="syncProfileHeader()" id="p-age" type="number" placeholder="Age" style="flex:1;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><select id="p-gender" style="flex:1;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><option value="">Gender</option><option>Female</option><option>Male</option><option>Other</option></select></div>
 <input id="p-location" placeholder="📍 Country - City e.g. Equatorial Guinea - Malabo" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8">
 <select id="p-looking" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><option value="">Looking for</option><option>Female</option><option>Male</option><option>Anyone</option></select>
 <textarea id="p-bio" placeholder="✍️ Bio - about you..." style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8;min-height:70px"></textarea>
@@ -271,7 +271,7 @@ function syncProfileHeader(){
 }
 document.addEventListener('input',function(e){ if(e.target&&(e.target.id=='p-name'||e.target.id=='p-age'||e.target.id=='pf-name')) syncProfileHeader(); });
 document.addEventListener('DOMContentLoaded',syncProfileHeader);
-setTimeout(syncProfileHeader,500); setTimeout(syncProfileHeader,1500);
+setTimeout(syncProfileHeader,500); setTimeout(syncProfileHeader,1500); setInterval(syncProfileHeader,1000);
 </script>
 </body>
 </html>
