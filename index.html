@@ -19,7 +19,10 @@ nav button{background:none;color:#aaa;font-size:11px;flex:1;padding:6px 2px}
 nav button.active{color:#ff5a8a}
 section{display:none}
 section.active{display:block}
-#map{height:280px;border-radius:12px;margin:10px 0}
+#map{height:calc(100vh - 210px);min-height:520px;border-radius:16px;margin:10px 0;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12)}
+#tab-discover{padding-bottom:10px}
+#tab-discover h2{margin:6px 0 8px}
+#tab-discover .counter{margin-bottom:8px}
 .counter{background:#ff5a8a;padding:10px;border-radius:10px;text-align:center;font-weight:bold}
 </style><link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'>
 </head>
