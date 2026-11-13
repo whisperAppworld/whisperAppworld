@@ -362,5 +362,152 @@ document.addEventListener('input',function(e){ if(e.target&&(e.target.id=='p-nam
 document.addEventListener('DOMContentLoaded',syncProfileHeader);
 setTimeout(syncProfileHeader,500); setTimeout(syncProfileHeader,1500); setInterval(syncProfileHeader,1000);
 </script>
+
+<script>
+(function(){
+  var css = `
+  .v-badges{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 0}
+  .v-badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:5px 10px;border-radius:999px;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe}
+  .v-badge.photo{background:#ecfdf5;color:#047857;border-color:#a7f3d0}
+  .v-panel{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:16px;margin:14px 0;box-shadow:0 4px 20px rgba(0,0,0,.05)}
+  .v-panel h3{margin:0 0 4px;font-size:17px}
+  .v-panel p.sub{margin:0 0 14px;color:#6b7280;font-size:13px}
+  .v-progress{height:8px;background:#f3f4f6;border-radius:999px;overflow:hidden;margin-bottom:14px}
+  .v-progress>div{height:100%;background:linear-gradient(90deg,#6366f1,#22c55e);border-radius:999px;transition:width .4s}
+  .v-card{display:flex;gap:12px;align-items:flex-start;border:1px solid #eef0f3;border-radius:12px;padding:12px;margin-bottom:10px;background:#fafafa}
+  .v-card.done{background:#f0fdf4;border-color:#bbf7d0}
+  .v-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;background:#fff;border:1px solid #e5e7eb;flex-shrink:0}
+  .v-card b{font-size:14px;display:block}
+  .v-card small{color:#6b7280;font-size:12px;line-height:1.4;display:block;margin-top:2px}
+  .v-status{font-size:11px;font-weight:800;padding:4px 8px;border-radius:999px;white-space:nowrap}
+  .v-status.verified{background:#dcfce7;color:#166534}
+  .v-status.pending{background:#fef9c3;color:#854d0e}
+  .v-status.unverified{background:#f3f4f6;color:#6b7280}
+  .v-btn{border:none;padding:9px 14px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:#111827;color:#fff}
+  .v-btn:disabled{opacity:.5;cursor:not-allowed}
+  .v-btn.ghost{background:#fff;color:#111827;border:1px solid #e5e7eb}
+  .v-modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;z-index:9999}
+  .v-modal.open{display:flex}
+  .v-sheet{background:#fff;width:100%;max-width:520px;border-radius:20px 20px 0 0;padding:20px;padding-bottom:30px;max-height:90vh;overflow:auto}
+  .v-pose{font-size:42px;text-align:center;background:#eef2ff;border-radius:14px;padding:16px;margin:12px 0}
+  .v-preview{width:100%;border-radius:12px;display:none;margin-top:10px}
+  `;
+  var st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
+  function renderBadges(emailVerified, photoVerified){
+    var badges=document.getElementById('v-badges');
+    if(!badges){
+      badges=document.createElement('div'); badges.id='v-badges'; badges.className='v-badges';
+      var anchor=document.getElementById('p-header-name')||document.getElementById('my-profile-box')||document.getElementById('profile-sub-my');
+      if(anchor) anchor.after(badges); else document.body.prepend(badges);
+    }
+    var html='';
+    if(emailVerified) html+='<span class="v-badge">✓ Email Verified</span>';
+    if(photoVerified) html+='<span class="v-badge photo">📸 Photo Verified</span>';
+    badges.innerHTML=html;
+  }
+  function buildPanel(){
+    if(document.getElementById('verification-panel')) return;
+    var host=document.getElementById('profile-sub-my'); if(!host) return;
+    var div=document.createElement('div'); div.id='verification-panel'; div.className='v-panel';
+    div.innerHTML=`
+      <h3>Verification &amp; Badges</h3>
+      <p class="sub">Verified profiles get more matches. We never show your ID or selfie to other users.</p>
+      <div class="v-progress"><div id="v-progress-bar" style="width:0%"></div></div>
+      <div class="v-card" id="v-card-email">
+        <div class="v-icon">✉️</div>
+        <div style="flex:1"><b>Email Verification</b><small>Confirms you own this email. Sent when you signed up.</small></div>
+        <span class="v-status unverified" id="v-email-status">CHECKING…</span>
+      </div>
+      <div class="v-card" id="v-card-photo">
+        <div class="v-icon">📸</div>
+        <div style="flex:1"><b>Photo Verification</b><small>Take a live selfie copying the pose. Our team reviews it — usually within 24h.</small><div style="margin-top:8px"><button class="v-btn" id="v-photo-btn" onclick="openVerifyModal()">Verify My Photo</button></div></div>
+        <span class="v-status unverified" id="v-photo-status">NOT VERIFIED</span>
+      </div>
+      <div class="v-card" style="opacity:.65">
+        <div class="v-icon">🪪</div>
+        <div style="flex:1"><b>ID Verification</b><small>Passport / national ID. Coming soon — we are building secure ID handling first.</small></div>
+        <span class="v-status unverified">SOON</span>
+      </div>`;
+    var ab=document.getElementById('account-bar');
+    if(ab) ab.after(div); else host.prepend(div);
+    var m=document.createElement('div'); m.id='v-modal'; m.className='v-modal';
+    m.innerHTML=`<div class="v-sheet">
+      <h3 style="margin:0">📸 Photo Verification</h3>
+      <p style="color:#6b7280;font-size:13px">Copy this pose exactly, so we can match it to your profile photos.</p>
+      <div class="v-pose">✌️ <span style="font-size:16px;color:#4338ca;font-weight:800">Hold up 2 fingers</span></div>
+      <label class="v-btn ghost" style="display:block;text-align:center">Take / Upload Selfie<input type="file" id="v-selfie-input" accept="image/*" capture="user" style="display:none"></label>
+      <img id="v-selfie-preview" class="v-preview">
+      <p id="v-submit-msg" style="font-size:13px;color:#047857"></p>
+      <button class="v-btn" id="v-submit-btn" style="width:100%;margin-top:10px" disabled>Submit for Review</button>
+      <button class="v-btn ghost" style="width:100%;margin-top:8px" onclick="closeVerifyModal()">Cancel</button>
+    </div>`;
+    document.body.appendChild(m);
+    m.addEventListener('click',e=>{ if(e.target===m) closeVerifyModal(); });
+    document.getElementById('v-selfie-input').addEventListener('change',function(){
+      var f=this.files[0]; if(!f) return;
+      var r=new FileReader(); r.onload=e=>{ var img=document.getElementById('v-selfie-preview'); img.src=e.target.result; img.style.display='block'; document.getElementById('v-submit-btn').disabled=false; };
+      r.readAsDataURL(f);
+    });
+    document.getElementById('v-submit-btn').addEventListener('click',submitPhotoVerification);
+  }
+  window.openVerifyModal=function(){ document.getElementById('v-modal').classList.add('open'); };
+  window.closeVerifyModal=function(){ document.getElementById('v-modal').classList.remove('open'); };
+  async function submitPhotoVerification(){
+    var btn=document.getElementById('v-submit-btn'); btn.disabled=true; btn.textContent='Uploading…';
+    var msg=document.getElementById('v-submit-msg'); msg.textContent='';
+    try{
+      var user=null;
+      if(window.supabase){ var s=await window.supabase.auth.getUser(); user=s.data && s.data.user; }
+      if(!user){ msg.textContent='Please log in first.'; btn.disabled=false; btn.textContent='Submit for Review'; return; }
+      var file=document.getElementById('v-selfie-input').files[0];
+      var selfieUrl='';
+      try{
+        var path=user.id+'/'+Date.now()+'.jpg';
+        var up=await window.supabase.storage.from('verification').upload(path, file, {upsert:true});
+        if(!up.error){ var pub=window.supabase.storage.from('verification').getPublicUrl(path); selfieUrl=pub.data.publicUrl; }
+      }catch(e){}
+      try{
+        var ins=await window.supabase.from('verification_requests').insert({user_id:user.id,email:user.email,type:'photo',status:'pending',selfie_url:selfieUrl});
+        if(ins.error) throw ins.error;
+      }catch(e){
+        localStorage.setItem('verification_photo_pending','1');
+        console.warn('verification_requests table missing:', e.message);
+      }
+      msg.textContent='✅ Submitted! Status: Pending review.';
+      setTimeout(()=>{ closeVerifyModal(); refreshVerification(); }, 1200);
+    }catch(e){ msg.textContent='Error: '+e.message; btn.disabled=false; btn.textContent='Submit for Review'; }
+  }
+  async function refreshVerification(){
+    buildPanel();
+    var emailVerified=false, photoVerified=false, photoPending=false;
+    try{
+      if(window.supabase){
+        var s=await window.supabase.auth.getUser();
+        var user=s.data && s.data.user;
+        if(user){
+          emailVerified=!!user.email_confirmed_at;
+          var q=await window.supabase.from('verification_requests').select('status').eq('user_id',user.id).eq('type','photo').order('created_at',{ascending:false}).limit(1);
+          if(!q.error && q.data && q.data[0]){
+            photoVerified=q.data[0].status==='approved';
+            photoPending=q.data[0].status==='pending';
+          }
+        }
+      }
+    }catch(e){}
+    if(localStorage.getItem('verification_photo_pending')==='1' && !photoVerified) photoPending=true;
+    var es=document.getElementById('v-email-status'); if(es){ es.textContent=emailVerified?'VERIFIED':'NOT VERIFIED'; es.className='v-status '+(emailVerified?'verified':'unverified'); }
+    var ec=document.getElementById('v-card-email'); if(ec) ec.classList.toggle('done', emailVerified);
+    var ps=document.getElementById('v-photo-status'); if(ps){ ps.textContent=photoVerified?'VERIFIED':(photoPending?'PENDING REVIEW':'NOT VERIFIED'); ps.className='v-status '+(photoVerified?'verified':(photoPending?'pending':'unverified')); }
+    var pc=document.getElementById('v-card-photo'); if(pc) pc.classList.toggle('done', photoVerified);
+    var pb=document.getElementById('v-photo-btn'); if(pb) pb.textContent=photoVerified?'Verified ✓':(photoPending?'Pending Review…':'Verify My Photo');
+    var pct=(emailVerified?50:0)+(photoVerified?50:0);
+    var bar=document.getElementById('v-progress-bar'); if(bar) bar.style.width=pct+'%';
+    renderBadges(emailVerified, photoVerified);
+  }
+  window.refreshVerification=refreshVerification;
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(refreshVerification,800));
+})();
+</script>
+
 </body>
 </html>
