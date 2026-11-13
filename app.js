@@ -47,7 +47,7 @@ async function saveProfile(){
   const photos = allPhotos;
   if(!name) return alert("Add your name first");
   if(!location) return alert("Add Country first - e.g. Equatorial Guinea - Malabo");
-  const res = await fetch(BASE + "/rest/v1/profiles", { method: "POST", headers, body: JSON.stringify({ id: crypto.randomUUID(), name, age, location, gender, looking_for, bio, interests, language, img }) });
+  const res = await fetch(BASE + "/rest/v1/profiles", { method: "POST", headers, body: JSON.stringify({ id: crypto.randomUUID(), name, age, location, gender, looking_for, bio, interests, language, img, photos }) });
   if(!res.ok){ alert("Error: " + await res.text()); return; }
   alert("Profile saved!");
   loadProfiles();
