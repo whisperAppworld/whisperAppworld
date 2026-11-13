@@ -143,7 +143,8 @@ function renderSwipe(){
   while(swipeIdx<list.length && liked.includes(names[list[swipeIdx]])) swipeIdx++;
   if(swipeIdx>=list.length){ el.innerHTML='<div class="card" style="text-align:center;padding:30px"><h3>🎉 No more people in this country</h3><p>Try All Countries or come back tomorrow.</p></div>'; return; }
   let idx=list[swipeIdx], n=names[idx], c=countries[idx], age=getAges()[idx];
-  el.innerHTML='<div class="swipe-card"><div class="photo"><img src="https://i.pravatar.cc/600?img="+((idx%70)+1)+" onerror="this.style.display='none'" alt="" /></div><div class="info"><h3>'+n+' • '+age+'</h3><p>📍 '+c+'</p><p>Looking to meet new people ✨</p></div><div class="swipe-actions"><button class="btn-pass" onclick="passPerson()">❌ Pass</button><button class="btn-like" onclick="likePerson(\''+n+'\')">❤️ Like</button></div></div>';
+  let photo='https://i.pravatar.cc/600?img='+((idx%70)+1);
+  el.innerHTML='<div class="swipe-card"><div class="photo"><img src='"+photo+"' onerror="this.style.display='none'" alt="" /></div><div class="info"><h3>'+n+' • '+age+'</h3><p>📍 '+c+'</p><p>Looking to meet new people ✨</p></div><div class="swipe-actions"><button class="btn-pass" onclick="passPerson()">❌ Pass</button><button class="btn-like" onclick="likePerson(\''+n+'\')">❤️ Like</button></div></div>';
 }
 function passPerson(){swipeIdx++;renderSwipe();}
 function openMap(){document.getElementById('map-modal').classList.add('open');setTimeout(function(){initMap();if(window._map)window._map.invalidateSize();},100);}
