@@ -540,5 +540,55 @@ setTimeout(syncProfileHeader,500); setTimeout(syncProfileHeader,1500); setInterv
 })();
 </script>
 
+
+<!-- ADMIN PANEL -->
+<button id="adminBtn" onclick="openAdmin()" style="position:fixed;bottom:90px;right:12px;z-index:9999;background:#111;color:#fff;border:1px solid #333;padding:8px 12px;border-radius:999px;font-size:12px;opacity:0.7">Admin</button>
+<div id="adminPanel" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.85);overflow:auto;padding:16px">
+  <div style="max-width:520px;margin:20px auto;background:#111;border:1px solid #333;border-radius:16px;padding:16px;color:#fff">
+    <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">Admin - Photo Verification</h3><button onclick="closeAdmin()" style="background:#333;color:#fff;border:0;padding:6px 12px;border-radius:999px">Close</button></div>
+    <p id="adminMsg" style="font-size:13px;color:#aaa"></p>
+    <div id="adminList"></div>
+    <button onclick="loadAdmin()" style="margin-top:12px;background:#fff;color:#000;border:0;padding:10px 16px;border-radius:999px;width:100%">Refresh</button>
+  </div>
+</div>
+<script>
+const ADMIN_CODE = "WHISPER-ADMIN-2026";
+async function openAdmin(){
+  var code = prompt("Enter admin code:");
+  if(code !== ADMIN_CODE){ alert("Wrong code"); return; }
+  document.getElementById("adminPanel").style.display = "block";
+  loadAdmin();
+}
+function closeAdmin(){ document.getElementById("adminPanel").style.display = "none"; }
+async function loadAdmin(){
+  var list = document.getElementById("adminList");
+  var msg = document.getElementById("adminMsg");
+  list.innerHTML = "Loading...";
+  try{
+    var r = await window.supabase.from("verification_requests").select("*").eq("status","pending").order("created_at",{ascending:false});
+    if(r.error) throw r.error;
+    var rows = r.data || [];
+    msg.textContent = rows.length + " pending request(s)";
+    if(!rows.length){ list.innerHTML = "<p style='color:#888'>No pending requests.</p>"; return; }
+    list.innerHTML = rows.map(function(x){
+      return '<div style="border:1px solid #333;border-radius:12px;padding:12px;margin-top:10px">'
+        + '<div style="font-size:13px;color:#aaa">'+(x.email||"")+' • '+(x.type||"photo")+' • '+(x.created_at||"").slice(0,10)+'</div>'
+        + (x.selfie_url ? '<img src="'+x.selfie_url+'" style="width:100%;border-radius:10px;margin-top:8px;max-height:300px;object-fit:cover">' : '<p style="color:#888">No selfie URL</p>')
+        + '<div style="display:flex;gap:8px;margin-top:10px"><button onclick="adminDecision(\''+x.id+'\',\'approved\')" style="flex:1;background:#22c55e;color:#fff;border:0;padding:10px;border-radius:999px">Approve</button><button onclick="adminDecision(\''+x.id+'\',\'rejected\')" style="flex:1;background:#ef4444;color:#fff;border:0;padding:10px;border-radius:999px">Reject</button></div>'
+        + '</div>';
+    }).join("");
+  }catch(e){ list.innerHTML = "<p style='color:#f87171'>Error: "+(e.message||e)+"</p>"; }
+}
+async function adminDecision(id, status){
+  if(!confirm(status==="approved" ? "Approve this photo?" : "Reject this photo?")) return;
+  try{
+    var r = await window.supabase.from("verification_requests").update({status: status}).eq("id", id);
+    if(r.error) throw r.error;
+    alert(status==="approved" ? "Approved - user will get badge on next reload" : "Rejected");
+    loadAdmin();
+  }catch(e){ alert("Error: "+(e.message||e)); }
+}
+</script>
+
 </body>
 </html>
