@@ -209,7 +209,7 @@ async function loginUser(){
   let pass=document.getElementById('auth-pass').value;
   let {data,error}=await supabase.auth.signInWithPassword({email:email,password:pass});
   document.getElementById('auth-status').textContent=error?error.message:'Logged in as '+email;
-  if(!error) document.getElementById('login-box').style.display='none';
+  if(!error){ document.getElementById('login-box').style.display='none'; if(typeof showProfileSub==='function') showProfileSub('my'); }
 }
 renderCircles(); renderSwipe();
 </script>
