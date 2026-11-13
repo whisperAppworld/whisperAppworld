@@ -217,6 +217,15 @@ window.saveMyProfile=saveMyProfile;
 
 <script>
 window._myPhotos = window._myPhotos || ["","","","",""];
+function updateAvatar(){
+  var av = document.getElementById("p-avatar-preview"); if(!av) return;
+  var first = (window._myPhotos||[]).find(function(x){return x});
+  if(first){
+    av.innerHTML = '<img src="'+first+'" style="width:100%;height:100%;object-fit:cover;display:block">';
+  } else {
+    av.innerHTML = '😊';
+  }
+}
 function initPhotoBlocks(){
   const wrap = document.getElementById("p-blocks"); if(!wrap) return;
   wrap.innerHTML = "";
@@ -231,6 +240,7 @@ function initPhotoBlocks(){
       const r = new FileReader();
       r.onload = ev => {
         window._myPhotos[i] = ev.target.result;
+        updateAvatar();
         const img = document.getElementById("p-prev-"+i);
         img.src = ev.target.result; img.style.display = "block";
         document.getElementById("p-label-"+i).style.display = "none";
@@ -239,8 +249,8 @@ function initPhotoBlocks(){
     });
   }
 }
-document.addEventListener("DOMContentLoaded", initPhotoBlocks);
-initPhotoBlocks();
+document.addEventListener("DOMContentLoaded", function(){ initPhotoBlocks(); updateAvatar(); var av=document.getElementById("p-avatar-preview"); if(av){ av.style.cursor="pointer"; av.onclick=function(){ var bold = av.dataset.bold==="1"; av.dataset.bold = bold?"0":"1"; av.style.border = bold ? "3px solid white" : "5px solid #ff5a8a"; av.style.boxShadow = bold ? "none" : "0 0 0 3px white, 0 0 0 6px #ff5a8a, 0 8px 24px rgba(255,90,138,0.5)"; av.style.transform = bold ? "scale(1)" : "scale(1.08)"; }; } });
+initPhotoBlocks(); updateAvatar();
 </script>
 </body>
 </html>
