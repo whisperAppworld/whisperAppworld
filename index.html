@@ -249,7 +249,13 @@ function initPhotoBlocks(){
     });
   }
 }
-document.addEventListener("DOMContentLoaded", function(){ initPhotoBlocks(); updateAvatar(); var av=document.getElementById("p-avatar-preview"); if(av){ av.style.cursor="pointer"; av.onclick=function(){ var bold = av.dataset.bold==="1"; av.dataset.bold = bold?"0":"1"; av.style.transition = "all 0.25s ease"; av.style.border = bold ? "3px solid white" : "8px solid #ff5a8a"; av.style.boxShadow = bold ? "none" : "0 0 0 4px white, 0 0 0 10px #ff5a8a, 0 12px 32px rgba(255,90,138,0.7)"; av.style.transform = bold ? "scale(1)" : "scale(1.22)"; av.style.outline = bold ? "none" : "3px solid #ff8a5c"; }; } });
+document.addEventListener("DOMContentLoaded", function(){ initPhotoBlocks(); updateAvatar(); var av=document.getElementById("p-avatar-preview"); if(av){ av.style.cursor="pointer"; av.onclick=function(){
+  var first=(window._myPhotos||[]).find(function(x){return x}); if(!first) return;
+  var ov=document.getElementById("avatar-big"); if(!ov){ ov=document.createElement("div"); ov.id="avatar-big"; ov.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column"; ov.onclick=function(){ ov.style.display="none"; }; document.body.appendChild(ov); }
+  ov.innerHTML='<img src="'+first+'" style="width:92vw;max-width:420px;height:92vw;max-height:420px;object-fit:cover;border-radius:50%;border:10px solid #ff5a8a;box-shadow:0 0 0 6px white, 0 0 60px #ff5a8a"><p style="color:white;margin-top:16px;font-weight:bold">Tap anywhere to close ✕</p>';
+  ov.style.display="flex";
+  return;
+  var bold = av.dataset.bold==="1"; var bold = av.dataset.bold==="1"; av.dataset.bold = bold?"0":"1"; av.style.transition = "all 0.25s ease"; av.style.border = bold ? "3px solid white" : "8px solid #ff5a8a"; av.style.boxShadow = bold ? "none" : "0 0 0 4px white, 0 0 0 10px #ff5a8a, 0 12px 32px rgba(255,90,138,0.7)"; av.style.transform = bold ? "scale(1)" : "scale(1.22)"; av.style.outline = bold ? "none" : "3px solid #ff8a5c"; }; } });
 initPhotoBlocks(); updateAvatar();
 </script>
 </body>
