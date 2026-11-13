@@ -79,10 +79,10 @@ section.active{display:block}
 <section id="tab-discover" class="active">
 <div style="display:flex;align-items:center;justify-content:space-between"><h2 style="margin:0">🔥 Discover</h2><button onclick="openMap()" style="font-size:26px;background:#222;padding:10px 14px;border-radius:50%">🌎</button></div>
 <div class="counter" id="daily-counter">❤️ 30 Likes left today</div>
-<div id="swipe-card"></div><div id="map-modal"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">🌎 People Near You</h3><button onclick="closeMap()" style="background:#333">✖️ Close</button></div><div id="map"></div></div>
+<select id="country-filter" onchange="swipeIdx=0;renderSwipe()" style="margin-top:8px"><option value="ALL">🌍 All Countries</option></select><div id="swipe-card"></div><div id="map-modal"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">🌎 People Near You</h3><button onclick="closeMap()" style="background:#333">✖️ Close</button></div><div id="map"></div></div>
 <p style="font-size:13px;color:#aaa">Tap a circle to Like. Each Like uses 1 of your 30 daily. Resets tomorrow.</p>
 <div class="circles" id="circles" style="display:none"></div>
-<</p>
+</p>
 <div id="discover-list"></div>
 </section>
 <section id="tab-matches">
@@ -126,7 +126,25 @@ function renderCircles(){
 
 let swipeIdx=0;
 function getAges(){return names.map(function(n,i){return 19+((i*7)%14);});}
-function renderSwipe(){let el=document.getElementById('swipe-card');if(!el)return;let liked=getLiked();while(swipeIdx<names.length&&liked.includes(names[swipeIdx]))swipeIdx++;if(swipeIdx>=names.length){el.innerHTML='<div class="card" style="text-align:center;padding:30px"><h3>🎉 You saw everyone!</h3><p>Come back tomorrow.</p></div>';return;}let n=names[swipeIdx],c=countries[swipeIdx],age=getAges()[swipeIdx];el.innerHTML='<div class="swipe-card"><div class="photo">👤</div><div class="info"><h3>'+n+' • '+age+'</h3><p>📍 '+c+'</p><p>Looking to meet new people ✨</p></div><div class="swipe-actions"><button class="btn-pass" onclick="passPerson()">❌ Pass</button><button class="btn-like" onclick="likePerson(\''+n+'\')">❤️ Like</button></div></div>';}
+function getFiltered(){
+  let f=document.getElementById('country-filter');
+  let v=f?f.value:'ALL';
+  return names.map(function(n,i){return i;}).filter(function(i){return v==='ALL'||countries[i]===v;});
+}
+function renderSwipe(){
+  let cf=document.getElementById('country-filter');
+  if(cf && cf.options.length<=1){
+    let uniq=[...new Set(countries)].sort();
+    uniq.forEach(function(c){let o=document.createElement('option');o.value=c;o.textContent=c;cf.appendChild(o);});
+  }
+  let el=document.getElementById('swipe-card'); if(!el) return;
+  let liked=getLiked();
+  let list=getFiltered();
+  while(swipeIdx<list.length && liked.includes(names[list[swipeIdx]])) swipeIdx++;
+  if(swipeIdx>=list.length){ el.innerHTML='<div class="card" style="text-align:center;padding:30px"><h3>🎉 No more people in this country</h3><p>Try All Countries or come back tomorrow.</p></div>'; return; }
+  let idx=list[swipeIdx], n=names[idx], c=countries[idx], age=getAges()[idx];
+  el.innerHTML='<div class="swipe-card"><div class="photo">👤</div><div class="info"><h3>'+n+' • '+age+'</h3><p>📍 '+c+'</p><p>Looking to meet new people ✨</p></div><div class="swipe-actions"><button class="btn-pass" onclick="passPerson()">❌ Pass</button><button class="btn-like" onclick="likePerson(\''+n+'\')">❤️ Like</button></div></div>';
+}
 function passPerson(){swipeIdx++;renderSwipe();}
 function openMap(){document.getElementById('map-modal').classList.add('open');setTimeout(function(){initMap();if(window._map)window._map.invalidateSize();},100);}
 function closeMap(){document.getElementById('map-modal').classList.remove('open');}
