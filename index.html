@@ -5,32 +5,63 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>WhisperApp</title>
 <style>
-body{font-family:sans-serif;background:#111;color:#fff;padding:16px;max-width:500px;margin:auto}
+body{font-family:sans-serif;background:#111;color:#fff;padding:16px;max-width:500px;margin:auto;padding-bottom:80px}
 input,textarea,select{width:100%;padding:12px;margin:8px 0;border-radius:10px;border:none;box-sizing:border-box}
 button{padding:12px 18px;border:none;border-radius:10px;background:#ff5a8a;color:#fff;font-weight:bold}
 .card{background:#222;padding:12px;border-radius:12px;margin:10px 0}
 .card img{width:100%;border-radius:10px}
 h2{margin-top:24px}
+nav{position:fixed;bottom:0;left:0;right:0;background:#1a1a1a;display:flex;justify-content:space-around;padding:10px;border-top:1px solid #333}
+nav button{background:none;color:#aaa;font-size:14px}
+nav button.active{color:#ff5a8a}
+section{display:none}
+section.active{display:block}
 </style>
 </head>
 <body>
 <h1>WhisperApp</h1>
 
+<section id="tab-profile" class="active">
 <h2>My Profile</h2>
 <input id="p-name" placeholder="Your name">
 <input id="p-age" type="number" placeholder="Age">
 <input id="p-location" placeholder="Country first - e.g. Equatorial Guinea - Malabo">
 <select id="p-gender"><option value="">Gender</option><option>Female</option><option>Male</option><option>Other</option></select>
 <select id="p-looking"><option value="">Looking for</option><option>Female</option><option>Male</option><option>Anyone</option></select>
-<textarea id="p-bio" placeholder="Bio - about you..."></textarea><input id="p-interests" placeholder="Interests - e.g. Music, Football, Movies"><input id="p-language" placeholder="Language - e.g. Spanish, English, French">
+<textarea id="p-bio" placeholder="Bio - about you..."></textarea>
+<input id="p-interests" placeholder="Interests - e.g. Music, Football, Movies">
+<input id="p-language" placeholder="Language - e.g. Spanish, English, French">
 <input id="p-img" placeholder="Photo link - paste image URL">
-<button onclick="saveProfile()">Save Profile</button><h2>People by Country</h2><div id="profiles"></div>
+<button onclick="saveProfile()">Save Profile</button>
+</section>
 
+<section id="tab-people">
+<h2>People by Country</h2>
+<div id="profiles"></div>
+</section>
+
+<section id="tab-whisper">
 <h2>Whisper</h2>
 <input id="name" placeholder="Your name">
 <textarea id="text" placeholder="Write a whisper..."></textarea>
 <button onclick="sendWhisper()">Send Whisper</button>
 <div id="list"></div>
+</section>
+
+<nav>
+<button id="btn-profile" class="active" onclick="showTab('profile')">👤 Profile</button>
+<button id="btn-people" onclick="showTab('people')">🌍 People</button>
+<button id="btn-whisper" onclick="showTab('whisper')">💬 Whisper</button>
+</nav>
+
+<script>
+function showTab(name){
+ document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+ document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+ document.getElementById('tab-'+name).classList.add('active');
+ document.getElementById('btn-'+name).classList.add('active');
+}
+</script>
 <script src="supabase.js"></script>
 <script src="app.js"></script>
 </body>
