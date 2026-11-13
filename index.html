@@ -249,7 +249,7 @@ function initPhotoBlocks(){
     });
   }
 }
-document.addEventListener("DOMContentLoaded", function(){ initPhotoBlocks(); updateAvatar(); var av=document.getElementById("p-avatar-preview"); if(av){ av.style.cursor="pointer"; av.onclick=function(){ var bold = av.dataset.bold==="1"; av.dataset.bold = bold?"0":"1"; av.style.border = bold ? "3px solid white" : "5px solid #ff5a8a"; av.style.boxShadow = bold ? "none" : "0 0 0 3px white, 0 0 0 6px #ff5a8a, 0 8px 24px rgba(255,90,138,0.5)"; av.style.transform = bold ? "scale(1)" : "scale(1.08)"; }; } });
+document.addEventListener("DOMContentLoaded", function(){ initPhotoBlocks(); updateAvatar(); var av=document.getElementById("p-avatar-preview"); if(av){ av.style.cursor="pointer"; av.onclick=function(){ var bold = av.dataset.bold==="1"; av.dataset.bold = bold?"0":"1"; av.style.transition = "all 0.25s ease"; av.style.border = bold ? "3px solid white" : "8px solid #ff5a8a"; av.style.boxShadow = bold ? "none" : "0 0 0 4px white, 0 0 0 10px #ff5a8a, 0 12px 32px rgba(255,90,138,0.7)"; av.style.transform = bold ? "scale(1)" : "scale(1.22)"; av.style.outline = bold ? "none" : "3px solid #ff8a5c"; }; } });
 initPhotoBlocks(); updateAvatar();
 </script>
 </body>
