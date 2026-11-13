@@ -22,7 +22,7 @@ section.active{display:block}
 #map{height:calc(100vh - 210px);min-height:520px;border-radius:16px;margin:10px 0;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12)}
 #tab-discover{padding-bottom:10px}
 #tab-discover h2{margin:6px 0 8px}
-#tab-discover .counter{margin-bottom:8px}
+#tab-discover #map-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:none;flex-direction:column;padding:12px}#map-modal.open{display:flex}#map-modal #map{flex:1;width:100%;height:auto !important;min-height:0}.swipe-card{background:#222;border-radius:20px;overflow:hidden;margin:12px 0;box-shadow:0 10px 30px rgba(0,0,0,.4)}.swipe-card .photo{height:360px;background:linear-gradient(135deg,#ff5a8a,#ff8a5c);display:flex;align-items:center;justify-content:center;font-size:110px}.swipe-card .info{padding:16px}.swipe-card .info h3{margin:0;font-size:26px}.swipe-card .info p{margin:6px 0;color:#bbb}.swipe-actions{display:flex;gap:12px;padding:0 16px 16px}.swipe-actions button{flex:1;padding:16px;font-size:18px;border-radius:50px}.btn-pass{background:#333 !important}.btn-like{background:#ff5a8a !important}.counter{margin-bottom:8px}
 .counter{background:#ff5a8a;padding:10px;border-radius:10px;text-align:center;font-weight:bold}
 </style><link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'>
 </head>
@@ -77,11 +77,11 @@ section.active{display:block}
 
 
 <section id="tab-discover" class="active">
-<h2>🔥 Discover</h2>
+<div style="display:flex;align-items:center;justify-content:space-between"><h2 style="margin:0">🔥 Discover</h2><button onclick="openMap()" style="font-size:26px;background:#222;padding:10px 14px;border-radius:50%">🌎</button></div>
 <div class="counter" id="daily-counter">❤️ 30 Likes left today</div>
-<div id="map"></div>
+<div id="swipe-card"></div><div id="map-modal"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">🌎 People Near You</h3><button onclick="closeMap()" style="background:#333">✖️ Close</button></div><div id="map"></div></div>
 <p style="font-size:13px;color:#aaa">Tap a circle to Like. Each Like uses 1 of your 30 daily. Resets tomorrow.</p>
-<div class="circles" id="circles"></div>
+<div class="circles" id="circles" style="display:none"></div>
 <</p>
 <div id="discover-list"></div>
 </section>
@@ -123,11 +123,18 @@ function renderCircles(){
     return `<div class="circle" style="${style}" onclick="likePerson('${n}')"><div>${isLiked?'❤️':'👤'}<br><span>${n}</span><br><span style="font-size:8px">${countries[i]}</span></div></div>`;
   }).join('');
 }
+
+let swipeIdx=0;
+function getAges(){return names.map(function(n,i){return 19+((i*7)%14);});}
+function renderSwipe(){let el=document.getElementById('swipe-card');if(!el)return;let liked=getLiked();while(swipeIdx<names.length&&liked.includes(names[swipeIdx]))swipeIdx++;if(swipeIdx>=names.length){el.innerHTML='<div class="card" style="text-align:center;padding:30px"><h3>🎉 You saw everyone!</h3><p>Come back tomorrow.</p></div>';return;}let n=names[swipeIdx],c=countries[swipeIdx],age=getAges()[swipeIdx];el.innerHTML='<div class="swipe-card"><div class="photo">👤</div><div class="info"><h3>'+n+' • '+age+'</h3><p>📍 '+c+'</p><p>Looking to meet new people ✨</p></div><div class="swipe-actions"><button class="btn-pass" onclick="passPerson()">❌ Pass</button><button class="btn-like" onclick="likePerson(\''+n+'\')">❤️ Like</button></div></div>';}
+function passPerson(){swipeIdx++;renderSwipe();}
+function openMap(){document.getElementById('map-modal').classList.add('open');setTimeout(function(){initMap();if(window._map)window._map.invalidateSize();},100);}
+function closeMap(){document.getElementById('map-modal').classList.remove('open');}
 function likePerson(name){
   let liked=getLiked();
   if(liked.includes(name)){ alert(name+' already liked today'); return; }
   if(liked.length>=30){ alert('Daily limit reached! 30/30'); return; }
-  liked.push(name); localStorage.setItem(todayKey(), JSON.stringify(liked));
+  liked.push(name); localStorage.setItem(todayKey(), JSON.stringify(liked));;let _idx=names.indexOf(name);if(_idx>=0&&_idx%3===0){let ml=document.getElementById('matches-list');if(ml){if(ml.innerHTML.includes('No matches yet'))ml.innerHTML='';ml.innerHTML+='<div class=card><b>💖 '+name+' • '+getAges()[_idx]+'</b><br>📍 '+countries[_idx]+'<br><button onclick="showTab(\'messages\')">💬 Chat Now</button></div>';}alert('💖 MATCH! '+name+' liked you back!');}swipeIdx++;renderSwipe();
   renderCircles(); initMap();
   alert('❤️ You liked '+name+'! '+(30-liked.length)+' left today');
 }
