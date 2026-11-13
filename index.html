@@ -34,7 +34,7 @@ section.active{display:block}
 <button onclick="signupUser()" style="width:100%;background:#333;margin:5px 0">Sign Up</button>
 <p id="auth-status" style="color:#0f0"></p>
 </div>
-<div id="my-profile-box" style="background:#222;padding:15px;border-radius:12px;margin:10px 0"><h3>Create My Profile</h3><input id="pf-name" placeholder="Your name" style="width:100%;padding:10px;margin:5px 0;border-radius:8px;border:none"><select id="pf-country" style="width:100%;padding:10px;margin:5px 0;border-radius:8px"><option>Equatorial Guinea</option><option>Nigeria</option><option>Cameroon</option><option>Ghana</option><option>Kenya</option><option>Spain</option><option>France</option><option>USA</option><option>UK</option><option>Brazil</option><option>Morocco</option><option>Senegal</option><option>South Africa</option><option>Germany</option><option>Italy</option><option>Mexico</option><option>Canada</option><option>Egypt</option><option>India</option><option>Colombia</option></select><input type="file" id="pf-photo" accept="image/*" style="margin:5px 0;color:white"><br><img id="pf-preview" style="width:80px;height:80px;border-radius:50%;object-fit:cover;display:none"><br><button id="pf-save-btn" type="button" style="background:#ff5a8a;color:white;border:none;padding:12px;width:100%;border-radius:10px;font-weight:bold;margin-top:8px">Save & Show Me On Map</button><p id="pf-status" style="color:#0f0"></p></div>
+<div id="my-profile-box" style="background:#222;padding:15px;border-radius:12px;margin:10px 0"><h3>Create My Profile</h3><input id="pf-name" placeholder="Your name" style="width:100%;padding:10px;margin:5px 0;border-radius:8px;border:none"><select id="pf-country" style="width:100%;padding:10px;margin:5px 0;border-radius:8px"><option>Equatorial Guinea</option><option>Nigeria</option><option>Cameroon</option><option>Ghana</option><option>Kenya</option><option>Spain</option><option>France</option><option>USA</option><option>UK</option><option>Brazil</option><option>Morocco</option><option>Senegal</option><option>South Africa</option><option>Germany</option><option>Italy</option><option>Mexico</option><option>Canada</option><option>Egypt</option><option>India</option><option>Colombia</option></select><p style="color:white;margin:8px 0 4px">Profile Photos - up to 5 (1st photo is your main photo)</p><div id="pf-photos" style="display:flex;gap:8px;flex-wrap:wrap"></div><div id="pf-previews" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div><input type="file" id="pf-photo" accept="image/*" style="display:none"><br><button id="pf-save-btn" type="button" style="background:#ff5a8a;color:white;border:none;padding:12px;width:100%;border-radius:10px;font-weight:bold;margin-top:8px">Save & Show Me On Map</button><p id="pf-status" style="color:#0f0"></p></div>
 <h2>My Profile</h2>
 <input id="p-name" placeholder="Your name">
 <input id="p-age" type="number" placeholder="Age">
@@ -44,7 +44,7 @@ section.active{display:block}
 <textarea id="p-bio" placeholder="Bio - about you..."></textarea>
 <input id="p-interests" placeholder="Interests - e.g. Music, Football, Movies">
 <input id="p-language" placeholder="Language - e.g. Spanish, English, French">
-<input id="p-img" placeholder="Photo link - paste image URL">
+<p style="margin:8px 0 4px">Or paste photo links - up to 5</p><input id="p-img-0" placeholder="Photo 1 link - main photo"><input id="p-img-1" placeholder="Photo 2 link"><input id="p-img-2" placeholder="Photo 3 link"><input id="p-img-3" placeholder="Photo 4 link"><input id="p-img-4" placeholder="Photo 5 link"><input id="p-img" placeholder="Photo link - paste image URL" style="display:none">
 <button onclick="saveProfile()">Save Profile</button>
 <h2>⚙️ Settings</h2>
 <div class="card"><label>Notifications</label><select id="s-notif"><option>On</option><option>Off</option></select><label>Show my profile</label><select id="s-visible"><option>Everyone</option><option>Only Matches</option><option>Hidden</option></select><label>Language</label><select id="s-lang"><option>English</option><option>Spanish</option><option>French</option></select><button onclick="alert('Settings saved')">Save Settings</button></div>
@@ -164,12 +164,32 @@ async function loginUser(){
 
 
 <script>
-window._myPhoto='';
-document.addEventListener('change', function(e){ if(e.target && e.target.id=='pf-photo'){ var f=e.target.files[0]; if(!f) return; var r=new FileReader(); r.onload=function(ev){ window._myPhoto=ev.target.result; var im=document.getElementById('pf-preview'); if(im){im.src=window._myPhoto; im.style.display='block';} }; r.readAsDataURL(f); }});
+window._myPhoto=''; window._myPhotos=['','','','',''];
+function renderPfPhotos(){
+  var wrap=document.getElementById('pf-photos'); var prev=document.getElementById('pf-previews'); if(!wrap) return;
+  wrap.innerHTML=''; prev.innerHTML='';
+  for(var i=0;i<5;i++){
+    (function(i){
+      var b=document.createElement('button'); b.type='button'; b.textContent=(window._myPhotos[i]?'Change Photo '+(i+1):'Add Photo '+(i+1)); b.style.cssText='padding:8px 10px;border-radius:8px;border:1px dashed #ff5a8a;background:#333;color:white;cursor:pointer';
+      b.onclick=function(){ window._pfPhotoIndex=i; document.getElementById('pf-photo').click(); };
+      wrap.appendChild(b);
+      if(window._myPhotos[i]){
+        var im=document.createElement('img'); im.src=window._myPhotos[i]; im.style.cssText='width:70px;height:70px;border-radius:10px;object-fit:cover;cursor:pointer'; im.title='Tap to remove';
+        im.onclick=function(){ window._myPhotos[i]=''; window._myPhoto=window._myPhotos[0]||''; renderPfPhotos(); };
+        prev.appendChild(im);
+      }
+    })(i);
+  }
+}
+document.addEventListener('change', function(e){ if(e.target && e.target.id=='pf-photo'){ var f=e.target.files[0]; if(!f) return; var idx=window._pfPhotoIndex||0; var r=new FileReader(); r.onload=function(ev){ window._myPhotos[idx]=ev.target.result; window._myPhoto=window._myPhotos[0]||''; renderPfPhotos(); }; r.readAsDataURL(f); }});
+document.addEventListener('DOMContentLoaded', renderPfPhotos); setTimeout(renderPfPhotos,500);
 function saveMyProfile(){
   var n=document.getElementById('pf-name'); var c=document.getElementById('pf-country');
   if(!n || !n.value.trim()){ alert('Please enter your name'); return; }
-  var prof={name:n.value.trim(), country:c?c.value:'Equatorial Guinea', photo:window._myPhoto||'', time:Date.now()};
+  var urlPhotos=[]; for(var i=0;i<5;i++){ var u=document.getElementById('p-img-'+i); if(u&&u.value.trim()) urlPhotos[i]=u.value.trim(); }
+  var finalPhotos=[]; for(var i=0;i<5;i++){ finalPhotos[i]=window._myPhotos[i]||urlPhotos[i]||''; }
+  window._myPhotos=finalPhotos; window._myPhoto=finalPhotos[0]||'';
+  var prof={name:n.value.trim(), country:c?c.value:'Equatorial Guinea', photo:window._myPhoto||'', photos:finalPhotos, time:Date.now()};
   try{ localStorage.setItem('my_profile', JSON.stringify(prof)); var all=[]; try{all=JSON.parse(localStorage.getItem('all_profiles')||'[]');}catch(e){} all=all.filter(function(x){return x.name!==prof.name}); all.unshift(prof); localStorage.setItem('all_profiles', JSON.stringify(all)); }catch(e){ alert('Storage error: '+e); return; }
   var st=document.getElementById('pf-status'); if(st) st.textContent='Saved! Go to Discover - you are now on the map!';
   alert(prof.name+' from '+prof.country+' is now on the map!');

@@ -17,7 +17,7 @@ async function loadProfiles(){
   const data = await res.json();
   if(!Array.isArray(data)){ el.innerHTML = "<p>Create table profiles in Supabase first.</p>"; return; }
   if(!data.length){ el.innerHTML = "<p>No profiles yet. Be the first!</p>"; return; }
-  el.innerHTML = data.map(p => `<div class="card">${p.img ? `<img src="${p.img}">` : ""}<b>${p.name || "Anon"}${p.age ? ", " + p.age : ""}</b><p>📍 ${p.location || ""}</p><p>${p.bio || ""}</p><p><b>Interested in:</b> ${p.interests || "Not set"}</p><p><b>Speaks:</b> ${p.language || "Not set"}</p><p>${p.gender || ""} | Looking for: ${p.looking_for || ""}</p></div>`).join("");
+  el.innerHTML = data.map(p => { const gallery = (Array.isArray(p.photos) && p.photos.length ? p.photos : (p.img ? [p.img] : [])).filter(Boolean).slice(0,5); const galleryHtml = gallery.map((src,idx)=>`<img src="${src}" style="width:70px;height:70px;object-fit:cover;border-radius:10px;${idx===0?'border:2px solid #ff5a8a':''}">`).join(""); return `<div class="card"><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">${galleryHtml}</div><b>${p.name || "Anon"}${p.age ? ", " + p.age : ""}</b><p>📍 ${p.location || ""}</p><p>${p.bio || ""}</p><p><b>Interested in:</b> ${p.interests || "Not set"}</p><p><b>Speaks:</b> ${p.language || "Not set"}</p><p>${p.gender || ""} | Looking for: ${p.looking_for || ""}</p></div>`; }).join("");
 }
 
 async function sendWhisper(){
@@ -39,7 +39,12 @@ async function saveProfile(){
   const bio = document.getElementById("p-bio").value;
   const interests = document.getElementById("p-interests").value;
   const language = document.getElementById("p-language").value;
-  const img = document.getElementById("p-img").value;
+  const urlPhotos = [];
+  for(let i=0;i<5;i++){ const el=document.getElementById("p-img-"+i); if(el && el.value.trim()) urlPhotos.push(el.value.trim()); }
+  const uploaded = (window._myPhotos||[]).filter(Boolean);
+  const allPhotos = uploaded.length ? uploaded : urlPhotos;
+  const img = allPhotos[0] || (document.getElementById("p-img") ? document.getElementById("p-img").value : "");
+  const photos = allPhotos;
   if(!name) return alert("Add your name first");
   if(!location) return alert("Add Country first - e.g. Equatorial Guinea - Malabo");
   const res = await fetch(BASE + "/rest/v1/profiles", { method: "POST", headers, body: JSON.stringify({ id: crypto.randomUUID(), name, age, location, gender, looking_for, bio, interests, language, img }) });
