@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#6C63FF">
+  <title>Whisper</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+<style>button{ touch-action: manipulation; -webkit-tap-highlight-color: transparent; }</style>
+</head>
+<body><button id="go-premium-btn" onclick="document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('premium').classList.add('active');" style="background:#FFD700;border:none;font-size:22px;padding:8px 12px;border-radius:50%;position:fixed;top:12px;right:12px;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,0.2);">👑</button>
+
+  <!-- App Screens -->
+  <div id="app">
+
+    <!-- Discover Screen -->
+    <section id="discover" class="screen active">
+<div id="likes-circle-wrap" style="display:flex;align-items:center;gap:10px;background:white;padding:10px 14px;border-radius:20px;margin:10px 0;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+  <div style="position:relative;width:52px;height:52px;">
+    <svg width="52" height="52" viewBox="0 0 52 52">
+      <circle cx="26" cy="26" r="22" fill="none" stroke="#EEE" stroke-width="5"/>
+      <circle id="likes-ring" cx="26" cy="26" r="22" fill="none" stroke="#6C63FF" stroke-width="5" stroke-linecap="round" stroke-dasharray="138.2" stroke-dashoffset="0" transform="rotate(-90 26 26)"/>
+    </svg>
+    <span id="likes-count" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-weight:bold;font-size:13px;">30</span>
+  </div>
+  <div style="flex:1;">
+    <strong id="likes-label">30 Likes Left Today</strong><br>
+    <span style="color:#888;font-size:13px;">Refills at midnight • <span id="likes-reset" style="color:#6C63FF;font-weight:bold;cursor:pointer;">Get Unlimited →</span></span>
+  </div>
+</div>
+
+      <div class="header">
+        <h1>Whisper</h1>
+      </div>
+
+      <div class="content discover-content">
+        
+        <!-- Profile Card -->
+        <div class="profile-card">
+          <div class="card-image">
+            <div class="anonymous-badge">Anonymous</div>
+            <img id="profile-img" src="https://i.pravatar.cc/400?img=12" alt="Profile">
+          </div>
+
+          <div class="card-info">
+            <h2>Alex, 24</h2>
+            <p class="location">Lagos, Nigeria</p>
+            <p class="bio">Just a calm soul who loves late night talks and good music...</p>
+            
+            <div class="prompts">
+              <div class="prompt">
+                <strong>A perfect day for me is...</strong>
+                <p>Rainy weather, coffee, and deep conversations.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <button class="btn pass">Pass</button>
+          <button class="btn view">View Profile</button>
+          <button class="btn like">Like</button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Location Screen -->
+    <section id="location" class="screen">
+      <div class="header">
+        <h1>Location</h1>
+      </div>
+      <div class="content">
+        <p>Location search will be here</p>
+      </div>
+    </section>
+
+    <!-- Likes Screen -->
+    <section id="likes" class="screen">
+      <div class="header">
+        <h1>Likes</h1>
+      </div>
+      <div class="content">
+        <p>People you liked ❤️</p>
+        <div id="liked-list"></div>
+        <p id="no-likes" style="color:#888; text-align:center; margin-top:20px;">You haven't liked anyone yet.<br>Go to Discover and tap Like!</p>
+      </div>
+    </section>
+
+    <!-- Chats Screen -->
+    <section id="chats" class="screen"><div id="chat-list"></div><div id="chat-window" style="display:none;"><button id="back-to-chats" style="background:none;border:none;font-size:16px;color:#6C63FF;">Back</button><div style="display:flex;gap:10px;background:white;padding:10px;border-radius:15px;"><img id="chat-img" style="width:45px;height:45px;border-radius:50%;"><strong id="chat-name"></strong></div><div id="chat-messages" style="height:280px;overflow-y:auto;background:#f5f5f5;border-radius:15px;padding:12px;margin:12px 0;display:flex;flex-direction:column;gap:8px;"></div><div style="display:flex;gap:8px;"><input id="chat-input" placeholder="Type a message..." style="flex:1;padding:12px;border-radius:20px;border:1px solid #ddd;"><button id="send-btn" style="background:#6C63FF;color:white;border:none;padding:12px 18px;border-radius:20px;">Send</button></div></div><p id="no-chats">No chats yet.</p>
+      <div class="header">
+        <h1>Chats</h1>
+      </div>
+      <div class="content">
+        <p>Your conversations</p>
+      </div>
+    </section>
+
+    <!-- Profile Screen -->
+    <section id="profile" class="screen"><div id="profile-upgrade-card" onclick="document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('premium').classList.add('active');" style="background:linear-gradient(135deg,#6C63FF,#FF6B9D);color:white;padding:18px;border-radius:20px;margin:15px 0;text-align:center;"><strong style="font-size:18px;">👑 Go Premium</strong><br><span style="opacity:0.9;">Unlimited likes • See who liked you • Show on Map</span><br><button style="background:white;color:#6C63FF;border:none;padding:10px 20px;border-radius:20px;font-weight:bold;margin-top:10px;">Upgrade - $4.99</button></div>
+      <div class="header">
+        <h1>Profile</h1>
+      </div>
+      <div class="content">
+        <p>Your profile</p>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-screen="discover">
+      <span>Discover</span>
+    </button>
+    <button class="nav-btn" data-screen="location">
+      <span>Location</span>
+    </button>
+    <button class="nav-btn" data-screen="likes">
+      <span>Likes</span>
+    </button>
+    <button class="nav-btn" data-screen="chats">
+      <span>Chats</span>
+    </button>
+    <button class="nav-btn" data-screen="profile">
+      <span>Profile</span>
+    </button>
+  </nav>
+
+  
+<div id="profile-popup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:999; overflow-y:auto; padding:20px; box-sizing:border-box;">
+  <button onclick="document.getElementById('profile-popup').style.display='none'" style="background:#6C63FF; color:white; border:none; padding:12px 20px; border-radius:20px; font-size:16px;">← Back</button>
+  <img id="popup-img" src="" style="width:100%; height:300px; object-fit:cover; border-radius:20px; margin-top:15px;">
+  <h2 id="popup-name" style="margin-top:15px;"></h2>
+  <p id="popup-location" style="color:#888;"></p>
+  <p id="popup-bio" style="margin-top:10px; font-size:16px; line-height:1.5;"></p>
+  <div style="background:#f5f5ff; padding:15px; border-radius:15px; margin-top:15px;">
+    <strong id="popup-q"></strong>
+    <p id="popup-a"></p>
+  </div>
+  <button onclick="document.querySelector('.btn.like').click(); document.getElementById('profile-popup').style.display='none'" style="background:#FF4D6D; color:white; border:none; padding:15px; width:100%; border-radius:50px; margin-top:20px; font-size:16px; font-weight:bold;">Like ❤️</button>
+</div>
+
+<section id="premium" class="screen">
+  <div style="text-align:center; padding:10px;">
+    <h2 style="font-size:28px;">👑 Whisper Premium</h2>
+    <p style="color:#888;">Unlock the full Whisper experience</p>
+    <div style="background:white; padding:15px; border-radius:20px; margin:15px 0; text-align:left;">
+      <p>✅ <strong>30 Likes / Day</strong> - Free plan</p>
+      <p>✅ <strong>See Who Liked You</strong> - Premium</p>
+      <p>✅ <strong>Unlimited Chats</strong> - Premium</p>
+      <p>✅ <strong>Show Me On Map</strong> - Premium</p>
+      <p>✅ <strong>Boost Profile</strong> - VIP</p>
+      <p>✅ <strong>Rewind Last Swipe</strong> - Premium</p>
+    </div>
+    <div onclick="selectPlan('free')" id="plan-free" style="background:white; border:2px solid #ddd; padding:15px; border-radius:15px; margin-bottom:10px; text-align:left;">
+      <strong>FREE</strong> - $0<br><span style="color:#888;">30 likes/day, Chat with matches</span>
+    </div>
+    <div onclick="selectPlan('premium')" id="plan-premium" style="background:white; border:2px solid #6C63FF; padding:15px; border-radius:15px; margin-bottom:10px; text-align:left;">
+      <strong>PREMIUM - $4.99 / month</strong> ⭐ Most Popular<br><span style="color:#888;">Unlimited likes, See who liked you, Show on Map</span>
+    </div>
+    <div onclick="selectPlan('vip')" id="plan-vip" style="background:white; border:2px solid #ddd; padding:15px; border-radius:15px; margin-bottom:10px; text-align:left;">
+      <strong>VIP - $9.99 / month</strong><br><span style="color:#888;">Everything + Boost + Top of Discover</span>
+    </div>
+    <button id="upgrade-btn" style="background:#6C63FF; color:white; border:none; padding:15px; width:100%; border-radius:20px; font-size:16px; font-weight:bold; margin-top:10px;">Upgrade to Premium - $4.99</button>
+    <p id="plan-msg" style="color:#6C63FF; margin-top:10px;"></p>
+  </div>
+</section>
+<script src="script.js?v=9"></script>
+</body>
+</html>

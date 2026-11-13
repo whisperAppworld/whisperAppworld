@@ -1,0 +1,335 @@
+// Navigation
+const navButtons = document.querySelectorAll('.nav-btn');
+const screens = document.querySelectorAll('.screen');
+navButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    const targetScreen = button.getAttribute('data-screen');
+    navButtons.forEach(btn => btn.classList.remove('active'));
+    screens.forEach(screen => screen.classList.remove('active'));
+    button.classList.add('active');
+    document.getElementById(targetScreen).classList.add('active');
+  });
+});
+
+// Profiles
+const profiles = [
+  { name: "Alex, 24", location: "Lagos, Nigeria", bio: "Just a calm soul who loves late night talks and good music...", promptQ: "A perfect day for me is...", promptA: "Rainy weather, coffee, and deep conversations.", img: "https://i.pravatar.cc/400?img=12" },
+  { name: "Maya, 22", location: "Malabo, Equatorial Guinea", bio: "Soft-spoken, loves poetry and sunset walks.", promptQ: "My love language is...", promptA: "Deep talks and remembering small details.", img: "https://i.pravatar.cc/400?img=47" },
+  { name: "Jordan, 25", location: "Abuja, Nigeria", bio: "Gym in the morning, music at night. Let's talk.", promptQ: "I get excited about...", promptA: "New music, good food, and honest people.", img: "https://i.pravatar.cc/400?img=33" },
+  { name: "Sofia, 23", location: "Douala, Cameroon", bio: "Anonymous for now. Ask me anything.", promptQ: "A secret I never tell is...", promptA: "I overthink every text I send.", img: "https://i.pravatar.cc/400?img=45" }
+];
+
+let currentIndex = 0;
+let likedProfiles = []; try{ likedProfiles = JSON.parse(localStorage.getItem('whisper_liked')||'[]'); }catch(e){ likedProfiles = []; }
+let currentChat = null;
+let chats = {};
+const cardName = document.querySelector('.card-info h2');
+const cardLocation = document.querySelector('.location');
+const cardBio = document.querySelector('.bio');
+const promptQ = document.querySelector('.prompt strong');
+const promptA = document.querySelector('.prompt p');
+const profileImg = document.getElementById('profile-img');
+
+function showProfile(index) {
+  const p = profiles[index];
+  cardName.textContent = p.name;
+  cardLocation.textContent = p.location;
+  cardBio.textContent = p.bio;
+  promptQ.textContent = p.promptQ;
+  promptA.textContent = p.promptA;
+  profileImg.src = p.img;
+}
+
+function nextProfile() {
+  currentIndex = (currentIndex + 1) % profiles.length;
+  showProfile(currentIndex);
+}
+
+
+
+function openChat(person) {
+  currentChat = person;
+  // Go to Chats screen
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelector('[data-screen="chats"]').classList.add('active');
+  document.getElementById('chats').classList.add('active');
+  // Show window
+  document.getElementById('chat-list').style.display = 'none';
+  const noChats = document.getElementById('no-chats');
+  if (noChats) noChats.style.display = 'none';
+  const win = document.getElementById('chat-window');
+  win.style.display = 'block';
+  document.getElementById('chat-img').src = person.img;
+  document.getElementById('chat-name').textContent = person.name;
+  if (!chats[person.name]) chats[person.name] = [{from:'them', text:'Hey! Thanks for liking me. Tell me about you?'}];
+  renderMessages();
+}
+function renderMessages() {
+  const box = document.getElementById('chat-messages');
+  if (!box || !currentChat) return;
+  box.innerHTML = '';
+  for (let m of chats[currentChat.name]) {
+    const div = document.createElement('div');
+    div.textContent = m.text;
+    div.style.cssText = m.from === 'me' ? 'align-self:flex-end; background:#6C63FF; color:white; padding:10px 14px; border-radius:18px 18px 4px 18px; max-width:80%;' : 'align-self:flex-start; background:white; padding:10px 14px; border-radius:18px 18px 18px 4px; max-width:80%; box-shadow:0 1px 3px rgba(0,0,0,0.1);';
+    box.appendChild(div);
+  }
+  box.scrollTop = box.scrollHeight;
+}
+function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text || !currentChat) return;
+  chats[currentChat.name].push({from:'me', text:text});
+  input.value = '';
+  renderMessages();
+  // Auto reply after 1 sec so you can test
+  setTimeout(() => {
+    const replies = ['That is interesting, tell me more...', 'Haha I like your vibe', 'So what do you do for fun?', 'I would love to talk more, what about you?'];
+    const reply = replies[Math.floor(Math.random() * replies.length)];
+    chats[currentChat.name].push({from:'them', text: reply});
+    renderMessages();
+  }, 1000);
+}
+
+document.querySelector('.btn.pass').addEventListener('click', () => {
+  nextProfile();
+});
+
+let likesLeft = 30;
+let isLiking = false;
+document.querySelector('.btn.like').addEventListener('click', () => {
+  if (isLiking) return;
+  isLiking = true;
+  const btn = document.querySelector('.btn.like');
+  const p = profiles[currentIndex];
+  if (!p) { isLiking = false; return; }
+  if (likesLeft <= 0) { alert('Out of likes for today!'); isLiking = false; return; }
+  if (!likedProfiles.find(x => x.name === p.name)) {
+    likedProfiles.push(p);
+    try{ localStorage.setItem('whisper_liked', JSON.stringify(likedProfiles)); }catch(e){}
+    likesLeft--;
+    localStorage.setItem('whisper_likes_left', String(likesLeft));
+    updateLikesCircle();
+    showLiked();
+  }
+  btn.textContent = 'Liked ❤️';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.textContent = 'Like';
+    btn.disabled = false;
+    isLiking = false;
+    nextProfile();
+  }, 450);
+});
+
+document.querySelector('.btn.view').addEventListener('click', () => {
+  const p = profiles[currentIndex];
+  document.getElementById('popup-img').src = p.img;
+  document.getElementById('popup-name').textContent = p.name;
+  document.getElementById('popup-location').textContent = p.location;
+  document.getElementById('popup-bio').textContent = p.bio;
+  document.getElementById('popup-q').textContent = p.promptQ;
+  document.getElementById('popup-a').textContent = p.promptA;
+  document.getElementById('profile-popup').style.display = 'block';
+});
+
+document.getElementById('send-btn').addEventListener('click', sendMessage);
+document.getElementById('chat-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+document.getElementById('back-to-chats').addEventListener('click', () => {
+  document.getElementById('chat-window').style.display = 'none';
+  document.getElementById('chat-list').style.display = 'block';
+  const noChats = document.getElementById('no-chats');
+  if (noChats && Object.keys(chats).length === 0) noChats.style.display = 'block';
+});
+
+document.addEventListener('click', (e) => {
+  if (e.target.textContent === 'Chat') {
+    const card = e.target.closest('div');
+    const nameEl = card ? card.querySelector('strong') : null;
+    if (nameEl) {
+      const person = likedProfiles.find(p => p.name === nameEl.textContent);
+      if (person) openChat(person);
+    }
+  }
+});
+
+function openChatByName(name) {
+  const person = likedProfiles.find(function(p){ return p.name === name; });
+  if (person) { openChat(person); }
+  else { alert('Person not found: ' + name); }
+}
+window.openChatByName = openChatByName;
+
+document.addEventListener('click', function(e) {
+  if (e.target.hasAttribute && e.target.hasAttribute('data-chat-name')) {
+    const card = e.target.closest('div');
+    const nameEl = card ? card.querySelector('strong') : null;
+    if (nameEl) { openChatByName(nameEl.textContent); }
+  }
+});
+
+document.getElementById('test-chat-btn').addEventListener('click', function() {
+  const alex = profiles[0];
+  if (!likedProfiles.find(function(p){ return p.name === alex.name; })) { likedProfiles.push(alex); try{ localStorage.setItem('whisper_liked', JSON.stringify(likedProfiles)); }catch(e){} }
+  openChat(alex);
+});
+
+let currentChatIndex = -1;
+let chatStore = {};
+function openChatByIndex(i) {
+  currentChatIndex = i;
+  const person = likedProfiles[i];
+  if (!person) { alert('No person'); return; }
+  document.querySelectorAll('.nav-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.querySelector('[data-screen="chats"]').classList.add('active');
+  document.getElementById('chats').classList.add('active');
+  document.getElementById('chat-window').style.display = 'block';
+  document.getElementById('chat-list').style.display = 'none';
+  const nc = document.getElementById('no-chats');
+  if (nc) nc.style.display = 'none';
+  document.getElementById('chat-img').src = person.img;
+  document.getElementById('chat-name').textContent = person.name;
+  if (!chatStore[person.name]) { chatStore[person.name] = ['Hey! Thanks for liking me.']; }
+  renderChat();
+}
+function renderChat() {
+  const person = likedProfiles[currentChatIndex];
+  const box = document.getElementById('chat-messages');
+  if (!box || !person) return;
+  box.innerHTML = '';
+  const msgs = chatStore[person.name] || [];
+  for (let k=0;k<msgs.length;k++) {
+    const d = document.createElement('div');
+    d.textContent = msgs[k];
+    d.style.cssText = 'background:white;padding:10px 14px;border-radius:15px;max-width:80%;';
+    box.appendChild(d);
+  }
+}
+function sendChat() {
+  const inp = document.getElementById('chat-input');
+  const t = inp.value.trim();
+  if (!t) return;
+  const person = likedProfiles[currentChatIndex];
+  chatStore[person.name].push('You: ' + t);
+  inp.value = '';
+  renderChat();
+  setTimeout(function(){
+    chatStore[person.name].push('Alex: That is interesting, tell me more...');
+    renderChat();
+  }, 1000);
+}
+document.getElementById('send-btn').addEventListener('click', sendChat);
+document.getElementById('back-to-chats').addEventListener('click', function(){
+  document.getElementById('chat-window').style.display = 'none';
+  document.getElementById('chat-list').style.display = 'block';
+});
+
+function showLiked() {
+  const list = document.getElementById('liked-list');
+  const emptyMsg = document.getElementById('no-likes');
+  if (!list) return;
+  if (likedProfiles.length === 0) {
+    list.innerHTML = '';
+    if (emptyMsg) emptyMsg.style.display = 'block';
+    return;
+  }
+  if (emptyMsg) emptyMsg.style.display = 'none';
+  let html = '';
+  for (let i=0;i<likedProfiles.length;i++) {
+    const p = likedProfiles[i];
+    html += '<div style="display:flex;align-items:center;gap:12px;background:white;padding:12px;border-radius:15px;margin-bottom:10px;"><img src="' + p.img + '" style="width:60px;height:60px;border-radius:50%;"><div style="flex:1;"><strong>' + p.name + '</strong><br><span style="color:#888;">' + p.location + '</span></div><button onclick="openChatByIndex(' + i + ')" style="background:#6C63FF;color:white;border:none;padding:8px 14px;border-radius:20px;">Chat</button></div>';
+  }
+  list.innerHTML = html;
+}
+// NEW_SHOWLIKED
+
+let selectedPlan = 'premium';
+function selectPlan(plan) {
+  selectedPlan = plan;
+  const prices = {free:'Continue Free', premium:'Upgrade to Premium - $4.99', vip:'Upgrade to VIP - $9.99'};
+  document.getElementById('upgrade-btn').textContent = prices[plan];
+  document.getElementById('plan-msg').textContent = '';
+}
+document.getElementById('upgrade-btn').addEventListener('click', function(){
+  if (selectedPlan === 'free') {
+    document.getElementById('plan-msg').textContent = 'You are on Free - 30 likes/day';
+  } else {
+    document.getElementById('plan-msg').textContent = 'Payment coming soon - this will use App Store / Google Play for ' + selectedPlan + ' worldwide.';
+  }
+});
+
+// --- 30 LIKES / DAY SYSTEM ---
+function loadLikes() {
+  const today = new Date().toDateString();
+  const savedDate = localStorage.getItem('whisper_like_date');
+  const savedCount = localStorage.getItem('whisper_likes_left');
+  if (savedDate !== today) {
+    likesLeft = 30;
+    localStorage.setItem('whisper_like_date', today);
+    localStorage.setItem('whisper_likes_left', '30');
+  } else if (savedCount !== null) {
+    likesLeft = parseInt(savedCount); if (isNaN(likesLeft)) likesLeft = 30;
+  }
+  updateLikesCircle();
+}
+function updateLikesCircle() {
+  const ring = document.getElementById('likes-ring');
+  const countEl = document.getElementById('likes-count');
+  const label = document.getElementById('likes-label');
+  if (!ring) return;
+  const total = 138.2;
+  const pct = likesLeft / 30;
+  ring.style.strokeDashoffset = total * (1 - pct);
+  ring.style.stroke = likesLeft === 0 ? '#FF6B9D' : '#6C63FF';
+  if (countEl) countEl.textContent = likesLeft;
+  if (label) label.textContent = likesLeft === 0 ? 'Out of Likes!' : likesLeft + ' Likes Left Today';
+}
+function useLike() {
+  loadLikes();
+  if (likesLeft <= 0) {
+    if (confirm('Out of likes for today!\nGo Premium for unlimited likes?')) {
+      document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+      document.getElementById('premium').classList.add('active');
+    }
+    return false;
+  }
+  likesLeft--;
+  localStorage.setItem('whisper_likes_left', String(likesLeft));
+  updateLikesCircle();
+  return true;
+}
+// Hook the reset link
+document.addEventListener('DOMContentLoaded', function(){
+  loadLikes(); showLiked();
+  const r = document.getElementById('likes-reset');
+  if (r) r.addEventListener('click', function(){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById('premium').classList.add('active');
+  });
+});
+// Call load on start too (if DOM already loaded)
+loadLikes();
+while (currentIndex < profiles.length && likedProfiles.find(x => x.name === profiles[currentIndex].name)) { currentIndex++; }
+showLiked(); updateLikesCircle();
+
+// --- FIX v2: restore likesLeft + skip already-liked ---
+(function(){
+  try{
+    var saved = parseInt(localStorage.getItem('whisper_likes_left'), 10);
+    if(!isNaN(saved)) likesLeft = saved;
+    try{ updateLikesCircle(); }catch(e){}
+  }catch(e){}
+  function skip(){
+    while(currentIndex < profiles.length && likedProfiles.find(function(x){return x.name===profiles[currentIndex].name;})){
+      currentIndex++;
+    }
+    if(currentIndex >= profiles.length) currentIndex = 0;
+    showProfile(currentIndex);
+    try{ showLiked(); updateLikesCircle(); }catch(e){}
+  }
+  document.addEventListener('DOMContentLoaded', function(){ setTimeout(skip, 100); });
+  setTimeout(skip, 600);
+})();
