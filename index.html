@@ -140,6 +140,21 @@ function renderCircles(){
   }).join('');
 }
 
+
+function getDeck(){
+  var deck = [];
+  try{
+    var all = JSON.parse(localStorage.getItem('all_profiles')||'[]');
+    all.forEach(function(x){
+      if(x && x.name) deck.push({name:x.name, country:x.country||'Equatorial Guinea', age:x.age||25, photo:x.photo||'', isReal:true});
+    });
+  }catch(e){}
+  names.forEach(function(n,i){
+    if(!deck.find(function(d){return d.name===n;})) deck.push({name:n, country:countries[i], age:19+((i*7)%14), photo:'https://i.pravatar.cc/600?img='+((i%70)+1), isReal:false});
+  });
+  return deck;
+}
+
 let swipeIdx=0;
 function getAges(){return names.map(function(n,i){return 19+((i*7)%14);});}
 function getFiltered(){
@@ -155,13 +170,19 @@ function renderSwipe(){
   }
   let el=document.getElementById('swipe-card'); if(!el) return;
   let liked=getLiked();
-  let list=getFiltered();
-  while(swipeIdx<list.length && liked.includes(names[list[swipeIdx]])) swipeIdx++;
+  let deck=getDeck();
+  let v=cf?cf.value:'ALL';
+  let list=deck.map(function(d,i){return i;}).filter(function(i){return v==='ALL'||deck[i].country===v;});
+  while(swipeIdx<list.length && liked.includes(deck[list[swipeIdx]].name)) swipeIdx++;
   if(swipeIdx>=list.length){ el.innerHTML='<div class="card" style="text-align:center;padding:30px"><h3>🎉 No more people in this country</h3><p>Try All Countries or come back tomorrow.</p></div>'; return; }
-  let idx=list[swipeIdx], n=names[idx], c=countries[idx], age=getAges()[idx];
-  let photo='https://i.pravatar.cc/600?img='+((idx%70)+1);
-  el.innerHTML = `<div class="swipe-card"><div class="photo" onclick="likePerson('${n}')" style="position:relative;cursor:pointer"><div style="font-size:110px">${n.charAt(0)}</div><img src="${photo}" onerror="this.remove()" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" /></div><div class="info"><h3>${n} - ${age}</h3><p>${c}</p><p>Looking to meet new people</p></div><div class="swipe-actions"><button class="btn-pass" onclick="passPerson()">Pass</button><button class="btn-like" onclick="likePerson('${n}')">Like</button></div></div>`;
+  let idx=list[swipeIdx], d=deck[idx], n=d.name, c=d.country, age=d.age;
+  let photo=d.photo||'https://i.pravatar.cc/600?img=1';
+  el.innerHTML = `<div class="swipe-card"><div class="photo" onclick="likePerson('${n}')" style="position:relative;cursor:pointer"><div style="font-size:110px">${n.charAt(0)}</div><img src="${photo}" onerror="this.remove()" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" /></div><div class="info"><h3>${n} - ${age}</h3><p>${c}</p><p>Looking to meet new people</p>'+badgesHtmlFor(n)+'</div><div class="swipe-actions"><button class="btn-pass" onclick="passPerson()">Pass</button><button class="btn-like" onclick="likePerson('${n}')">Like</button></div></div>`;
 }
+
+function getVerifiedFor(name){ try{ var all=JSON.parse(localStorage.getItem('all_profiles')||'[]'); var f=all.find(function(x){return x&&x.name===name;}); if(!f) return null; return {email:!!f.email_verified, photo:!!f.photo_verified}; }catch(e){ return null; } }
+function badgesHtmlFor(name){ var v=getVerifiedFor(name); if(!v||(!v.email&&!v.photo)) return ''; var s='<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">'; if(v.email) s+='<span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:800">✓ Email Verified</span>'; if(v.photo) s+='<span style="background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:800">📸 Photo Verified</span>'; return s+'</div>'; }
+
 function passPerson(){swipeIdx++;renderSwipe();}
 function openMap(){document.getElementById('map-modal').classList.add('open');setTimeout(function(){initMap();if(window._map)window._map.invalidateSize();},100);}
 function closeMap(){document.getElementById('map-modal').classList.remove('open');}
@@ -180,11 +201,19 @@ function initMap(){
   let map=L.map('map').setView([3.75, 8.78], 3); window._map=map;
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:19,attribution:'© OpenStreetMap © CARTO'}).addTo(map);
   let liked=getLiked();
+  getDeck().forEach(function(d,di){
+    if(d.isReal){
+      let lat=3.75 + (Math.sin(di*2.3)*25);
+      let lng=8.78 + (Math.cos(di*1.7)*45);
+      let color=liked.includes(d.name)?'red':'#22c55e';
+      L.circleMarker([lat,lng],{radius:10,color:color,fillColor:color,fillOpacity:0.9}).addTo(map).bindPopup('<b>'+d.name+'</b> (Real)<br>'+d.country+badgesHtmlFor(d.name)+'<br><button onclick="likePerson(\''+d.name+'\')">❤️ Like</button>');
+    }
+  });
   names.forEach((n,i)=>{
     let lat=3.75 + (Math.sin(i*2.3)*25);
     let lng=8.78 + (Math.cos(i*1.7)*45);
     let color=liked.includes(n)?'red':'pink';
-    L.circleMarker([lat,lng],{radius:8,color:color,fillColor:color,fillOpacity:0.9}).addTo(map).bindPopup('<b>'+n+'</b><br>'+countries[i]+'<br><button onclick="likePerson(\''+n+'\')">❤️ Like</button>');
+    L.circleMarker([lat,lng],{radius:8,color:color,fillColor:color,fillOpacity:0.9}).addTo(map).bindPopup('<b>'+n+'</b><br>'+countries[i]+badgesHtmlFor(n)+'<br><button onclick="likePerson(\''+n+'\')">❤️ Like</button>');
   });
 }
 renderCircles();
@@ -289,7 +318,7 @@ function saveMyProfile(){
   var urlPhotos=[]; for(var i=0;i<5;i++){ var u=document.getElementById('p-img-'+i); if(u&&u.value.trim()) urlPhotos[i]=u.value.trim(); }
   var finalPhotos=[]; for(var i=0;i<5;i++){ finalPhotos[i]=window._myPhotos[i]||urlPhotos[i]||''; }
   window._myPhotos=finalPhotos; window._myPhoto=finalPhotos[0]||'';
-  var prof={name:n.value.trim(), age:age, gender:gender, country:c?c.value:'Equatorial Guinea', photo:window._myPhoto||'', photos:finalPhotos, time:Date.now()};
+  var _prev=null; try{ var _a0=JSON.parse(localStorage.getItem('all_profiles')||'[]'); _prev=_a0.find(function(x){return x&&x.name===n.value.trim();}); }catch(e){} var _ver=window._myVerification||(_prev?{email:_prev.email_verified,photo:_prev.photo_verified}:{email:false,photo:false}); var prof={name:n.value.trim(), age:age, gender:gender, country:c?c.value:'Equatorial Guinea', photo:window._myPhoto||'', photos:finalPhotos, time:Date.now(), email_verified:!!_ver.email, photo_verified:!!_ver.photo};
   try{ localStorage.setItem('my_profile', JSON.stringify(prof)); var all=[]; try{all=JSON.parse(localStorage.getItem('all_profiles')||'[]');}catch(e){} all=all.filter(function(x){return x.name!==prof.name}); all.unshift(prof); localStorage.setItem('all_profiles', JSON.stringify(all)); }catch(e){ alert('Storage error: '+e); return; }
   var st=document.getElementById('pf-status'); if(st) st.textContent='Saved! Go to Discover - you are now on the map!';
   alert(prof.name+' from '+prof.country+' is now on the map!');
@@ -502,6 +531,8 @@ setTimeout(syncProfileHeader,500); setTimeout(syncProfileHeader,1500); setInterv
     var pb=document.getElementById('v-photo-btn'); if(pb) pb.textContent=photoVerified?'Verified ✓':(photoPending?'Pending Review…':'Verify My Photo');
     var pct=(emailVerified?50:0)+(photoVerified?50:0);
     var bar=document.getElementById('v-progress-bar'); if(bar) bar.style.width=pct+'%';
+    window._myVerification = {email: !!emailVerified, photo: !!photoVerified};
+    try{ var _mp = JSON.parse(localStorage.getItem('my_profile')||'{}'); if(_mp && _mp.name){ _mp.email_verified = !!emailVerified; _mp.photo_verified = !!photoVerified; localStorage.setItem('my_profile', JSON.stringify(_mp)); var _al = JSON.parse(localStorage.getItem('all_profiles')||'[]'); var _f = _al.find(function(x){return x && x.name===_mp.name;}); if(_f){ _f.email_verified=!!emailVerified; _f.photo_verified=!!photoVerified; localStorage.setItem('all_profiles', JSON.stringify(_al)); } } }catch(e){}
     renderBadges(emailVerified, photoVerified);
   }
   window.refreshVerification=refreshVerification;
