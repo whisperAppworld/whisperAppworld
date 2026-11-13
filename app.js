@@ -31,7 +31,7 @@ async function loadProfiles(){
     const gallery = (Array.isArray(p.photos) && p.photos.length ? p.photos : (p.img ? [p.img] : [])).filter(Boolean).slice(0,5);
     const main = gallery[0] || '';
     const thumbs = gallery.map((src,idx)=>`<img src="${src}" onclick="event.stopPropagation();window.open('${src}','_blank')" style="width:56px;height:56px;object-fit:cover;border-radius:10px;cursor:pointer;${idx===0?'border:2px solid #ff5a8a':''}">`).join("");
-    return `<div class="card" onclick="if(this.querySelector('img')) window.open('${main}','_blank')" style="cursor:pointer"><div style="margin-bottom:8px">${main?`<img src="${main}" style="width:100%;height:240px;object-fit:cover;border-radius:14px;display:block">`:`<div style="height:240px;border-radius:14px;background:#222;display:flex;align-items:center;justify-content:center;font-size:40px">👤</div>`}</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">${thumbs}</div><b>${p.name || "Anon"}${p.age ? ", " + p.age : ""}</b><p>📍 ${p.location || ""}</p><p>${p.bio || ""}</p><p><b>Interested in:</b> ${p.interests || "Not set"}</p><p><b>Speaks:</b> ${p.language || "Not set"}</p><p>${p.gender || ""} | Looking for: ${p.looking_for || ""}</p><p style="font-size:12px;opacity:.7">Tap photo to open full size</p></div>`;
+    return `<div class="card" onclick="if(this.querySelector('img')) window.open('${main}','_blank')" style="cursor:pointer"><div style="margin-bottom:8px">${main?`<img src="${main}" style="width:100%;height:240px;object-fit:cover;border-radius:14px;display:block">`:`<div style="height:240px;border-radius:14px;background:#222;display:flex;align-items:center;justify-content:center;font-size:40px">👤</div>`}</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">${thumbs}</div><b>${p.name || "Anon"}${p.age ? ", " + p.age : ""}</b><p>📍 ${p.location || ""}</p><p>${p.bio || ""}</p><p><b>Interested in:</b> ${p.interests || "Not set"}</p><p><b>Speaks:</b> ${p.language || "Not set"}</p><p>${p.gender || ""} | Looking for: ${p.looking_for || ""}</p><p style="font-size:12px;opacity:.7">Tap photo to open full size</p><p style="font-size:12px;color:#ff5a8a">📸 Photos saved: ${gallery.length} / 5</p></div>`;
   }).join("");
 }
 
@@ -70,3 +70,12 @@ async function saveProfile(){
 }
 loadWhispers();
 loadProfiles();
+
+window.showPhotoCount = function(){
+  try{
+    const all = JSON.parse(localStorage.getItem('all_profiles')||'[]');
+    if(!all.length) return alert('No local profile saved yet');
+    const msg = all.map(x=> (x.name||'Anon') + ': ' + (x.photos||[]).filter(Boolean).length + ' photos').join('\n');
+    alert('Saved in this phone:\n' + msg);
+  }catch(e){ alert('Error: '+e); }
+};
