@@ -62,7 +62,7 @@ section.active{display:block}
 <div id="map"></div>
 <p style="font-size:13px;color:#aaa">Tap a circle to Like. Each Like uses 1 of your 30 daily. Resets tomorrow.</p>
 <div class="circles" id="circles"></div>
-<p>30 people circling near you - tap a circle to view</p>
+<</p>
 <div id="discover-list"></div>
 </section>
 <section id="tab-matches">
@@ -125,7 +125,7 @@ function initMap(){
   });
 }
 renderCircles();
-setTimeout(initMap, 500);
+setTimeout(()=>{initMap(); if(window._map) window._map.invalidateSize();}, 800);
 
 function sendMsg(){ let v=document.getElementById('msg-input').value; if(!v) return; document.getElementById('messages-list').innerHTML+='<div class="card">You: '+v+'</div>'; document.getElementById('msg-input').value=''; }
 function showTab(name){
