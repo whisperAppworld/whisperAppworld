@@ -81,7 +81,7 @@ section.active{display:block}
 <button id="btn-matches" onclick="showTab('matches')">❤️ Matches</button>
 <button id="btn-messages" onclick="showTab('messages')">💬 Messages</button>
 <button id="btn-whisper" onclick="showTab('whisper')">🗣️ Whisper</button>
-<button id="btn-profile" class="active" onclick="showTab('profile')">👤 Profile</button>
+<button id="btn-profile" class="active" onclick="showTab('discover')">👤 Profile</button>
 </nav>
 
 <script>
@@ -154,6 +154,29 @@ function saveMyProfile(){
 }
 document.addEventListener('click', function(e){ if(e.target && e.target.id=='pf-save-btn'){ saveMyProfile(); }});
 window.saveMyProfile=saveMyProfile;
+</script>
+<!-- FORCE DISCOVER DEFAULT -->
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  try{
+    // Hide all tab contents, show only discover
+    var tabs = document.querySelectorAll('[id="discover"], [id="profile"], [id="chats"], [id="likes"], [id="settings"]');
+    tabs.forEach(function(el){ el.style.display = (el.id==='discover' ? 'block' : 'none'); });
+    // Also try common class
+    var panes = document.querySelectorAll('.tab-pane, .tab-content, .page');
+    // Only if we found discover, force it
+    var d = document.getElementById('discover');
+    if(d){ d.style.display='block'; }
+    var pr = document.getElementById('profile');
+    if(pr){ pr.style.display='none'; }
+    if(typeof showTab==='function'){ try{ showTab('discover'); }catch(e){} }
+    // Fix nav active state
+    document.querySelectorAll('.nav-btn, .tab-btn, [data-tab]').forEach(function(b){
+      var isDisc = (b.getAttribute('data-tab')==='discover' || b.textContent.toLowerCase().includes('discover') || b.textContent.includes('🔥'));
+      b.classList.toggle('active', isDisc);
+    });
+  }catch(e){ console.log(e); }
+});
 </script>
 </body>
 </html>
