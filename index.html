@@ -35,17 +35,26 @@ section.active{display:block}
 <p id="auth-status" style="color:#0f0"></p>
 </div>
 <div id="my-profile-box" style="background:#222;padding:15px;border-radius:12px;margin:10px 0"><h3>Create My Profile</h3><input id="pf-name" placeholder="Your name" style="width:100%;padding:10px;margin:5px 0;border-radius:8px;border:none"><select id="pf-country" style="width:100%;padding:10px;margin:5px 0;border-radius:8px"><option>Equatorial Guinea</option><option>Nigeria</option><option>Cameroon</option><option>Ghana</option><option>Kenya</option><option>Spain</option><option>France</option><option>USA</option><option>UK</option><option>Brazil</option><option>Morocco</option><option>Senegal</option><option>South Africa</option><option>Germany</option><option>Italy</option><option>Mexico</option><option>Canada</option><option>Egypt</option><option>India</option><option>Colombia</option></select><p style="color:white;margin:8px 0 4px">Profile Photos - up to 5 (1st photo is your main photo)</p><div id="pf-photos" style="display:flex;gap:8px;flex-wrap:wrap"></div><div id="pf-previews" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div><input type="file" id="pf-photo" accept="image/*" style="display:none"><br><button id="pf-save-btn" type="button" style="background:#ff5a8a;color:white;border:none;padding:12px;width:100%;border-radius:10px;font-weight:bold;margin-top:8px">Save & Show Me On Map</button><p id="pf-status" style="color:#0f0"></p></div>
-<h2>My Profile</h2>
-<input id="p-name" placeholder="Your name">
-<input id="p-age" type="number" placeholder="Age">
-<input id="p-location" placeholder="Country first - e.g. Equatorial Guinea - Malabo">
-<select id="p-gender"><option value="">Gender</option><option>Female</option><option>Male</option><option>Other</option></select>
-<select id="p-looking"><option value="">Looking for</option><option>Female</option><option>Male</option><option>Anyone</option></select>
-<textarea id="p-bio" placeholder="Bio - about you..."></textarea>
-<input id="p-interests" placeholder="Interests - e.g. Music, Football, Movies">
-<input id="p-language" placeholder="Language - e.g. Spanish, English, French">
-<p style="margin:8px 0 4px">Profile Photos - tap a block to add a photo (1st is main)</p><div id="p-blocks" style="display:flex;gap:8px;flex-wrap:wrap"></div><input id="p-img" placeholder="Photo link" style="display:none">
-<button onclick="saveProfile()">Save Profile</button>
+<div style="background:linear-gradient(135deg,#ff5a8a,#ff8a5c);border-radius:20px;padding:20px;color:white;margin-bottom:16px">
+<div style="display:flex;align-items:center;gap:14px">
+<div id="p-avatar-preview" style="width:84px;height:84px;border-radius:50%;background:white;color:#ff5a8a;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;overflow:hidden;flex-shrink:0;border:3px solid white">😊</div>
+<div><div style="font-size:22px;font-weight:900;line-height:1.1">My Profile</div><div style="opacity:0.9;font-size:13px;margin-top:4px">Make it beautiful, get more matches ✨</div><div id="p-preview-name" style="margin-top:8px;background:rgba(255,255,255,0.22);display:inline-block;padding:5px 10px;border-radius:20px;font-size:13px;font-weight:700">Your Name • Age</div></div>
+</div></div>
+<div style="background:white;border-radius:18px;padding:16px;box-shadow:0 4px 20px rgba(0,0,0,0.08);margin-bottom:14px">
+<div style="font-weight:800;font-size:15px;margin-bottom:10px;color:#222">📸 Profile Photos <span style="font-weight:400;color:#888;font-size:12px">- tap a block to add (1st is main)</span></div>
+<div id="p-blocks" style="display:flex;gap:8px;flex-wrap:wrap"></div><input id="p-img" placeholder="Photo link" style="display:none">
+</div>
+<div style="background:white;border-radius:18px;padding:16px;box-shadow:0 4px 20px rgba(0,0,0,0.08);margin-bottom:14px">
+<div style="font-weight:800;font-size:15px;margin-bottom:10px;color:#222">👤 About You</div>
+<input id="p-name" placeholder="Your name" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8;font-size:15px">
+<div style="display:flex;gap:8px"><input id="p-age" type="number" placeholder="Age" style="flex:1;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><select id="p-gender" style="flex:1;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><option value="">Gender</option><option>Female</option><option>Male</option><option>Other</option></select></div>
+<input id="p-location" placeholder="📍 Country - City e.g. Equatorial Guinea - Malabo" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8">
+<select id="p-looking" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><option value="">Looking for</option><option>Female</option><option>Male</option><option>Anyone</option></select>
+<textarea id="p-bio" placeholder="✍️ Bio - about you..." style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8;min-height:70px"></textarea>
+<input id="p-interests" placeholder="❤️ Interests - e.g. Music, Football, Movies" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8">
+<input id="p-language" placeholder="🌍 Language - e.g. Spanish, English, French" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8">
+<button onclick="saveProfile()" style="background:linear-gradient(135deg,#ff5a8a,#ff8a5c);color:white;border:none;padding:14px;width:100%;border-radius:14px;font-weight:800;font-size:16px;margin-top:8px">Save Profile 💖</button>
+</div>
 <h2>⚙️ Settings</h2>
 <div class="card"><label>Notifications</label><select id="s-notif"><option>On</option><option>Off</option></select><label>Show my profile</label><select id="s-visible"><option>Everyone</option><option>Only Matches</option><option>Hidden</option></select><label>Language</label><select id="s-lang"><option>English</option><option>Spanish</option><option>French</option></select><button onclick="alert('Settings saved')">Save Settings</button></div>
 </section>
