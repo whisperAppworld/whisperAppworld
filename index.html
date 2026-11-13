@@ -137,5 +137,18 @@ function showTab(name){
 </script>
 <script src="supabase.js"></script>
 <script src="app.js"></script>
-<script src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'></script></body>
+<script src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'></script>
+<div id="my-profile-box" style="background:#222;padding:15px;border-radius:12px;margin:10px 0">
+<h3>👤 Create My Profile</h3>
+<p style="font-size:13px;color:#aaa">This will put YOU on the map!</p>
+<input id="pf-name" placeholder="Your name" style="width:100%;padding:10px;margin:5px 0;border-radius:8px;border:none">
+<select id="pf-country" style="width:100%;padding:10px;margin:5px 0;border-radius:8px">
+<option value="Equatorial Guinea">Equatorial Guinea</option><option value="Nigeria">Nigeria</option><option value="Cameroon">Cameroon</option><option value="Ghana">Ghana</option><option value="Kenya">Kenya</option><option value="Spain">Spain</option><option value="France">France</option><option value="USA">USA</option><option value="UK">UK</option><option value="Brazil">Brazil</option><option value="Morocco">Morocco</option><option value="Senegal">Senegal</option><option value="South Africa">South Africa</option><option value="Germany">Germany</option><option value="Italy">Italy</option><option value="Mexico">Mexico</option><option value="Canada">Canada</option><option value="Egypt">Egypt</option><option value="India">India</option><option value="Colombia">Colombia</option>
+</select>
+<input type="file" id="pf-photo" accept="image/*" style="margin:5px 0;color:white">
+<br><img id="pf-preview" style="width:80px;height:80px;border-radius:50%;object-fit:cover;display:none">
+<br><button onclick="saveMyProfile()" style="background:#ff5a8a;color:white;border:none;padding:12px;width:100%;border-radius:10px;font-weight:bold;margin-top:8px">✅ Save & Show Me On Map</button>
+<p id="pf-status" style="font-size:13px;color:#0f0"></p>
+</div>
+</body>
 </html>
