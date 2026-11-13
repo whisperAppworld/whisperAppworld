@@ -406,7 +406,7 @@ setTimeout(syncProfileHeader,500); setTimeout(syncProfileHeader,1500); setInterv
     badges.innerHTML=html;
   }
   function buildPanel(){
-    if(document.getElementById('verification-panel')) return;
+    var _e=document.getElementById('verification-panel'); if(_e) _e.remove();
     var host=document.getElementById('profile-sub-my'); if(!host) return;
     var div=document.createElement('div'); div.id='verification-panel'; div.className='v-panel';
     div.innerHTML=`
