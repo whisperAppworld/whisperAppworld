@@ -138,17 +138,22 @@ function showTab(name){
 <script src="supabase.js"></script>
 <script src="app.js"></script>
 <script src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'></script>
-<div id="my-profile-box" style="background:#222;padding:15px;border-radius:12px;margin:10px 0">
-<h3>👤 Create My Profile</h3>
-<p style="font-size:13px;color:#aaa">This will put YOU on the map!</p>
-<input id="pf-name" placeholder="Your name" style="width:100%;padding:10px;margin:5px 0;border-radius:8px;border:none">
-<select id="pf-country" style="width:100%;padding:10px;margin:5px 0;border-radius:8px">
-<option value="Equatorial Guinea">Equatorial Guinea</option><option value="Nigeria">Nigeria</option><option value="Cameroon">Cameroon</option><option value="Ghana">Ghana</option><option value="Kenya">Kenya</option><option value="Spain">Spain</option><option value="France">France</option><option value="USA">USA</option><option value="UK">UK</option><option value="Brazil">Brazil</option><option value="Morocco">Morocco</option><option value="Senegal">Senegal</option><option value="South Africa">South Africa</option><option value="Germany">Germany</option><option value="Italy">Italy</option><option value="Mexico">Mexico</option><option value="Canada">Canada</option><option value="Egypt">Egypt</option><option value="India">India</option><option value="Colombia">Colombia</option>
-</select>
-<input type="file" id="pf-photo" accept="image/*" style="margin:5px 0;color:white">
-<br><img id="pf-preview" style="width:80px;height:80px;border-radius:50%;object-fit:cover;display:none">
-<br><button onclick="saveMyProfile()" style="background:#ff5a8a;color:white;border:none;padding:12px;width:100%;border-radius:10px;font-weight:bold;margin-top:8px">✅ Save & Show Me On Map</button>
-<p id="pf-status" style="font-size:13px;color:#0f0"></p>
-</div>
+
+<div id="my-profile-box" style="background:#222;padding:15px;border-radius:12px;margin:10px 0"><h3>Create My Profile</h3><input id="pf-name" placeholder="Your name" style="width:100%;padding:10px;margin:5px 0;border-radius:8px;border:none"><select id="pf-country" style="width:100%;padding:10px;margin:5px 0;border-radius:8px"><option>Equatorial Guinea</option><option>Nigeria</option><option>Cameroon</option><option>Ghana</option><option>Kenya</option><option>Spain</option><option>France</option><option>USA</option><option>UK</option><option>Brazil</option><option>Morocco</option><option>Senegal</option><option>South Africa</option><option>Germany</option><option>Italy</option><option>Mexico</option><option>Canada</option><option>Egypt</option><option>India</option><option>Colombia</option></select><input type="file" id="pf-photo" accept="image/*" style="margin:5px 0;color:white"><br><img id="pf-preview" style="width:80px;height:80px;border-radius:50%;object-fit:cover;display:none"><br><button id="pf-save-btn" type="button" style="background:#ff5a8a;color:white;border:none;padding:12px;width:100%;border-radius:10px;font-weight:bold;margin-top:8px">Save & Show Me On Map</button><p id="pf-status" style="color:#0f0"></p></div>
+<script>
+window._myPhoto='';
+document.addEventListener('change', function(e){ if(e.target && e.target.id=='pf-photo'){ var f=e.target.files[0]; if(!f) return; var r=new FileReader(); r.onload=function(ev){ window._myPhoto=ev.target.result; var im=document.getElementById('pf-preview'); if(im){im.src=window._myPhoto; im.style.display='block';} }; r.readAsDataURL(f); }});
+function saveMyProfile(){
+  var n=document.getElementById('pf-name'); var c=document.getElementById('pf-country');
+  if(!n || !n.value.trim()){ alert('Please enter your name'); return; }
+  var prof={name:n.value.trim(), country:c?c.value:'Equatorial Guinea', photo:window._myPhoto||'', time:Date.now()};
+  try{ localStorage.setItem('my_profile', JSON.stringify(prof)); var all=[]; try{all=JSON.parse(localStorage.getItem('all_profiles')||'[]');}catch(e){} all=all.filter(function(x){return x.name!==prof.name}); all.unshift(prof); localStorage.setItem('all_profiles', JSON.stringify(all)); }catch(e){ alert('Storage error: '+e); return; }
+  var st=document.getElementById('pf-status'); if(st) st.textContent='Saved! Go to Discover - you are now on the map!';
+  alert(prof.name+' from '+prof.country+' is now on the map!');
+  if(typeof initMap==='function'){ try{initMap();}catch(e){} }
+}
+document.addEventListener('click', function(e){ if(e.target && e.target.id=='pf-save-btn'){ saveMyProfile(); }});
+window.saveMyProfile=saveMyProfile;
+</script>
 </body>
 </html>
