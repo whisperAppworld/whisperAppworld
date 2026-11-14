@@ -723,20 +723,38 @@ async function showPhoneDebug(){
     if(!box){
       box = document.createElement('div');
       box.id='phone-debug';
-      box.style.cssText='position:fixed;bottom:10px;left:10px;right:10px;z-index:9999;background:#000;color:#0f0;padding:12px;font-size:12px;border-radius:10px;border:2px solid #0f0'; box.innerHTML='<textarea id="dbg-txt" style="width:100%;height:180px;background:#000;color:#0f0;font-size:12px;border:none"></textarea><button id="dbg-copy" style="width:100%;padding:10px;background:#0f0;color:#000;font-weight:bold;border-radius:8px;margin-top:6px">COPY DEBUG - then paste here</button>';
+      box.style.cssText='position:fixed;bottom:10px;left:10px;right:10px;z-index:9999;background:#000;color:#0f0;padding:12px;font-size:12px;border-radius:10px;border:2px solid #0f0';
+      box.innerHTML='<textarea id="dbg-txt" style="width:100%;height:220px;background:#000;color:#0f0;font-size:12px;border:none">Loading...</textarea><button id="dbg-copy" style="width:100%;padding:10px;background:#0f0;color:#000;font-weight:bold;border-radius:8px;margin-top:6px">COPY DEBUG - then paste here</button>';
       document.body.appendChild(box);
+      document.getElementById('dbg-copy').onclick=function(){ var ta=document.getElementById('dbg-txt'); ta.select(); try{document.execCommand('copy');}catch(e){} try{navigator.clipboard.writeText(ta.value);}catch(e){} this.textContent='COPIED! Now paste in chat'; };
     }
+    var ta=document.getElementById('dbg-txt');
+    var mp='(empty)'; try{ mp=localStorage.getItem('my_profile')||'(empty)'; }catch(e){ mp='err:'+e; }
+    var ap='(empty)'; try{ ap=localStorage.getItem('all_profiles')||'(empty)'; }catch(e){ ap='err:'+e; }
+    ta.value='STEP1 LOCAL ONLY
+MY_PROFILE='+mp+'
+ALL_PROFILES='+ap+'
+SUPABASE='+(typeof window.supabase)+'
+(cloud loading...)';
+    if(!window.supabase){ ta.value+='
+NO SUPABASE - app.js not loaded'; return; }
     var u = await window.supabase.auth.getUser();
     var uid = u && u.data && u.data.user ? u.data.user.id : 'NO-AUTH';
     var uemail = u && u.data && u.data.user ? (u.data.user.email||'') : 'NO-EMAIL';
-    var mp=''; try{ mp=localStorage.getItem('my_profile')||'(empty)'; }catch(e){ mp='err'; }
     var r = await window.supabase.from('profiles').select('*');
     var rows = r.data||[];
-    var txt = 'AUTH id='+uid+'\nAUTH email='+uemail+'\nMY_PROFILE='+mp+'\nCLOUD total='+rows.length+'\n';
-    rows.forEach(function(pr,i){ txt += (i+1)+') name='+pr.name+' | user_id='+pr.user_id+' | id='+pr.id+' | email='+pr.email+' | country='+pr.country+'\n'; });
-    txt += '\nALL_PROFILES in phone='+ (localStorage.getItem('all_profiles')||'(empty)');
-    var ta=document.getElementById('dbg-txt'); if(ta) ta.value=txt; var btn=document.getElementById('dbg-copy'); if(btn) btn.onclick=function(){ var ta2=document.getElementById('dbg-txt'); ta2.select(); document.execCommand('copy'); navigator.clipboard.writeText(ta2.value); btn.textContent='COPIED! Now paste it in WhatsApp chat'; };
-  }catch(e){ var b=document.getElementById('phone-debug'); var ta=document.getElementById('dbg-txt'); if(ta) ta.value='DEBUG ERROR '+e; }
+    var txt='AUTH id='+uid+'
+AUTH email='+uemail+'
+MY_PROFILE='+mp+'
+CLOUD total='+rows.length+' ERROR='+(r.error?JSON.stringify(r.error):'none')+'
+';
+    rows.forEach(function(pr,i){ txt+=(i+1)+') name='+pr.name+' | user_id='+pr.user_id+' | id='+pr.id+' | email='+pr.email+' | country='+pr.country+'
+'; });
+    txt+='
+ALL_PROFILES='+ap;
+    ta.value=txt;
+  }catch(e){ var ta2=document.getElementById('dbg-txt'); if(ta2) ta2.value='DEBUG ERROR: '+e+'
+'+(e.stack||''); }
 }
 setTimeout(showPhoneDebug, 1500);
 document.addEventListener('DOMContentLoaded', function(){ setTimeout(showPhoneDebug, 1500); });
