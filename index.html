@@ -350,8 +350,8 @@ async function saveMyProfile(){ alert('Saving...');
       var _user = _u && _u.data && _u.data.user;
       if(_user){
         var _row = {user_id:_user.id, email:_user.email, name:prof.name, age:prof.age?parseInt(prof.age):null, gender:prof.gender, country:prof.country, bio:prof.bio, interests:prof.interests, language:prof.language, looking:prof.looking, relationship:prof.relationship, photo:prof.photo, photos:prof.photos?JSON.stringify(prof.photos):null, updated_at:new Date().toISOString()};
-        var _up = await window.supabase.from('profiles').upsert(_row, {onConflict:'email'});
-        if(_up.error) console.error('Supabase profile save failed:', _up.error.message);
+        var _up = await window.supabase.from('profiles').upsert(_row, {onConflict:'user_id'});
+        if(_up.error){ console.error('Supabase profile save failed:', _up.error.message); alert('CLOUD SAVE FAILED: '+_up.error.message); return; }
         else console.log('Saved to Supabase cloud ✅');
       } else console.warn('Not logged in - saved locally only');
     }
