@@ -12,7 +12,7 @@ navButtons.forEach(button => {
   });
 });
 // Profiles
-const profiles = [  { name: "Maya, 21", location: "Lagos, Lagos State, Nigeria", bio: "Old soul, new ideas. Let's skip the small talk.", promptQ: "Something I love...", promptA: "A cozy cafe and a great book.", img: "https://i.pravatar.cc/400?img=29", lat: 8.5515, lng: 7.6225 },
+let profiles = [  { name: "Maya, 21", location: "Lagos, Lagos State, Nigeria", bio: "Old soul, new ideas. Let's skip the small talk.", promptQ: "Something I love...", promptA: "A cozy cafe and a great book.", img: "https://i.pravatar.cc/400?img=29", lat: 8.5515, lng: 7.6225 },
   { name: "Ife, 32", location: ", Bioko Norte, Equatorial Guinea", bio: "Explorer at heart. Ask me about my favorite hidden spot in town.", promptQ: "My guilty pleasure...", promptA: "Trying street food in a new city.", img: "https://i.pravatar.cc/400?img=5", lat: 2.1028, lng: 8.9873 },
   { name: "Kwame, 22", location: "Abuja, Federal Capital Territory, Nigeria", bio: "Foodie who loves trying new places. Take me somewhere good.", promptQ: "My ideal weekend...", promptA: "Good food and deep talks.", img: "https://i.pravatar.cc/400?img=26", lat: 9.1876, lng: 8.2671 },
   { name: "Ruby, 27", location: "Douala, Littoral, Cameroon", bio: "Foodie who loves trying new places. Take me somewhere good.", promptQ: "Best advice I've gotten...", promptA: "Laughing until my stomach hurts.", img: "https://i.pravatar.cc/400?img=1", lat: 18.674, lng: 0.0223 },
@@ -2108,3 +2108,26 @@ _origNav.forEach(btn=>{
   });
 });
 // MAP: do NOT init while hidden - init only when tab opened
+
+// --- LOAD REAL PROFILES FROM SUPABASE ---
+async function loadRealProfiles(){
+  try{
+    var res = await window.supabase.from('profiles').select('*').order('created_at',{ascending:false}).limit(50);
+    if(res.error){ console.log('profiles load error', res.error); return; }
+    var rows = res.data || [];
+    if(!rows.length) return;
+    var me = '';
+    try{ var mp = JSON.parse(localStorage.getItem('my_profile')||'{}'); me = mp.name||''; }catch(e){}
+    var mapped = rows.filter(function(r){ return r.name && r.name !== me; }).map(function(r){
+      return { name: (r.name||'') + (r.age ? ', '+r.age : ''), location: r.location || r.country || 'Equatorial Guinea', bio: r.bio || 'Say hi!', promptQ: 'Something I love...', promptA: r.bio || 'Chatting', img: r.photo || 'https://i.pravatar.cc/400?img=12', lat: 3.75, lng: 8.78 };
+    });
+    if(mapped.length){
+      profiles = mapped;
+      currentIndex = 0;
+      if(typeof showProfile==='function') showProfile(0);
+      console.log('Loaded '+mapped.length+' real profiles from Supabase');
+    }
+  }catch(e){ console.log('loadRealProfiles failed', e); }
+}
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadRealProfiles, 800); });
+setTimeout(loadRealProfiles, 1500);

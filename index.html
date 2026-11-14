@@ -92,7 +92,7 @@ function showProfileSub(n){
 <section id="tab-discover" class="active">
 <div style="display:flex;align-items:center;justify-content:space-between"><h2 style="margin:0">🔥 Discover</h2><button onclick="openMap()" style="font-size:26px;background:#222;padding:10px 14px;border-radius:50%">🌎</button></div>
 <div class="counter" id="daily-counter">❤️ 30 Likes left today</div>
-<select id="country-filter" onchange="swipeIdx=0;renderSwipe()" style="margin-top:8px"><option value="ALL">🌍 All Countries</option></select><div id="swipe-card"></div><div id="map-modal"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">🌎 People Near You</h3><button onclick="closeMap()" style="background:#333">✖️ Close</button></div><div id="map"></div></div>
+<select id="country-filter" onchange="swipeIdx=0;renderSwipe()" style="margin-top:8px"><option value="ALL">🌍 All Countries</option></select><div id="discover-loading" style="display:none;text-align:center;padding:30px;color:#aaa">⏳ Loading people...<br><span style="font-size:13px">Fetching from cloud</span></div><div id="swipe-card"></div><div id="map-modal"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">🌎 People Near You</h3><button onclick="closeMap()" style="background:#333">✖️ Close</button></div><div id="map"></div></div>
 <p style="font-size:13px;color:#aaa">Tap a circle to Like. Each Like uses 1 of your 30 daily. Resets tomorrow.</p>
 <div class="circles" id="circles" style="display:none"></div>
 </p>
@@ -179,7 +179,7 @@ function renderSwipe(){
   if(swipeIdx>=list.length) swipeIdx=0;
   while(swipeIdx<list.length && liked.includes(deck[list[swipeIdx]].name)) swipeIdx++;
   if(swipeIdx>=list.length && list.length>0){ swipeIdx=0; }
-  if(swipeIdx>=list.length){ el.innerHTML='<div class="card" style="text-align:center;padding:30px"><h3>🎉 No more people in this country</h3><p>Try All Countries or come back tomorrow.</p></div>'; return; }
+  if(swipeIdx>=list.length){ if(window._discoverLoading){ el.innerHTML='<div style="text-align:center;padding:30px;color:#aaa">⏳ Loading people...</div>'; return; } el.innerHTML='<div class="card" style="text-align:center;padding:30px"><h3>🎉 No more people in this country</h3><p>Try All Countries or come back tomorrow.</p></div>'; return; }
   let idx=list[swipeIdx], d=deck[idx], n=d.name, c=d.country, age=d.age;
   var _ph=d.photos; if(typeof _ph==='string'){ try{_ph=JSON.parse(_ph);}catch(e){_ph=_ph?_ph.split(','):[];} } if(!Array.isArray(_ph)) _ph=[]; var _allPhotos=_ph.filter(function(x){return x;}); if(!_allPhotos.length && d.photo) _allPhotos=[d.photo]; if(window._swipePhotoFor!==n){window._swipePhotoFor=n; window._swipePhotoIdx=0;} if(window._swipePhotoIdx>=_allPhotos.length) window._swipePhotoIdx=0; let photo=_allPhotos[window._swipePhotoIdx]||''; let _dots=_allPhotos.map(function(_,i){return '<span style="font-size:18px;color:'+(i===window._swipePhotoIdx?'#fff':'rgba(255,255,255,.4)')+'">●</span>';}).join(' ');
   el.innerHTML = `<div class="swipe-card"><div class="photo" onclick="nextSwipePhoto()" style="position:relative;cursor:pointer"><div style="font-size:110px">${n.charAt(0)}</div><img src="${photo}" onerror="this.remove()" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" /><div style="position:absolute;bottom:8px;left:0;right:0;text-align:center">${_dots}</div><div style="position:absolute;top:8px;right:10px;background:rgba(0,0,0,.55);padding:4px 10px;border-radius:999px;font-size:12px">👆 Tap photo for next</div></div><div class="info"><h3>${n} - ${age}</h3><p>${c}</p>${d.relationship?`<p>💍 ${d.relationship}</p>`:''}${d.interests?`<p>❤️ ${d.interests}</p>`:''}${d.bio?`<p>${d.bio}</p>`:''}${d.looking?`<p>Looking for: ${d.looking}</p>`:''}${badgesHtmlFor(n)}</div><div class="swipe-actions"><button class="btn-pass" onclick="passPerson()">Pass</button><button class="btn-like" onclick="likePerson('${n}')">Like</button><button onclick="openChat('${n}')" style="background:#333 !important">💬 Message</button></div></div>`;
@@ -686,13 +686,14 @@ document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadMyProfi
 // --- CLOUD ONLY DISCOVER - overrides index.html local logic ---
 async function loadCloudDiscover(){
   try{
-    if(!window.supabase) return;
+    window._discoverLoading=true; var _ld=document.getElementById('discover-loading'); if(_ld) _ld.style.display='block';
+    if(!window.supabase){ window._discoverLoading=false; if(_ld) _ld.style.display='none'; return; }
     var u = await window.supabase.auth.getUser();
     var uid = u && u.data && u.data.user ? u.data.user.id : null; window._myUid = uid;
     var uemail = u && u.data && u.data.user ? (u.data.user.email||'').toLowerCase() : '';
     var meName=''; try{ meName=(JSON.parse(localStorage.getItem('my_profile')||'{}').name||'').trim().toLowerCase(); }catch(e){}
     var r = await window.supabase.from('profiles').select('*').order('created_at',{ascending:false}).limit(200);
-    if(r.error){ console.log('cloud discover error', r.error); return; }
+    if(r.error){ console.log('cloud discover error', r.error); window._discoverLoading=false; if(_ld) _ld.style.display='none'; return; }
     var others = (r.data||[]).filter(function(pr){
       if(!pr||!pr.name) return false;
       if(uid && (pr.id===uid || pr.user_id===uid)) return false;
@@ -709,7 +710,8 @@ async function loadCloudDiscover(){
     if(typeof renderProfiles==='function') renderProfiles();
     if(typeof renderDeck==='function') renderDeck();
     if(typeof initMap==='function') initMap();
-  }catch(e){ console.log('loadCloudDiscover failed', e); }
+    window._discoverLoading=false; if(_ld) _ld.style.display='none';
+  }catch(e){ console.log('loadCloudDiscover failed', e); window._discoverLoading=false; var _ld2=document.getElementById('discover-loading'); if(_ld2) _ld2.style.display='none'; }
 }
 setTimeout(loadCloudDiscover, 800);
 document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadCloudDiscover, 800); });
