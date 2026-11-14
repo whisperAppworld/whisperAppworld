@@ -54,3 +54,21 @@ window.loadChat=loadChat; window.sendMsg=sendMsg;
 
 window.openChat=async function(name){window.currentChatWith=name;if(typeof showTab==="function")showTab("messages");await loadChat();};
 document.addEventListener("click",function(e){var b=e.target.closest("button");if(b==null)return;var t=b.textContent||"";if(t.indexOf("Messages")>=0)return;if(t.indexOf("Message")<0)return;var oc=b.getAttribute("onclick")||"";var m=oc.match(/openChat\(.(.+?).\)/);var nm=m?m[1]:null;if(nm==null)return;e.stopPropagation();window.openChat(nm);});
+window._lastOpen=0; window._lastOpenName="";
+window.openChat=async function(name){
+  var now=Date.now();
+  if(window._lastOpenName===name && now-window._lastOpen<800) return;
+  window._lastOpen=now; window._lastOpenName=name;
+  window.currentChatWith=name;
+  var tt=document.getElementById("chat-title"); if(tt) tt.textContent="Chat with "+name;
+  if(typeof fillSendAs==="function") fillSendAs();
+  var s=document.getElementById("send-as");
+  if(s && s.options.length===0){
+    var mpName="Me";
+    try{ var mp=JSON.parse(localStorage.getItem("my_profile")||"{}"); if(mp && mp.name) mpName=mp.name; }catch(e){}
+    var o=document.createElement("option"); o.value=mpName; o.textContent=mpName; s.appendChild(o); s.value=mpName;
+  }
+  if(typeof showTab==="function") showTab("messages");
+  var cv=document.getElementById("chat-view"); if(cv) cv.style.display="block";
+  await loadChat();
+};
