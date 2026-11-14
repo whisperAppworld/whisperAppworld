@@ -104,7 +104,7 @@ function showProfileSub(n){
 </section>
 <section id="tab-messages">
 <h2>💬 Messages</h2>
-<div id="chat-view"><h3 id="chat-title">Chat</h3><label style="font-size:12px;opacity:.8">Send as: <select id="send-as" onchange="loadChat()" style="padding:6px;border-radius:8px;background:#333;color:#fff;border:1px solid #555"></select></label><div id="messages-list"><p>No messages yet.</p></div>
+<div id="chat-view"><h3 id="chat-title">Chat</h3><div id="messages-list"><p>No messages yet.</p></div>
 <input id="msg-input" placeholder="Type a message..."><button onclick="sendMsg()">Send</button></div>
 </section>
 <nav>
@@ -300,7 +300,7 @@ document.addEventListener('DOMContentLoaded', function(){ setTimeout(refreshAuth
 if(window.supabase) window.supabase.auth.onAuthStateChange(function(e){ if(e==='SIGNED_OUT'){ clearLocalProfileAndForm(); refreshAuthUI(); return; } refreshAuthUI(); if(e==='SIGNED_IN'||e==='INITIAL_SESSION') loadMyProfileFromCloud(); });
 </script>
 <script src="app.js?v=104"></script>
-<script src="chat-fix.js?v=2"></script>
+<script src="chat-fix.js?v=3"></script>
 <script src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'></script>
 
 
