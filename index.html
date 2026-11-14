@@ -118,7 +118,7 @@ function showProfileSub(n){
 
 <script>
 // MAP + 30 DAILY LIMIT
-const names=["Amina","Carlos","Maria","John","Fatima","David","Sofia","James","Luna","Peter","Nina","Alex","Marta","Kevin","Ada","Luis","Zoe","Emma","Noah","Mia","Liam","Ava","Ethan","Chloe","Lucas","Elena","Omar","Sara","Diego","Grace","Yemi","Aisha","Kwame","Ingrid","Mateo","Yuki","Anika","Ravi","Lena","Tunde","Nia","Hugo","Priya","Felix","Zara","Andre","Maya","Kenji","Lila","Oscar","Tara","Ibrahim","Camila","Dmitri","Hana","Leo","Freya","Samuel","Isla","Marco","Nora","Victor","Ruby","Ahmed","Clara","Jonas","Mei","Tomas","Anya","Ken"];
+const names=[];
 const countries=["Equatorial Guinea","Nigeria","Cameroon","Spain","Ghana","France","USA","Kenya","Brazil","Germany","Morocco","Italy","Senegal","UK","Mexico","Portugal","Egypt","Canada","Colombia","Turkey","South Africa","India","Poland","Netherlands","Chile","Argentina","Japan","Australia","Peru","Belgium","Nigeria","Kenya","Ghana","Sweden","Mexico","Japan","India","Brazil","Germany","Nigeria","Ethiopia","France","Spain","India","Germany","Morocco","Brazil","USA","Japan","South Africa","Spain","Ethiopia","Nigeria","Brazil","Russia","Korea","Italy","Finland","Nigeria","UK","China","Mexico","Ghana","Brazil","Egypt","Spain","Norway","China","Poland","Greece"];
 // Auto-fill profile country dropdown from same countries list
 (function(){ var pc=document.getElementById('pf-country'); if(!pc) return; pc.innerHTML=''; [...new Set(countries)].sort().forEach(function(c){ var o=document.createElement('option'); o.value=c; o.textContent=c; pc.appendChild(o); }); })();
@@ -145,7 +145,7 @@ function renderPeople(){
   var el=document.getElementById('profiles'); if(!el) return;
   var all=[]; try{ all=JSON.parse(localStorage.getItem('all_profiles')||'[]'); }catch(e){}
   all=all.filter(function(x){return x && x.name;});
-  if(!all.length){ try{ var mp=JSON.parse(localStorage.getItem('my_profile')||'{}'); if(mp&&mp.name){ all=[mp]; localStorage.setItem('all_profiles', JSON.stringify(all)); } }catch(e){} }
+  if(!all.length){ all=[]; }
   var dbg='<p style="font-size:12px;color:#888">DEBUG: all_profiles='+all.length+' | my_profile='+(function(){try{return JSON.parse(localStorage.getItem('my_profile')||'{}').name||'(empty)'}catch(e){return '(err)'}})()+'</p>';
   if(!all.length){ el.innerHTML=dbg+'<p style="color:#aaa">No people yet. Go to Profile, fill Name + Age + Country, tap Save, then come back here.</p>'; return; }
   el.innerHTML=dbg+el.innerHTML;
@@ -680,5 +680,39 @@ async function loadMyProfileFromCloud(){
 }
 document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadMyProfileFromCloud, 800); });
 </script>
+
+<script>
+// --- CLOUD ONLY DISCOVER - overrides index.html local logic ---
+async function loadCloudDiscover(){
+  try{
+    if(!window.supabase) return;
+    var u = await window.supabase.auth.getUser();
+    var uid = u && u.data && u.data.user ? u.data.user.id : null;
+    var uemail = u && u.data && u.data.user ? (u.data.user.email||'').toLowerCase() : '';
+    var meName=''; try{ meName=(JSON.parse(localStorage.getItem('my_profile')||'{}').name||'').trim().toLowerCase(); }catch(e){}
+    var r = await window.supabase.from('profiles').select('*').order('created_at',{ascending:false}).limit(200);
+    if(r.error){ console.log('cloud discover error', r.error); return; }
+    var others = (r.data||[]).filter(function(pr){
+      if(!pr||!pr.name) return false;
+      if(uid && (pr.id===uid || pr.user_id===uid)) return false;
+      if(uemail && pr.email && pr.email.toLowerCase()===uemail) return false;
+      if(meName && pr.name.trim().toLowerCase()===meName) return false;
+      return true;
+    });
+    console.log('CLOUD index.html: total='+(r.data||[]).length+' others='+others.map(function(x){return x.name;}).join(', '));
+    // Replace local list with cloud others ONLY - never yourself
+    try{ localStorage.setItem('all_profiles', JSON.stringify(others)); }catch(e){}
+    // Re-render using existing render functions if they exist
+    if(typeof renderCircles==='function') renderCircles();
+    if(typeof renderSwipe==='function') renderSwipe();
+    if(typeof renderProfiles==='function') renderProfiles();
+    if(typeof renderDeck==='function') renderDeck();
+    if(typeof initMap==='function') initMap();
+  }catch(e){ console.log('loadCloudDiscover failed', e); }
+}
+setTimeout(loadCloudDiscover, 800);
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadCloudDiscover, 800); });
+</script>
+
 </body>
 </html>
