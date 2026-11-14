@@ -341,3 +341,6 @@ async function loadRealProfiles(){
   }catch(e){ console.log('loadRealProfiles failed', e); }
 }
 setTimeout(loadRealProfiles, 800);
+
+console.log("APPJS LOADED");
+document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("button");if(button{position:fixed;top:10px;right:10px;z-index:999;border:0;padding:10px 14px;border-radius:999px;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.2);font-weight:700})return;if((b.textContent||"").indexOf("Message")===-1)return;alert("clicked Message for: "+(b.closest(".card")?b.closest(".card").textContent.slice(0,40):"?"));});
