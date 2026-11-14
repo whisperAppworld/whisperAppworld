@@ -312,7 +312,7 @@ function renderPfPhotos(){
 document.addEventListener('change', function(e){ if(e.target && e.target.id=='pf-photo'){ var f=e.target.files[0]; if(!f) return; var idx=window._pfPhotoIndex||0; var r=new FileReader(); r.onload=function(ev){ window._myPhotos[idx]=ev.target.result; window._myPhoto=window._myPhotos[0]||''; renderPfPhotos(); }; r.readAsDataURL(f); }});
 document.addEventListener('DOMContentLoaded', renderPfPhotos); setTimeout(renderPfPhotos,500);
 function saveProfile(){ return saveMyProfile(); }
-function saveMyProfile(){
+async function saveMyProfile(){
   var n=document.getElementById('p-name')||document.getElementById('pf-name');
   var pf=document.getElementById('pf-name'); if(pf&&n&&n.value.trim()) pf.value=n.value.trim();
   var ageEl=document.getElementById('p-age'); var age=ageEl?ageEl.value.trim():'';
