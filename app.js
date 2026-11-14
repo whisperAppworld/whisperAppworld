@@ -83,13 +83,7 @@ setTimeout(()=>{initMap(); if(window._map) window._map.invalidateSize();}, 800);
 
 
 let currentChatWith = null;
-function openChat(name){
-  currentChatWith = name;
-  document.getElementById('chat-title').textContent = 'Chat with ' + name;
-  document.getElementById('chat-view').style.display = 'block';
-  if(typeof showTab==='function') showTab('messages');
-  loadChat();
-}
+function openChat(name){ currentChatWith=name; window.currentChatWith=name; var tt=document.getElementById('chat-title'); if(tt) tt.textContent='Chat with '+name; var cv=document.getElementById('chat-view'); if(cv) cv.style.display='block'; if(typeof showTab==='function'){ try{ showTab('messages'); }catch(e){} } setTimeout(function(){ var c2=document.getElementById('chat-view'); if(c2){ c2.style.display='block'; c2.scrollIntoView({behavior:'smooth'}); } },50); if(typeof loadChat==='function') loadChat(); } window.openChat=openChat;
 
 function getMyName(){ var s=document.getElementById('send-as'); if(s && s.value) return s.value; try{ var p=JSON.parse(localStorage.getItem('my_profile')||'{}'); if(p && p.name) return p.name; }catch(e){} return 'Me'; }
 function fillSendAs(){ var s=document.getElementById('send-as'); if(!s) return; try{ var all=JSON.parse(localStorage.getItem('all_profiles')||'[]'); var cur=s.value; s.innerHTML=''; all.forEach(function(p){ if(!p||!p.name) return; var o=document.createElement('option'); o.value=p.name; o.textContent=p.name; s.appendChild(o); }); if(cur) s.value=cur; else { try{ var mp=JSON.parse(localStorage.getItem('my_profile')||'{}'); if(mp&&mp.name) s.value=mp.name; }catch(e){} } }catch(e){} }
