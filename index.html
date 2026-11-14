@@ -493,7 +493,7 @@ setTimeout(syncProfileHeader,500); setTimeout(syncProfileHeader,1500); setInterv
       try{
         var path=user.id+'/'+Date.now()+'.jpg';
         var up=await window.supabase.storage.from('verification').upload(path, file, {upsert:true});
-        if(!up.error){ var pub=window.supabase.storage.from('verification').getPublicUrl(path); selfieUrl=pub.data.publicUrl; }
+        if(up.error) throw new Error('Upload failed: '+up.error.message); var pub=window.supabase.storage.from('verification').getPublicUrl(path); selfieUrl=pub.data.publicUrl;
       }catch(e){}
       try{
         var ins=await window.supabase.from('verification_requests').insert({user_id:user.id,email:user.email,type:'photo',status:'pending',selfie_url:selfieUrl});
