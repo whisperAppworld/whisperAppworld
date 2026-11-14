@@ -180,7 +180,7 @@ function renderSwipe(){
   if(swipeIdx>=list.length && list.length>0){ swipeIdx=0; }
   if(swipeIdx>=list.length){ el.innerHTML='<div class="card" style="text-align:center;padding:30px"><h3>🎉 No more people in this country</h3><p>Try All Countries or come back tomorrow.</p></div>'; return; }
   let idx=list[swipeIdx], d=deck[idx], n=d.name, c=d.country, age=d.age;
-  let photo=d.photo||'https://i.pravatar.cc/600?img=1';
+  let photo=d.photo||(d.photos&&d.photos[0])||'';
   el.innerHTML = `<div class="swipe-card"><div class="photo" onclick="likePerson('${n}')" style="position:relative;cursor:pointer"><div style="font-size:110px">${n.charAt(0)}</div><img src="${photo}" onerror="this.remove()" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" /></div><div class="info"><h3>${n} - ${age}</h3><p>${c}</p>${d.relationship?`<p>💍 ${d.relationship}</p>`:''}${d.interests?`<p>❤️ ${d.interests}</p>`:''}${d.bio?`<p>${d.bio}</p>`:''}${d.looking?`<p>Looking for: ${d.looking}</p>`:''}${badgesHtmlFor(n)}</div><div class="swipe-actions"><button class="btn-pass" onclick="passPerson()">Pass</button><button class="btn-like" onclick="likePerson('${n}')">Like</button><button onclick="openChat('${n}')" style="background:#333 !important">💬 Message</button></div></div>`;
 }
 
@@ -285,7 +285,7 @@ async function refreshAuthUI(){
   }catch(e){}
 }
 document.addEventListener('DOMContentLoaded', function(){ setTimeout(refreshAuthUI, 500); });
-if(window.supabase) window.supabase.auth.onAuthStateChange(function(){ refreshAuthUI(); });
+if(window.supabase) window.supabase.auth.onAuthStateChange(function(e){ refreshAuthUI(); if(e==='SIGNED_IN'||e==='INITIAL_SESSION') loadMyProfileFromCloud(); });
 </script>
 <script src="app.js"></script>
 <script src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'></script>
@@ -311,6 +311,7 @@ function renderPfPhotos(){
 }
 document.addEventListener('change', function(e){ if(e.target && e.target.id=='pf-photo'){ var f=e.target.files[0]; if(!f) return; var idx=window._pfPhotoIndex||0; var r=new FileReader(); r.onload=function(ev){ window._myPhotos[idx]=ev.target.result; window._myPhoto=window._myPhotos[0]||''; renderPfPhotos(); }; r.readAsDataURL(f); }});
 document.addEventListener('DOMContentLoaded', renderPfPhotos); setTimeout(renderPfPhotos,500);
+function compressPhoto(dataUrl,cb){ var img=new Image(); img.onload=function(){ var max=600; var w=img.width,h=img.height; var sc=Math.min(1,max/Math.max(w,h)); var c=document.createElement('canvas'); c.width=Math.round(w*sc); c.height=Math.round(h*sc); c.getContext('2d').drawImage(img,0,0,c.width,c.height); try{cb(c.toDataURL('image/jpeg',0.7));}catch(e){cb(dataUrl);} }; img.onerror=function(){cb(dataUrl);}; img.src=dataUrl; }
 function saveProfile(){ return saveMyProfile(); }
 async function saveMyProfile(){
   var n=document.getElementById('p-name')||document.getElementById('pf-name');
@@ -322,6 +323,11 @@ async function saveMyProfile(){
   var urlPhotos=[]; for(var i=0;i<5;i++){ var u=document.getElementById('p-img-'+i); if(u&&u.value.trim()) urlPhotos[i]=u.value.trim(); }
   var finalPhotos=[]; for(var i=0;i<5;i++){ finalPhotos[i]=window._myPhotos[i]||urlPhotos[i]||''; }
   window._myPhotos=finalPhotos; window._myPhoto=finalPhotos[0]||'';
+  // Compress all photos so they fit in localStorage + Supabase (was full-size base64)
+  var _toCompress=finalPhotos.filter(function(x){return x&&x.length>200000;});
+  if(_toCompress.length){ var _done=0; var _out=finalPhotos.slice(); finalPhotos.forEach(function(ph,i){ if(!ph||ph.length<=200000) return; compressPhoto(ph,function(c){ _out[i]=c; _done++; if(_done===_toCompress.length){ window._myPhotos=_out; window._myPhoto=_out[0]||''; saveMyProfileCompressed(_out); } }); }); return; }
+  return saveMyProfileCompressed(finalPhotos); }
+  async function saveMyProfileCompressed(finalPhotos){ window._myPhotos=finalPhotos; window._myPhoto=finalPhotos[0]||'';
   var _prev=null; try{ var _a0=JSON.parse(localStorage.getItem('all_profiles')||'[]'); _prev=_a0.find(function(x){return x&&x.name===n.value.trim();}); }catch(e){} var _ver=window._myVerification||(_prev?{email:_prev.email_verified,photo:_prev.photo_verified}:{email:false,photo:false}); var prof={name:n.value.trim(), age:age, gender:gender, country:country, bio:bioEl?bioEl.value.trim():'', interests:intEl?intEl.value.trim():'', language:langEl?langEl.value.trim():'', looking:lookEl?lookEl.value:'', relationship:relEl?relEl.value:'', photo:window._myPhoto||'', photos:finalPhotos, time:Date.now(), email_verified:!!_ver.email, photo_verified:!!_ver.photo};
   try{ localStorage.setItem('my_profile', JSON.stringify(prof)); var all=[]; try{all=JSON.parse(localStorage.getItem('all_profiles')||'[]');}catch(e){} all=all.filter(function(x){return x.name!==prof.name}); all.unshift(prof); localStorage.setItem('all_profiles', JSON.stringify(all));
   try{
@@ -342,7 +348,7 @@ async function saveMyProfile(){
   if(typeof initMap==='function'){ try{initMap();}catch(e){} }
 }
 document.addEventListener('click', function(e){ if(e.target && e.target.id=='pf-save-btn'){ saveMyProfile(); }});
-window.saveMyProfile=saveMyProfile; try{ var s=JSON.parse(localStorage.getItem('my_profile')||'{}'); if(s.name){ var pn=document.getElementById('p-name'); if(pn) pn.value=s.name; var pa=document.getElementById('p-age'); if(pa&&s.age) pa.value=s.age; } }catch(e){} if(typeof syncProfileHeader==='function') syncProfileHeader();
+window.saveMyProfile=saveMyProfile; try{ var s=JSON.parse(localStorage.getItem('my_profile')||'{}'); if(s.photos&&s.photos.length){ window._myPhotos=s.photos.slice(0,5); while(window._myPhotos.length<5) window._myPhotos.push(''); window._myPhoto=window._myPhotos[0]||s.photo||''; } else if(s.photo){ window._myPhotos=[s.photo,'','','','']; window._myPhoto=s.photo; } if(s.name){ var pn=document.getElementById('p-name'); if(pn) pn.value=s.name; var pa=document.getElementById('p-age'); if(pa&&s.age) pa.value=s.age; } }catch(e){} if(typeof syncProfileHeader==='function') syncProfileHeader();
 </script>
 
 
@@ -621,6 +627,37 @@ async function checkAdmin(){
   }catch(e){}
 }
 checkAdmin();
+</script>
+
+<script>
+async function loadMyProfileFromCloud(){
+  try{
+    if(!window.supabase) return;
+    var u=await window.supabase.auth.getUser(); var user=u&&u.data&&u.data.user; if(!user) return;
+    var q=await window.supabase.from('profiles').select('*').eq('user_id',user.id).maybeSingle();
+    if(q.error||!q.data) { console.log('No cloud profile yet'); return; }
+    var r=q.data; var photos=r.photos;
+    try{ if(typeof photos==='string') photos=JSON.parse(photos); }catch(e){ photos=[]; }
+    if(!Array.isArray(photos)) photos=[];
+    while(photos.length<5) photos.push('');
+    var prof={name:r.name,age:r.age!=null?String(r.age):'',gender:r.gender||'',country:r.country||'',bio:r.bio||'',interests:r.interests||'',language:r.language||'',looking:r.looking||'',relationship:r.relationship||'',photo:r.photo||photos[0]||'',photos:photos,time:Date.now(),email_verified:!!user.email_confirmed_at,photo_verified:false};
+    // Only overwrite local if cloud has a name (don't wipe local with empty row)
+    if(!prof.name) return;
+    // Keep local photo_verified flag if present
+    try{ var old=JSON.parse(localStorage.getItem('my_profile')||'{}'); if(old&&old.name===prof.name) prof.photo_verified=!!old.photo_verified; }catch(e){}
+    localStorage.setItem('my_profile', JSON.stringify(prof));
+    var all=[]; try{all=JSON.parse(localStorage.getItem('all_profiles')||'[]');}catch(e){}
+    all=all.filter(function(x){return x&&x.name!==prof.name}); all.unshift(prof);
+    localStorage.setItem('all_profiles', JSON.stringify(all));
+    window._myPhotos=photos.slice(0,5); window._myPhoto=prof.photo||'';
+    if(typeof renderPfPhotos==='function') renderPfPhotos();
+    if(typeof updateAvatar==='function') updateAvatar();
+    if(typeof initPhotoBlocks==='function') initPhotoBlocks();
+    if(typeof renderSwipe==='function') renderSwipe();
+    console.log('Loaded profile from Supabase ✅', prof.name, 'photo:', prof.photo?prof.photo.length+' chars':'none');
+  }catch(e){ console.error('Cloud load failed', e); }
+}
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadMyProfileFromCloud, 800); });
 </script>
 </body>
 </html>
