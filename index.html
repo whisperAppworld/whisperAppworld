@@ -714,5 +714,33 @@ setTimeout(loadCloudDiscover, 800);
 document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadCloudDiscover, 800); });
 </script>
 
+
+<script>
+// --- VISIBLE DEBUG FOR ANDROID - shows on Discover ---
+async function showPhoneDebug(){
+  try{
+    var box = document.getElementById('phone-debug');
+    if(!box){
+      box = document.createElement('div');
+      box.id='phone-debug';
+      box.style.cssText='position:fixed;bottom:10px;left:10px;right:10px;z-index:9999;background:#000;color:#0f0;padding:12px;font-size:12px;border-radius:10px;white-space:pre-wrap;max-height:45vh;overflow:auto;border:2px solid #0f0';
+      document.body.appendChild(box);
+    }
+    var u = await window.supabase.auth.getUser();
+    var uid = u && u.data && u.data.user ? u.data.user.id : 'NO-AUTH';
+    var uemail = u && u.data && u.data.user ? (u.data.user.email||'') : 'NO-EMAIL';
+    var mp=''; try{ mp=localStorage.getItem('my_profile')||'(empty)'; }catch(e){ mp='err'; }
+    var r = await window.supabase.from('profiles').select('*');
+    var rows = r.data||[];
+    var txt = 'AUTH id='+uid+'\nAUTH email='+uemail+'\nMY_PROFILE='+mp+'\nCLOUD total='+rows.length+'\n';
+    rows.forEach(function(pr,i){ txt += (i+1)+') name='+pr.name+' | user_id='+pr.user_id+' | id='+pr.id+' | email='+pr.email+' | country='+pr.country+'\n'; });
+    txt += '\nALL_PROFILES in phone='+ (localStorage.getItem('all_profiles')||'(empty)');
+    box.textContent = txt;
+  }catch(e){ var b=document.getElementById('phone-debug'); if(b) b.textContent='DEBUG ERROR '+e; }
+}
+setTimeout(showPhoneDebug, 1500);
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(showPhoneDebug, 1500); });
+</script>
+
 </body>
 </html>
