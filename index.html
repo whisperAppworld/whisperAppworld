@@ -542,7 +542,7 @@ setTimeout(syncProfileHeader,500); setTimeout(syncProfileHeader,1500); setInterv
 
 
 <!-- ADMIN PANEL -->
-<button id="adminBtn" onclick="openAdmin()" style="position:fixed;bottom:90px;right:12px;z-index:9999;background:#111;color:#fff;border:1px solid #333;padding:8px 12px;border-radius:999px;font-size:12px;opacity:0.7">Admin</button>
+<button id="adminBtn" onclick="openAdmin()" style="display:none;position:fixed;bottom:90px;right:12px;z-index:9999;background:#111;color:#fff;border:1px solid #333;padding:8px 12px;border-radius:999px;font-size:12px;opacity:0.7">Admin</button>
 <div id="adminPanel" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.85);overflow:auto;padding:16px">
   <div style="max-width:520px;margin:20px auto;background:#111;border:1px solid #333;border-radius:16px;padding:16px;color:#fff">
     <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">Admin - Photo Verification</h3><button onclick="closeAdmin()" style="background:#333;color:#fff;border:0;padding:6px 12px;border-radius:999px">Close</button></div>
@@ -590,5 +590,20 @@ async function adminDecision(id, status){
 }
 </script>
 
+<script>
+async function checkAdmin(){
+  try{
+    var u = await window.supabase.auth.getUser();
+    var email = u && u.data && u.data.user && u.data.user.email;
+    if(!email) return;
+    var r = await window.supabase.from("admins").select("email").eq("email", email).maybeSingle();
+    if(r.data){
+      var b = document.getElementById("adminBtn");
+      if(b) b.style.display = "block";
+    }
+  }catch(e){}
+}
+checkAdmin();
+</script>
 </body>
 </html>
