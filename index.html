@@ -241,15 +241,25 @@ async function loginUser(){
   let pass=document.getElementById('auth-pass').value;
   let {data,error}=await supabase.auth.signInWithPassword({email:email,password:pass});
   document.getElementById('auth-status').textContent=error?error.message:'Logged in as '+email;
-  if(!error){ document.getElementById('login-box').style.display='none'; var ab=document.getElementById('account-bar'); if(ab) ab.style.display='block'; var ae=document.getElementById('account-email'); if(ae) ae.textContent=email; if(typeof fillMyProfileFromStorage==='function') fillMyProfileFromStorage(); if(typeof showProfileSub==='function') showProfileSub('my'); }
+  if(!error){ document.getElementById('login-box').style.display='none'; var ab=document.getElementById('account-bar'); if(ab) ab.style.display='block'; var ae=document.getElementById('account-email'); if(ae) ae.textContent=email; if(typeof loadMyProfileFromCloud==='function') loadMyProfileFromCloud(); if(typeof showProfileSub==='function') showProfileSub('my'); }
 }
 renderCircles(); renderSwipe();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase.js"></script>
 <script>
+function clearLocalProfileAndForm(){
+  try{ localStorage.removeItem('my_profile'); localStorage.removeItem('all_profiles'); localStorage.removeItem('_last_uid'); }catch(e){}
+  window._myPhotos=['','','','','']; window._myPhoto='';
+  ['p-name','p-age','pf-name'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  var hn=document.getElementById('p-header-name'); if(hn) hn.textContent='';
+  if(typeof initPhotoBlocks==='function') initPhotoBlocks();
+  if(typeof updateAvatar==='function') updateAvatar();
+  if(typeof renderPfPhotos==='function') renderPfPhotos();
+}
 async function logoutUser(){
   try{ if(window.supabase) await window.supabase.auth.signOut(); }catch(e){}
+  clearLocalProfileAndForm();
   var lb=document.getElementById('login-box'); if(lb) lb.style.display='block';
   var ab=document.getElementById('account-bar'); if(ab) ab.style.display='none';
   var st=document.getElementById('auth-status'); if(st) st.textContent='Logged out';
@@ -279,13 +289,14 @@ async function refreshAuthUI(){
       var ab=document.getElementById('account-bar'); if(ab) ab.style.display='block';
       var ae=document.getElementById('account-email'); if(ae) ae.textContent=email;
       var st=document.getElementById('auth-status'); if(st) st.textContent='Logged in as '+email;
-      fillMyProfileFromStorage();
+      // cloud-only: do not paint stale local
+      if(typeof loadMyProfileFromCloud==='function') loadMyProfileFromCloud();
       if(typeof showProfileSub==='function') showProfileSub('my');
     }
   }catch(e){}
 }
 document.addEventListener('DOMContentLoaded', function(){ setTimeout(refreshAuthUI, 500); });
-if(window.supabase) window.supabase.auth.onAuthStateChange(function(e){ refreshAuthUI(); if(e==='SIGNED_IN'||e==='INITIAL_SESSION') loadMyProfileFromCloud(); });
+if(window.supabase) window.supabase.auth.onAuthStateChange(function(e){ if(e==='SIGNED_OUT'){ clearLocalProfileAndForm(); refreshAuthUI(); return; } refreshAuthUI(); if(e==='SIGNED_IN'||e==='INITIAL_SESSION') loadMyProfileFromCloud(); });
 </script>
 <script src="app.js"></script>
 <script src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'></script>
@@ -644,15 +655,15 @@ async function loadMyProfileFromCloud(){
   try{
     if(!window.supabase) return;
     var u=await window.supabase.auth.getUser(); var user=u&&u.data&&u.data.user; if(!user) return;
+    try{ var _last=localStorage.getItem('_last_uid'); if(_last && _last!==user.id){ localStorage.removeItem('my_profile'); localStorage.removeItem('all_profiles'); window._myPhotos=['','','','','']; } localStorage.setItem('_last_uid', user.id); }catch(e){}
     var q=await window.supabase.from('profiles').select('*').eq('user_id',user.id).maybeSingle();
-    if(q.error||!q.data) { console.log('No cloud profile yet'); return; }
+    if(q.error||!q.data) { console.log('No cloud profile yet - clearing stale local'); clearLocalProfileAndForm(); try{ localStorage.setItem('_last_uid', user.id); }catch(e){} return; }
     var r=q.data; var photos=r.photos;
     try{ if(typeof photos==='string') photos=JSON.parse(photos); }catch(e){ photos=[]; }
     if(!Array.isArray(photos)) photos=[];
     while(photos.length<5) photos.push('');
     var prof={name:r.name,age:r.age!=null?String(r.age):'',gender:r.gender||'',country:r.country||'',bio:r.bio||'',interests:r.interests||'',language:r.language||'',looking:r.looking||'',relationship:r.relationship||'',photo:r.photo||photos[0]||'',photos:photos,time:Date.now(),email_verified:!!user.email_confirmed_at,photo_verified:false};
-    // Only overwrite local if cloud has a name (don't wipe local with empty row)
-    if(!prof.name) return;
+    if(!prof.name){ clearLocalProfileAndForm(); try{ localStorage.setItem('_last_uid', user.id); }catch(e){} return; }
     // Keep local photo_verified flag if present
     try{ var old=JSON.parse(localStorage.getItem('my_profile')||'{}'); if(old&&old.name===prof.name) prof.photo_verified=!!old.photo_verified; }catch(e){}
     localStorage.setItem('my_profile', JSON.stringify(prof));
