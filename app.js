@@ -10,8 +10,8 @@ function showProfileSub(n){
 
 
 // MAP + 30 DAILY LIMIT
-let names=["Amina","Carlos","Maria","John","Fatima","David","Sofia","James","Luna","Peter","Nina","Alex","Marta","Kevin","Ada","Luis","Zoe","Emma","Noah","Mia","Liam","Ava","Ethan","Chloe","Lucas","Elena","Omar","Sara","Diego","Grace","Yemi","Aisha","Kwame","Ingrid","Mateo","Yuki","Anika","Ravi","Lena","Tunde","Nia","Hugo","Priya","Felix","Zara","Andre","Maya","Kenji","Lila","Oscar","Tara","Ibrahim","Camila","Dmitri","Hana","Leo","Freya","Samuel","Isla","Marco","Nora","Victor","Ruby","Ahmed","Clara","Jonas","Mei","Tomas","Anya","Ken"];
-let countries=["Equatorial Guinea","Nigeria","Cameroon","Spain","Ghana","France","USA","Kenya","Brazil","Germany","Morocco","Italy","Senegal","UK","Mexico","Portugal","Egypt","Canada","Colombia","Turkey","South Africa","India","Poland","Netherlands","Chile","Argentina","Japan","Australia","Peru","Belgium","Nigeria","Kenya","Ghana","Sweden","Mexico","Japan","India","Brazil","Germany","Nigeria","Ethiopia","France","Spain","India","Germany","Morocco","Brazil","USA","Japan","South Africa","Spain","Ethiopia","Nigeria","Brazil","Russia","Korea","Italy","Finland","Nigeria","UK","China","Mexico","Ghana","Brazil","Egypt","Spain","Norway","China","Poland","Greece"];
+let names=[];
+let countries=[];
 // Auto-fill profile country dropdown from same countries list
 (function(){ var pc=document.getElementById('pf-country'); if(!pc) return; pc.innerHTML=''; [...new Set(countries)].sort().forEach(function(c){ var o=document.createElement('option'); o.value=c; o.textContent=c; pc.appendChild(o); }); })();
 
@@ -282,3 +282,25 @@ async function loadRealProfiles(){
 }
 document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadRealProfiles, 1000); });
 setTimeout(loadRealProfiles, 2000);
+
+// --- CLOUD ONLY DISCOVER - NO FAKE / NO LOCAL ---
+async function loadRealProfiles(){
+  try{
+    names = []; countries = [];
+    if(!window.supabase){ console.log('no supabase client'); return; }
+    var me = '';
+    try{ me = JSON.parse(localStorage.getItem('my_profile')||'{}').name || ''; }catch(e){}
+    var r = await window.supabase.from('profiles').select('*').order('created_at',{ascending:false}).limit(200);
+    if(r.error){ console.log('profiles load error', r.error); return; }
+    (r.data||[]).forEach(function(pr){
+      if(pr && pr.name && pr.name !== me){
+        names.push(pr.name);
+        countries.push(pr.country || pr.location || 'Equatorial Guinea');
+      }
+    });
+    console.log('CLOUD Discover: me='+me+' found '+names.length+' others: '+names.join(', '));
+    renderCircles(); renderSwipe(); if(typeof initMap==='function') initMap();
+  }catch(e){ console.log('loadRealProfiles failed', e); }
+}
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadRealProfiles, 500); });
+setTimeout(loadRealProfiles, 1500);
