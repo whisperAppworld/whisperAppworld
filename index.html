@@ -327,7 +327,13 @@ async function saveMyProfile(){
   var _toCompress=finalPhotos.filter(function(x){return x&&x.length>200000;});
   if(_toCompress.length){ var _done=0; var _out=finalPhotos.slice(); finalPhotos.forEach(function(ph,i){ if(!ph||ph.length<=200000) return; compressPhoto(ph,function(c){ _out[i]=c; _done++; if(_done===_toCompress.length){ window._myPhotos=_out; window._myPhoto=_out[0]||''; saveMyProfileCompressed(_out); } }); }); return; }
   return saveMyProfileCompressed(finalPhotos); }
-  async function saveMyProfileCompressed(finalPhotos){ window._myPhotos=finalPhotos; window._myPhoto=finalPhotos[0]||'';
+  async function saveMyProfileCompressed(finalPhotos){ window._myPhotos=finalPhotos;
+  var n=document.getElementById('p-name')||document.getElementById('pf-name');
+  var ageEl=document.getElementById('p-age'); var age=ageEl?ageEl.value.trim():'';
+  var genEl=document.getElementById('p-gender'); var gender=genEl?genEl.value:'';
+  var locEl=document.getElementById('p-location'); var country=locEl&&locEl.value.trim()?locEl.value.trim():'Equatorial Guinea';
+  var bioEl=document.getElementById('p-bio'); var intEl=document.getElementById('p-interests');
+  var langEl=document.getElementById('p-language'); var lookEl=document.getElementById('p-looking'); var relEl=document.getElementById('p-relationship'); window._myPhoto=finalPhotos[0]||'';
   var _prev=null; try{ var _a0=JSON.parse(localStorage.getItem('all_profiles')||'[]'); _prev=_a0.find(function(x){return x&&x.name===n.value.trim();}); }catch(e){} var _ver=window._myVerification||(_prev?{email:_prev.email_verified,photo:_prev.photo_verified}:{email:false,photo:false}); var prof={name:n.value.trim(), age:age, gender:gender, country:country, bio:bioEl?bioEl.value.trim():'', interests:intEl?intEl.value.trim():'', language:langEl?langEl.value.trim():'', looking:lookEl?lookEl.value:'', relationship:relEl?relEl.value:'', photo:window._myPhoto||'', photos:finalPhotos, time:Date.now(), email_verified:!!_ver.email, photo_verified:!!_ver.photo};
   try{ localStorage.setItem('my_profile', JSON.stringify(prof)); var all=[]; try{all=JSON.parse(localStorage.getItem('all_profiles')||'[]');}catch(e){} all=all.filter(function(x){return x.name!==prof.name}); all.unshift(prof); localStorage.setItem('all_profiles', JSON.stringify(all));
   try{
