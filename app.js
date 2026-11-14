@@ -87,18 +87,20 @@ function openChat(name){
   currentChatWith = name;
   document.getElementById('chat-title').textContent = 'Chat with ' + name;
   document.getElementById('chat-view').style.display = 'block';
+  if(typeof showTab==='function') showTab('messages');
   loadChat();
 }
 async function loadChat(){
   if(!currentChatWith) return;
-  let me = localStorage.getItem('whisper_user') || 'Me';
+  let me = 'Me'; try{ var _mp=JSON.parse(localStorage.getItem('my_profile')||'{}'); if(_mp && _mp.name) me=_mp.name; }catch(e){}
   // For now receiver is by name stored in localStorage map - we use chat_messages with text names via content prefix
   // Real version: we load all messages and filter in JS (no fake messages)
   let { data, error } = await window.supabase.from('chat_messages').select('*').order('created_at', {ascending:true}).limit(100);
   if(error){ console.log(error); return; }
   let list = document.getElementById('messages-list');
   if(!list) return;
-  list.innerHTML = (data||[]).map(function(m){
+  var filtered=(data||[]).filter(function(m){ return (m.receiver_id===currentChatWith && m.sender_id===me) || (m.receiver_id===me && m.sender_id===currentChatWith) || (m.receiver_id===currentChatWith && !m.sender_id); });
+  list.innerHTML = filtered.map(function(m){
     let mine = m.sender_id === (window._my_id || '');
     return '<div style="text-align:'+(mine?'right':'left')+';margin:6px 0"><span style="background:'+(mine?'#ff5a8a':'#333')+';padding:8px 12px;border-radius:14px;display:inline-block;max-width:80%">'+m.content+'</span></div>';
   }).join('');
@@ -114,8 +116,10 @@ async function sendMsg(){
     localStorage.setItem('whisper_my_id', window._my_id);
   }
   // receiver_id: for now use currentChatWith name hash - real auth will replace this next step
+  let myName='Me'; try{ var _p2=JSON.parse(localStorage.getItem('my_profile')||'{}'); if(_p2 && _p2.name) myName=_p2.name; }catch(e){}
   let receiver = currentChatWith || 'General';
-  let { error } = await window.supabase.from('chat_messages').insert([{ sender_id: window._my_id, receiver_id: receiver, content: text }]);
+  let senderToUse = myName;
+  let { error } = await window.supabase.from('chat_messages').insert([{ sender_id: senderToUse, receiver_id: receiver, content: text }]);
   if(error){ alert('Send failed: ' + error.message); return; }
   inp.value = '';
   loadChat();

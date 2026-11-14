@@ -106,7 +106,6 @@ function showProfileSub(n){
 <h2>💬 Messages</h2>
 <div id="chat-view"><h3 id="chat-title">Chat</h3><div id="messages-list"><p>No messages yet.</p></div>
 <input id="msg-input" placeholder="Type a message..."><button onclick="sendMsg()">Send</button></div>
-<button onclick="sendMsg()">Send</button>
 </section>
 <nav>
 <button id="btn-discover" class="active" onclick="showTab('discover')">🔥 Discover</button>
@@ -141,19 +140,7 @@ function renderCircles(){
 }
 
 
-function getDeck(){
-  var deck = [];
-  try{
-    var all = JSON.parse(localStorage.getItem('all_profiles')||'[]');
-    all.forEach(function(x){
-      if(x && x.name) deck.push({name:x.name, country:x.country||'Equatorial Guinea', age:x.age||25, photo:x.photo||'', isReal:true});
-    });
-  }catch(e){}
-  names.forEach(function(n,i){
-    if(!deck.find(function(d){return d.name===n;})) deck.push({name:n, country:countries[i], age:19+((i*7)%14), photo:'https://i.pravatar.cc/600?img='+((i%70)+1), isReal:false});
-  });
-  return deck;
-}
+function getDeck(){ try{ var all=JSON.parse(localStorage.getItem('all_profiles')||'[]'); return all.filter(function(x){return x && x.name;}); }catch(e){ return []; } }
 
 let swipeIdx=0;
 function getAges(){return names.map(function(n,i){return 19+((i*7)%14);});}
@@ -165,7 +152,7 @@ function getFiltered(){
 function renderSwipe(){
   let cf=document.getElementById('country-filter');
   if(cf && cf.options.length<=1){
-    let uniq=[...new Set(countries)].sort();
+    let uniq=[...new Set(getDeck().map(function(d){return d.country;}))].sort();
     uniq.forEach(function(c){let o=document.createElement('option');o.value=c;o.textContent=c;cf.appendChild(o);});
   }
   let el=document.getElementById('swipe-card'); if(!el) return;
@@ -219,7 +206,7 @@ function initMap(){
 renderCircles();
 setTimeout(()=>{initMap(); if(window._map) window._map.invalidateSize();}, 800);
 
-function openChat(name){ window.currentChatWith = name; if(typeof currentChatWith !== 'undefined'){} var title=document.getElementById('chat-title'); if(title) title.textContent='Chat with '+name; showTab('messages'); } function showTab(name){ document.body.dataset.currentTab = name;
+function showTab(name){ document.body.dataset.currentTab = name;
  document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
  document.getElementById('tab-'+name).classList.add('active');
