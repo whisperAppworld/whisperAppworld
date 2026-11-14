@@ -90,9 +90,14 @@ function openChat(name){
   if(typeof showTab==='function') showTab('messages');
   loadChat();
 }
+
+function getMyName(){ var s=document.getElementById('send-as'); if(s && s.value) return s.value; try{ var p=JSON.parse(localStorage.getItem('my_profile')||'{}'); if(p && p.name) return p.name; }catch(e){} return 'Me'; }
+function fillSendAs(){ var s=document.getElementById('send-as'); if(!s) return; try{ var all=JSON.parse(localStorage.getItem('all_profiles')||'[]'); var cur=s.value; s.innerHTML=''; all.forEach(function(p){ if(!p||!p.name) return; var o=document.createElement('option'); o.value=p.name; o.textContent=p.name; s.appendChild(o); }); if(cur) s.value=cur; else { try{ var mp=JSON.parse(localStorage.getItem('my_profile')||'{}'); if(mp&&mp.name) s.value=mp.name; }catch(e){} } }catch(e){} }
+
 async function loadChat(){
   if(!currentChatWith) return;
-  let me = 'Me'; try{ var _mp=JSON.parse(localStorage.getItem('my_profile')||'{}'); if(_mp && _mp.name) me=_mp.name; }catch(e){}
+  fillSendAs();
+  let me = getMyName();
   // For now receiver is by name stored in localStorage map - we use chat_messages with text names via content prefix
   // Real version: we load all messages and filter in JS (no fake messages)
   let { data, error } = await window.supabase.from('chat_messages').select('*').order('created_at', {ascending:true}).limit(100);
@@ -101,7 +106,7 @@ async function loadChat(){
   if(!list) return;
   var filtered=(data||[]).filter(function(m){ return (m.receiver_id===currentChatWith && m.sender_id===me) || (m.receiver_id===me && m.sender_id===currentChatWith) || (m.receiver_id===currentChatWith && !m.sender_id); });
   list.innerHTML = filtered.map(function(m){
-    let mine = m.sender_id === (window._my_id || '');
+    let mine = m.sender_id === me;
     return '<div style="text-align:'+(mine?'right':'left')+';margin:6px 0"><span style="background:'+(mine?'#ff5a8a':'#333')+';padding:8px 12px;border-radius:14px;display:inline-block;max-width:80%">'+m.content+'</span></div>';
   }).join('');
   list.scrollTop = list.scrollHeight;
@@ -116,7 +121,7 @@ async function sendMsg(){
     localStorage.setItem('whisper_my_id', window._my_id);
   }
   // receiver_id: for now use currentChatWith name hash - real auth will replace this next step
-  let myName='Me'; try{ var _p2=JSON.parse(localStorage.getItem('my_profile')||'{}'); if(_p2 && _p2.name) myName=_p2.name; }catch(e){}
+  let myName=getMyName();
   let receiver = currentChatWith || 'General';
   let senderToUse = myName;
   let { error } = await window.supabase.from('chat_messages').insert([{ sender_id: senderToUse, receiver_id: receiver, content: text }]);
