@@ -723,7 +723,7 @@ async function showPhoneDebug(){
     if(!box){
       box = document.createElement('div');
       box.id='phone-debug';
-      box.style.cssText='position:fixed;bottom:10px;left:10px;right:10px;z-index:9999;background:#000;color:#0f0;padding:12px;font-size:12px;border-radius:10px;white-space:pre-wrap;max-height:45vh;overflow:auto;border:2px solid #0f0';
+      box.style.cssText='position:fixed;bottom:10px;left:10px;right:10px;z-index:9999;background:#000;color:#0f0;padding:12px;font-size:12px;border-radius:10px;border:2px solid #0f0'; box.innerHTML='<textarea id="dbg-txt" style="width:100%;height:180px;background:#000;color:#0f0;font-size:12px;border:none"></textarea><button id="dbg-copy" style="width:100%;padding:10px;background:#0f0;color:#000;font-weight:bold;border-radius:8px;margin-top:6px">COPY DEBUG - then paste here</button>';
       document.body.appendChild(box);
     }
     var u = await window.supabase.auth.getUser();
@@ -735,8 +735,8 @@ async function showPhoneDebug(){
     var txt = 'AUTH id='+uid+'\nAUTH email='+uemail+'\nMY_PROFILE='+mp+'\nCLOUD total='+rows.length+'\n';
     rows.forEach(function(pr,i){ txt += (i+1)+') name='+pr.name+' | user_id='+pr.user_id+' | id='+pr.id+' | email='+pr.email+' | country='+pr.country+'\n'; });
     txt += '\nALL_PROFILES in phone='+ (localStorage.getItem('all_profiles')||'(empty)');
-    box.textContent = txt;
-  }catch(e){ var b=document.getElementById('phone-debug'); if(b) b.textContent='DEBUG ERROR '+e; }
+    var ta=document.getElementById('dbg-txt'); if(ta) ta.value=txt; var btn=document.getElementById('dbg-copy'); if(btn) btn.onclick=function(){ var ta2=document.getElementById('dbg-txt'); ta2.select(); document.execCommand('copy'); navigator.clipboard.writeText(ta2.value); btn.textContent='COPIED! Now paste it in WhatsApp chat'; };
+  }catch(e){ var b=document.getElementById('phone-debug'); var ta=document.getElementById('dbg-txt'); if(ta) ta.value='DEBUG ERROR '+e; }
 }
 setTimeout(showPhoneDebug, 1500);
 document.addEventListener('DOMContentLoaded', function(){ setTimeout(showPhoneDebug, 1500); });
