@@ -323,7 +323,20 @@ function saveMyProfile(){
   var finalPhotos=[]; for(var i=0;i<5;i++){ finalPhotos[i]=window._myPhotos[i]||urlPhotos[i]||''; }
   window._myPhotos=finalPhotos; window._myPhoto=finalPhotos[0]||'';
   var _prev=null; try{ var _a0=JSON.parse(localStorage.getItem('all_profiles')||'[]'); _prev=_a0.find(function(x){return x&&x.name===n.value.trim();}); }catch(e){} var _ver=window._myVerification||(_prev?{email:_prev.email_verified,photo:_prev.photo_verified}:{email:false,photo:false}); var prof={name:n.value.trim(), age:age, gender:gender, country:country, bio:bioEl?bioEl.value.trim():'', interests:intEl?intEl.value.trim():'', language:langEl?langEl.value.trim():'', looking:lookEl?lookEl.value:'', relationship:relEl?relEl.value:'', photo:window._myPhoto||'', photos:finalPhotos, time:Date.now(), email_verified:!!_ver.email, photo_verified:!!_ver.photo};
-  try{ localStorage.setItem('my_profile', JSON.stringify(prof)); var all=[]; try{all=JSON.parse(localStorage.getItem('all_profiles')||'[]');}catch(e){} all=all.filter(function(x){return x.name!==prof.name}); all.unshift(prof); localStorage.setItem('all_profiles', JSON.stringify(all)); alert('Saved '+prof.name+'! Total profiles now: '+all.length); }catch(e){ alert('Storage error: '+e); return; }
+  try{ localStorage.setItem('my_profile', JSON.stringify(prof)); var all=[]; try{all=JSON.parse(localStorage.getItem('all_profiles')||'[]');}catch(e){} all=all.filter(function(x){return x.name!==prof.name}); all.unshift(prof); localStorage.setItem('all_profiles', JSON.stringify(all));
+  try{
+    if(window.supabase){
+      var _u = await window.supabase.auth.getUser();
+      var _user = _u && _u.data && _u.data.user;
+      if(_user){
+        var _row = {user_id:_user.id, email:_user.email, name:prof.name, age:prof.age?parseInt(prof.age):null, gender:prof.gender, country:prof.country, bio:prof.bio, interests:prof.interests, language:prof.language, looking:prof.looking, relationship:prof.relationship, photo:prof.photo, photos:prof.photos?JSON.stringify(prof.photos):null, updated_at:new Date().toISOString()};
+        var _up = await window.supabase.from('profiles').upsert(_row, {onConflict:'email'});
+        if(_up.error) console.error('Supabase profile save failed:', _up.error.message);
+        else console.log('Saved to Supabase cloud ✅');
+      } else console.warn('Not logged in - saved locally only');
+    }
+  }catch(e){ console.error('Cloud save error', e); }
+  alert('Saved '+prof.name+'! Total profiles now: '+all.length); }catch(e){ alert('Storage error: '+e); return; }
   var st=document.getElementById('pf-status'); if(st) st.textContent='Saved! Go to Discover - you are now on the map!';
   alert(prof.name+' from '+prof.country+' is now on the map!');
   if(typeof initMap==='function'){ try{initMap();}catch(e){} }
