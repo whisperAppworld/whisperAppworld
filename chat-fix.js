@@ -51,3 +51,6 @@ async function sendMsg(){
   inp.value=''; loadChat();
 }
 window.loadChat=loadChat; window.sendMsg=sendMsg;
+
+window.openChat=async function(name){window.currentChatWith=name;if(typeof showTab==="function")showTab("messages");await loadChat();};
+document.addEventListener("click",function(e){var b=e.target.closest("button");if(b==null)return;var t=b.textContent||"";if(t.indexOf("Messages")>=0)return;if(t.indexOf("Message")<0)return;var oc=b.getAttribute("onclick")||"";var m=oc.match(/openChat\(.(.+?).\)/);var nm=m?m[1]:null;if(nm==null)return;e.stopPropagation();window.openChat(nm);});
