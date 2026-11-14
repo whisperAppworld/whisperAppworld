@@ -145,7 +145,10 @@ function renderPeople(){
   var el=document.getElementById('profiles'); if(!el) return;
   var all=[]; try{ all=JSON.parse(localStorage.getItem('all_profiles')||'[]'); }catch(e){}
   all=all.filter(function(x){return x && x.name;});
-  if(!all.length){ el.innerHTML='<p style="color:#aaa">No people yet. Create a profile in Profile tab.</p>'; return; }
+  if(!all.length){ try{ var mp=JSON.parse(localStorage.getItem('my_profile')||'{}'); if(mp&&mp.name){ all=[mp]; localStorage.setItem('all_profiles', JSON.stringify(all)); } }catch(e){} }
+  var dbg='<p style="font-size:12px;color:#888">DEBUG: all_profiles='+all.length+' | my_profile='+(function(){try{return JSON.parse(localStorage.getItem('my_profile')||'{}').name||'(empty)'}catch(e){return '(err)'}})()+'</p>';
+  if(!all.length){ el.innerHTML=dbg+'<p style="color:#aaa">No people yet. Go to Profile, fill Name + Age + Country, tap Save, then come back here.</p>'; return; }
+  el.innerHTML=dbg+el.innerHTML;
   el.innerHTML=all.map(function(p){
     var photo=p.photo||p.photos&&p.photos[0]||'';
     return '<div class="card" style="display:flex;gap:12px;align-items:center"><div style="font-size:40px;width:60px;height:60px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;overflow:hidden">'+(photo?'<img src="'+photo+'" style="width:100%;height:100%;object-fit:cover">':(p.name||'?').charAt(0))+'</div><div style="flex:1"><b>'+p.name+' • '+(p.age||'')+'</b><br>📍 '+(p.country||'')+'</div><button onclick="openChat(\''+p.name+'\')">💬 Message</button></div>';
@@ -319,7 +322,7 @@ function saveMyProfile(){
   var finalPhotos=[]; for(var i=0;i<5;i++){ finalPhotos[i]=window._myPhotos[i]||urlPhotos[i]||''; }
   window._myPhotos=finalPhotos; window._myPhoto=finalPhotos[0]||'';
   var _prev=null; try{ var _a0=JSON.parse(localStorage.getItem('all_profiles')||'[]'); _prev=_a0.find(function(x){return x&&x.name===n.value.trim();}); }catch(e){} var _ver=window._myVerification||(_prev?{email:_prev.email_verified,photo:_prev.photo_verified}:{email:false,photo:false}); var prof={name:n.value.trim(), age:age, gender:gender, country:c?c.value:'Equatorial Guinea', photo:window._myPhoto||'', photos:finalPhotos, time:Date.now(), email_verified:!!_ver.email, photo_verified:!!_ver.photo};
-  try{ localStorage.setItem('my_profile', JSON.stringify(prof)); var all=[]; try{all=JSON.parse(localStorage.getItem('all_profiles')||'[]');}catch(e){} all=all.filter(function(x){return x.name!==prof.name}); all.unshift(prof); localStorage.setItem('all_profiles', JSON.stringify(all)); }catch(e){ alert('Storage error: '+e); return; }
+  try{ localStorage.setItem('my_profile', JSON.stringify(prof)); var all=[]; try{all=JSON.parse(localStorage.getItem('all_profiles')||'[]');}catch(e){} all=all.filter(function(x){return x.name!==prof.name}); all.unshift(prof); localStorage.setItem('all_profiles', JSON.stringify(all)); alert('Saved '+prof.name+'! Total profiles now: '+all.length); }catch(e){ alert('Storage error: '+e); return; }
   var st=document.getElementById('pf-status'); if(st) st.textContent='Saved! Go to Discover - you are now on the map!';
   alert(prof.name+' from '+prof.country+' is now on the map!');
   if(typeof initMap==='function'){ try{initMap();}catch(e){} }
