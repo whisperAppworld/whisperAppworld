@@ -304,3 +304,46 @@ async function loadRealProfiles(){
 }
 document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadRealProfiles, 500); });
 setTimeout(loadRealProfiles, 1500);
+
+// --- FIX5: CLOUD ONLY + AUTH FILTER + COUNTRY DROPDOWN REBUILD ---
+async function loadRealProfiles(){
+  try{
+    names = []; countries = [];
+    if(!window.supabase){ console.log('NO supabase client'); return; }
+    var userId=null, userEmail='';
+    try{ var s=await window.supabase.auth.getUser(); if(s&&s.data&&s.data.user){ userId=s.data.user.id; userEmail=s.data.user.email||''; } }catch(e){}
+    var meName='';
+    try{ meName=(JSON.parse(localStorage.getItem('my_profile')||'{}').name||'').trim().toLowerCase(); }catch(e){}
+    var r=await window.supabase.from('profiles').select('*').order('created_at',{ascending:false}).limit(200);
+    if(r.error){ console.log('profiles load error', r.error); return; }
+    console.log('FIX5 cloud rows: '+JSON.stringify((r.data||[]).map(function(x){return x.name+'|'+x.id+'|'+x.email+'|'+x.country;})));
+    (r.data||[]).forEach(function(pr){
+      if(!pr||!pr.name) return;
+      if(userId && (pr.id===userId || pr.user_id===userId)) return;
+      if(userEmail && pr.email && pr.email.toLowerCase()===userEmail.toLowerCase()) return;
+      if(meName && pr.name.trim().toLowerCase()===meName) return;
+      names.push(pr.name);
+      countries.push(pr.country || pr.location || 'Equatorial Guinea');
+    });
+    console.log('FIX5 Discover final: '+names.join(', ')+' | countries: '+countries.join(', '));
+    // Rebuild country dropdown from cloud countries only
+    var sel=document.querySelector('select#countryFilter, select[name="country"], #country-filter, #filterCountry');
+    if(!sel){ sel=Array.from(document.querySelectorAll('select')).find(function(s){ return /country/i.test(s.id||'')||/country/i.test(s.name||'')||/country/i.test(s.outerHTML||''); }); }
+    if(sel){
+      var uniq=['All']; countries.forEach(function(c){ if(c && uniq.indexOf(c)===-1) uniq.push(c); });
+      sel.innerHTML=uniq.map(function(c){ return '<option value="'+(c==='All'?'all':c)+'">'+(c==='All'?'All Countries':c)+'</option>'; }).join('');
+      sel.onchange=function(){
+        var v=sel.value;
+        var filteredNames=[], filteredCountries=[];
+        names.forEach(function(n,i){ if(v==='all' || countries[i]===v){ filteredNames.push(n); filteredCountries.push(countries[i]); } });
+        var savedN=names, savedC=countries; names=filteredNames; countries=filteredCountries;
+        renderCircles(); renderSwipe(); if(typeof initMap==='function') initMap();
+        names=savedN; countries=savedC;
+        console.log('FIX5 filter country='+v+' showing: '+filteredNames.join(', '));
+      };
+      console.log('FIX5 dropdown rebuilt: '+uniq.join(', '));
+    }
+    renderCircles(); renderSwipe(); if(typeof initMap==='function') initMap();
+  }catch(e){ console.log('loadRealProfiles failed', e); }
+}
+setTimeout(loadRealProfiles, 800);
