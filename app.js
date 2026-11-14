@@ -10,8 +10,8 @@ function showProfileSub(n){
 
 
 // MAP + 30 DAILY LIMIT
-const names=["Amina","Carlos","Maria","John","Fatima","David","Sofia","James","Luna","Peter","Nina","Alex","Marta","Kevin","Ada","Luis","Zoe","Emma","Noah","Mia","Liam","Ava","Ethan","Chloe","Lucas","Elena","Omar","Sara","Diego","Grace","Yemi","Aisha","Kwame","Ingrid","Mateo","Yuki","Anika","Ravi","Lena","Tunde","Nia","Hugo","Priya","Felix","Zara","Andre","Maya","Kenji","Lila","Oscar","Tara","Ibrahim","Camila","Dmitri","Hana","Leo","Freya","Samuel","Isla","Marco","Nora","Victor","Ruby","Ahmed","Clara","Jonas","Mei","Tomas","Anya","Ken"];
-const countries=["Equatorial Guinea","Nigeria","Cameroon","Spain","Ghana","France","USA","Kenya","Brazil","Germany","Morocco","Italy","Senegal","UK","Mexico","Portugal","Egypt","Canada","Colombia","Turkey","South Africa","India","Poland","Netherlands","Chile","Argentina","Japan","Australia","Peru","Belgium","Nigeria","Kenya","Ghana","Sweden","Mexico","Japan","India","Brazil","Germany","Nigeria","Ethiopia","France","Spain","India","Germany","Morocco","Brazil","USA","Japan","South Africa","Spain","Ethiopia","Nigeria","Brazil","Russia","Korea","Italy","Finland","Nigeria","UK","China","Mexico","Ghana","Brazil","Egypt","Spain","Norway","China","Poland","Greece"];
+let names=["Amina","Carlos","Maria","John","Fatima","David","Sofia","James","Luna","Peter","Nina","Alex","Marta","Kevin","Ada","Luis","Zoe","Emma","Noah","Mia","Liam","Ava","Ethan","Chloe","Lucas","Elena","Omar","Sara","Diego","Grace","Yemi","Aisha","Kwame","Ingrid","Mateo","Yuki","Anika","Ravi","Lena","Tunde","Nia","Hugo","Priya","Felix","Zara","Andre","Maya","Kenji","Lila","Oscar","Tara","Ibrahim","Camila","Dmitri","Hana","Leo","Freya","Samuel","Isla","Marco","Nora","Victor","Ruby","Ahmed","Clara","Jonas","Mei","Tomas","Anya","Ken"];
+let countries=["Equatorial Guinea","Nigeria","Cameroon","Spain","Ghana","France","USA","Kenya","Brazil","Germany","Morocco","Italy","Senegal","UK","Mexico","Portugal","Egypt","Canada","Colombia","Turkey","South Africa","India","Poland","Netherlands","Chile","Argentina","Japan","Australia","Peru","Belgium","Nigeria","Kenya","Ghana","Sweden","Mexico","Japan","India","Brazil","Germany","Nigeria","Ethiopia","France","Spain","India","Germany","Morocco","Brazil","USA","Japan","South Africa","Spain","Ethiopia","Nigeria","Brazil","Russia","Korea","Italy","Finland","Nigeria","UK","China","Mexico","Ghana","Brazil","Egypt","Spain","Norway","China","Poland","Greece"];
 // Auto-fill profile country dropdown from same countries list
 (function(){ var pc=document.getElementById('pf-country'); if(!pc) return; pc.innerHTML=''; [...new Set(countries)].sort().forEach(function(c){ var o=document.createElement('option'); o.value=c; o.textContent=c; pc.appendChild(o); }); })();
 
@@ -169,7 +169,7 @@ function renderPfPhotos(){
 }
 document.addEventListener('change', function(e){ if(e.target && e.target.id=='pf-photo'){ var f=e.target.files[0]; if(!f) return; var idx=window._pfPhotoIndex||0; var r=new FileReader(); r.onload=function(ev){ window._myPhotos[idx]=ev.target.result; window._myPhoto=window._myPhotos[0]||''; renderPfPhotos(); }; r.readAsDataURL(f); }});
 document.addEventListener('DOMContentLoaded', renderPfPhotos); setTimeout(renderPfPhotos,500);
-function saveMyProfile(){
+async function saveMyProfile(){
   var n=document.getElementById('p-name')||document.getElementById('pf-name');
   var pf=document.getElementById('pf-name'); if(pf&&n&&n.value.trim()) pf.value=n.value.trim();
   var ageEl=document.getElementById('p-age'); var age=ageEl?ageEl.value.trim():'';
@@ -181,6 +181,14 @@ function saveMyProfile(){
   window._myPhotos=finalPhotos; window._myPhoto=finalPhotos[0]||'';
   var prof={name:n.value.trim(), age:age, gender:gender, country:c?c.value:'Equatorial Guinea', photo:window._myPhoto||'', photos:finalPhotos, time:Date.now()};
   try{ localStorage.setItem('my_profile', JSON.stringify(prof)); var all=[]; try{all=JSON.parse(localStorage.getItem('all_profiles')||'[]');}catch(e){} all=all.filter(function(x){return x.name!==prof.name}); all.unshift(prof); localStorage.setItem('all_profiles', JSON.stringify(all)); }catch(e){ alert('Storage error: '+e); return; }
+  // ALSO SAVE TO SUPABASE SO OTHER USERS CAN SEE YOU
+  try{
+    var _u = await window.supabase.auth.getUser();
+    var _uid = _u && _u.data && _u.data.user ? _u.data.user.id : null;
+    if(_uid){
+      await window.supabase.from('profiles').upsert([{user_id:_uid, name:prof.name, age:prof.age?parseInt(prof.age):null, gender:prof.gender, country:prof.country, photo:prof.photo, bio:'', location:prof.country}], {onConflict:'user_id'});
+    }
+  }catch(e){ console.log('supabase profile save failed', e); }
   var st=document.getElementById('pf-status'); if(st) st.textContent='Saved! Go to Discover - you are now on the map!';
   alert(prof.name+' from '+prof.country+' is now on the map!');
   if(typeof initMap==='function'){ try{initMap();}catch(e){} }
@@ -245,3 +253,32 @@ function syncProfileHeader(){
 document.addEventListener('input',function(e){ if(e.target&&(e.target.id=='p-name'||e.target.id=='p-age'||e.target.id=='pf-name')) syncProfileHeader(); });
 document.addEventListener('DOMContentLoaded',syncProfileHeader);
 setTimeout(syncProfileHeader,500); setTimeout(syncProfileHeader,1500); setInterval(syncProfileHeader,1000);
+
+// --- LOAD REAL PROFILES INTO DISCOVER ---
+async function loadRealProfiles(){
+  try{
+    var seen = {};
+    names.forEach(function(n){ seen[n]=1; });
+    // 1) Local profiles on this phone
+    try{
+      var local = JSON.parse(localStorage.getItem('all_profiles')||'[]');
+      local.forEach(function(pr){
+        if(pr && pr.name && !seen[pr.name]){ seen[pr.name]=1; names.unshift(pr.name); countries.unshift(pr.country||'Equatorial Guinea'); }
+      });
+    }catch(e){}
+    // 2) Supabase profiles from ALL users
+    if(window.supabase){
+      var r = await window.supabase.from('profiles').select('*').order('created_at',{ascending:false}).limit(100);
+      if(r.data){
+        var me=''; try{ me=JSON.parse(localStorage.getItem('my_profile')||'{}').name||''; }catch(e){}
+        r.data.forEach(function(pr){
+          if(pr && pr.name && pr.name!==me && !seen[pr.name]){ seen[pr.name]=1; names.unshift(pr.name); countries.unshift(pr.country||pr.location||'Equatorial Guinea'); }
+        });
+      } else if(r.error){ console.log('profiles load error', r.error); }
+    }
+    renderCircles(); renderSwipe(); if(typeof initMap==='function') initMap();
+    console.log('Discover now has '+names.length+' people');
+  }catch(e){ console.log('loadRealProfiles failed', e); }
+}
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadRealProfiles, 1000); });
+setTimeout(loadRealProfiles, 2000);
