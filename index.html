@@ -143,7 +143,7 @@ function renderCircles(){
 
 function renderPeople(){
   var el=document.getElementById('profiles'); if(!el) return;
-  var all=[]; try{ all=JSON.parse(localStorage.getItem('all_profiles')||'[]'); }catch(e){}
+  var all=getDeck();
   all=all.filter(function(x){return x && x.name;});
   if(!all.length){ all=[]; }
   var dbg='<p style="font-size:12px;color:#888">DEBUG: all_profiles='+all.length+' | my_profile='+(function(){try{return JSON.parse(localStorage.getItem('my_profile')||'{}').name||'(empty)'}catch(e){return '(err)'}})()+'</p>';
@@ -175,6 +175,7 @@ function renderSwipe(){
   let deck=getDeck();
   let v=cf?cf.value:'ALL';
   let list=deck.map(function(d,i){return i;}).filter(function(i){return v==='ALL'||deck[i].country===v;});
+  if(!list.length && v!=='ALL' && cf){ cf.value='ALL'; v='ALL'; list=deck.map(function(d,i){return i;}); }
   if(swipeIdx>=list.length) swipeIdx=0;
   while(swipeIdx<list.length && liked.includes(deck[list[swipeIdx]].name)) swipeIdx++;
   if(swipeIdx>=list.length && list.length>0){ swipeIdx=0; }
