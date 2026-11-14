@@ -760,5 +760,37 @@ setTimeout(showPhoneDebug, 1500);
 document.addEventListener('DOMContentLoaded', function(){ setTimeout(showPhoneDebug, 1500); });
 </script>
 
+
+<script>
+// --- FINAL FIX: restore me from cloud, delete orphan, cloud-only render ---
+async function finalFix(){
+  try{
+    if(!window.supabase) return;
+    var u = await window.supabase.auth.getUser();
+    if(!u || !u.data || !u.data.user) return;
+    var uid = u.data.user.id;
+    // 1) Restore MY_PROFILE from my cloud row
+    var me = await window.supabase.from('profiles').select('*').eq('user_id', uid).maybeSingle();
+    if(me.data){
+      try{ localStorage.setItem('my_profile', JSON.stringify(me.data)); }catch(e){}
+    }
+    // 2) Delete orphan Donald (user_id null)
+    await window.supabase.from('profiles').delete().is('user_id', null);
+    // 3) Cloud-only Discover: everyone EXCEPT my uid
+    var r = await window.supabase.from('profiles').select('*').order('created_at',{ascending:false}).limit(200);
+    var others = (r.data||[]).filter(function(pr){ return pr && pr.name && pr.user_id !== uid; });
+    try{ localStorage.setItem('all_profiles', JSON.stringify(others)); }catch(e){}
+    if(typeof renderCircles==='function') renderCircles();
+    if(typeof renderSwipe==='function') renderSwipe();
+    if(typeof renderProfiles==='function') renderProfiles();
+    if(typeof initMap==='function') initMap();
+    var ta=document.getElementById('dbg-txt');
+    if(ta) ta.value='FINAL FIX DONE\nMY_PROFILE restored='+(me.data?me.data.name:'none')+'\nOrphan Donald deleted\nOthers now=' + others.map(function(x){return x.name;}).join(', ');
+  }catch(e){ console.log('finalFix', e); }
+}
+setTimeout(finalFix, 1000);
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(finalFix, 1000); });
+</script>
+
 </body>
 </html>
