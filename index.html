@@ -155,7 +155,7 @@ function renderPeople(){
   }).join('');
 }
 
-function getDeck(){ try{ var all=JSON.parse(localStorage.getItem('all_profiles')||'[]'); return all.filter(function(x){return x && x.name;}); }catch(e){ return []; } }
+function getDeck(){ try{ var all=JSON.parse(localStorage.getItem('all_profiles')||'[]'); var me={}; try{ me=JSON.parse(localStorage.getItem('my_profile')||'{}'); }catch(e){} var myUid=window._myUid||me.user_id||me.id||''; var myName=(me.name||'').trim().toLowerCase(); var myEmail=(me.email||'').trim().toLowerCase(); return all.filter(function(x){ if(!x||!x.name) return false; if(myUid && (x.user_id===myUid || x.id===myUid)) return false; if(myName && x.name.trim().toLowerCase()===myName) return false; if(myEmail && x.email && x.email.trim().toLowerCase()===myEmail) return false; return true; }); }catch(e){ return []; } }); }catch(e){ return []; } }
 
 let swipeIdx=0;
 function getAges(){return names.map(function(n,i){return 19+((i*7)%14);});}
@@ -687,7 +687,7 @@ async function loadCloudDiscover(){
   try{
     if(!window.supabase) return;
     var u = await window.supabase.auth.getUser();
-    var uid = u && u.data && u.data.user ? u.data.user.id : null;
+    var uid = u && u.data && u.data.user ? u.data.user.id : null; window._myUid = uid;
     var uemail = u && u.data && u.data.user ? (u.data.user.email||'').toLowerCase() : '';
     var meName=''; try{ meName=(JSON.parse(localStorage.getItem('my_profile')||'{}').name||'').trim().toLowerCase(); }catch(e){}
     var r = await window.supabase.from('profiles').select('*').order('created_at',{ascending:false}).limit(200);
