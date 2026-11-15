@@ -98,15 +98,7 @@ function syncNotifToggles() {
 document.addEventListener('DOMContentLoaded', () => {
   const pushEl = document.getElementById('t-push');
   const inappEl = document.getElementById('t-inapp');
-  if (pushEl) pushEl.addEventListener('change', async () => {
-    if (pushEl.checked) {
-      const ok = await window.setupPush();
-      if (!ok) pushEl.checked = false;
-    } else {
-      await window.disablePush();
-    }
-    syncNotifToggles();
-  });
+  // push toggle handled by onchange=handlePushToggle in HTML - no duplicate listener here
   if (inappEl) inappEl.addEventListener('change', () => {
     window.setInAppEnabled(inappEl.checked);
     syncNotifToggles();
