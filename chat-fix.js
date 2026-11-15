@@ -79,7 +79,7 @@ function fixAddVerifiedBadges(){
         root.querySelectorAll('b, strong, h3, .name').forEach(function(el){
           if(el.dataset.fixV) return; var txt=el.textContent||''; if(!txt) return;
           var prof=Object.values(_fixProfiles).find(function(p){ return p.name && txt.indexOf(p.name)>=0; });
-          if(prof && fixIsVerified(prof) && txt.indexOf('<svg width="16" height="16" viewBox="0 0 24 24" style="vertical-align:-3px;margin-left:4px;display:inline-block"><circle cx="12" cy="12" r="10.5" fill="#0095F6"/><path d="M17.2 7.8L10.6 14.4L7 10.8" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>')<0){ el.innerHTML=el.innerHTML+' <span style="color:#38bdf8"><svg width="16" height="16" viewBox="0 0 24 24" style="vertical-align:-3px;margin-left:4px;display:inline-block"><circle cx="12" cy="12" r="10.5" fill="#0095F6"/><path d="M17.2 7.8L10.6 14.4L7 10.8" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'; el.dataset.fixV='1'; }
+          /* duplicate badge injector DISABLED - badge already in index.html, was causing double + flash */
         });
       });
     });
