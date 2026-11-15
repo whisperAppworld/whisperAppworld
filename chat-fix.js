@@ -9,7 +9,7 @@ function fixTime(t){ try{ return new Date(t).toLocaleTimeString([], {hour:'2-dig
 function fixEsc(s){ return (s||'').replace(/</g,'&lt;'); }
 function fixImg(p){ return (p&&(p.img||p.photo||p.avatar||p.image_url||''))||''; }
 function fixIsVerified(p){ if(!p) return false; if(p.photo_verified||p.email_verified) return true; try{ var all=JSON.parse(localStorage.getItem('all_profiles')||'[]'); var f=all.find(function(x){return x&&x.name===p.name;}); if(f&&(f.photo_verified||f.email_verified)) return true; }catch(e){} return false; }
-function fixBadge(p){ return fixIsVerified(p)?' <span style="color:#38bdf8;font-size:14px" title="Verified">✔️</span>':''; }
+function fixBadge(p){ return fixIsVerified(p)?' <span style="color:#38bdf8;font-size:14px" title="Verified"><svg width="16" height="16" viewBox="0 0 24 24" style="vertical-align:-3px;margin-left:4px;display:inline-block"><circle cx="12" cy="12" r="10.5" fill="#0095F6"/><path d="M17.2 7.8L10.6 14.4L7 10.8" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>':''; }
 function fixStyle(){
   if(document.getElementById('chat-fix-style')) return;
   var s=document.createElement('style'); s.id='chat-fix-style';
@@ -79,7 +79,7 @@ function fixAddVerifiedBadges(){
         root.querySelectorAll('b, strong, h3, .name').forEach(function(el){
           if(el.dataset.fixV) return; var txt=el.textContent||''; if(!txt) return;
           var prof=Object.values(_fixProfiles).find(function(p){ return p.name && txt.indexOf(p.name)>=0; });
-          if(prof && fixIsVerified(prof) && txt.indexOf('✔')<0){ el.innerHTML=el.innerHTML+' <span style="color:#38bdf8">✔️</span>'; el.dataset.fixV='1'; }
+          if(prof && fixIsVerified(prof) && txt.indexOf('<svg width="16" height="16" viewBox="0 0 24 24" style="vertical-align:-3px;margin-left:4px;display:inline-block"><circle cx="12" cy="12" r="10.5" fill="#0095F6"/><path d="M17.2 7.8L10.6 14.4L7 10.8" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>')<0){ el.innerHTML=el.innerHTML+' <span style="color:#38bdf8"><svg width="16" height="16" viewBox="0 0 24 24" style="vertical-align:-3px;margin-left:4px;display:inline-block"><circle cx="12" cy="12" r="10.5" fill="#0095F6"/><path d="M17.2 7.8L10.6 14.4L7 10.8" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'; el.dataset.fixV='1'; }
         });
       });
     });
@@ -114,7 +114,7 @@ function fixShowProfile(p){
   var m=document.getElementById('fix-profile-modal'); var b=document.getElementById('fix-profile-body');
   try{ fixSetup(); }catch(e){}
   var img=fixImg(p); var photos=[]; try{ var _ph=p.photos; if(!_ph) photos=img?[img]:[]; else if(typeof _ph==='string'){ try{ var _j=JSON.parse(_ph); photos=Array.isArray(_j)?_j.filter(Boolean):[_ph]; }catch(e){ photos=[_ph]; } } else if(Array.isArray(_ph)) photos=_ph.filter(Boolean); else photos=img?[img]:[]; }catch(e){ photos=img?[img]:[]; }
-  var ver=fixIsVerified(p)?'<div style="color:#38bdf8;font-weight:700;margin:6px 0">✔️ Verified Profile</div>':'<div style="color:#999;font-size:13px;margin:6px 0">Not verified yet</div>';
+  var ver=fixIsVerified(p)?'<div style="color:#38bdf8;font-weight:700;margin:6px 0"><svg width="16" height="16" viewBox="0 0 24 24" style="vertical-align:-3px;margin-left:4px;display:inline-block"><circle cx="12" cy="12" r="10.5" fill="#0095F6"/><path d="M17.2 7.8L10.6 14.4L7 10.8" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg> Verified Profile</div>':'<div style="color:#999;font-size:13px;margin:6px 0">Not verified yet</div>';
   var gallery=(photos&&photos.length?photos:[img]).filter(Boolean).map(function(u){ return '<img class="main" src="'+u+'" onerror="this.style.display=\'none\'">'; }).join('')||'<div style="height:220px;display:flex;align-items:center;justify-content:center;font-size:60px;background:#222">👤</div>';
   b.innerHTML=gallery+'<div style="padding:16px"><h2 style="margin:0">'+fixEsc(p.name)+(p.age?', '+p.age:'')+fixBadge(p)+'</h2>'+ver+'<p style="color:#aaa">📍 '+fixEsc(p.location||p.country||'')+' • '+fixEsc(p.gender||'')+'</p><p>'+fixEsc(p.bio||p.about||'No bio yet')+'</p><p style="color:#aaa;font-size:13px">Interests: '+fixEsc(p.interests||'-')+'<br>Language: '+fixEsc(p.language||'-')+'<br>Looking for: '+fixEsc(p.looking||p.relationship||'-')+'</p><p style="color:#888;font-size:12px">Scroll up to see all photos ↑</p><button onclick="document.getElementById(\'fix-profile-modal\').style.display=\'none\';window.openChat(\''+fixEsc(p.name)+'\')" style="width:100%;padding:12px;border-radius:12px;border:0;background:#ff5a8a;color:#fff;font-weight:700">💬 Message</button></div>';
   if(!m||!b){ alert('Profile modal missing'); return; }
