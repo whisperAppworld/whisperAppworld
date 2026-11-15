@@ -69,7 +69,7 @@ function syncNotifToggles() {
   if (statusEl) {
     if (Notification.permission === 'denied') statusEl.textContent = 'Push is blocked in browser settings. Allow notifications for this site to turn it on.';
     else if (pushEl.checked) statusEl.textContent = 'Push is ON.';
-    else statusEl.textContent = 'Push is OFF.';
+    else statusEl.textContent = 'Push is OFF. Err: ' + (localStorage.getItem('whisper_push_error')||'none') + ' | perm:' + Notification.permission;
   }
 }
 document.addEventListener('DOMContentLoaded', () => {
