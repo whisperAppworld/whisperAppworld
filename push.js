@@ -19,19 +19,22 @@ async function setupPush() {
     const reg = await navigator.serviceWorker.register('sw.js');
     const perm = await Notification.requestPermission();
     if (perm !== 'granted') { localStorage.setItem('whisper_push_enabled', '0'); return false; }
-    localStorage.setItem('whisper_push_enabled', '1');
     let sub = await reg.pushManager.getSubscription();
     if (!sub) {
       sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) });
     }
-    const { data: { user } } = await window.supabase.auth.getUser();
-    if (user) {
-      await window.supabase.from('push_subscriptions').upsert({ user_id: user.id, subscription: sub.toJSON(), updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
-    } else {
-      localStorage.setItem('pending_push_sub', JSON.stringify(sub.toJSON()));
-    }
+    localStorage.setItem('whisper_push_enabled', '1');
+    // DB save must never break Push - save in background
+    try {
+      const { data: { user } } = await window.supabase.auth.getUser();
+      if (user) {
+        await window.supabase.from('push_subscriptions').upsert({ user_id: user.id, subscription: sub.toJSON(), updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+      } else {
+        localStorage.setItem('pending_push_sub', JSON.stringify(sub.toJSON()));
+      }
+    } catch (dbErr) { console.log('Push DB save failed (Push still ON)', dbErr); localStorage.setItem('pending_push_sub', JSON.stringify(sub.toJSON())); }
     return true;
-  } catch (e) { console.log('Push setup failed', e); return false; }
+  } catch (e) { console.log('Push setup failed', e); localStorage.setItem('whisper_push_error', String(e.message || e)); localStorage.setItem('whisper_push_enabled', '0'); return false; }
 }
 
 async function disablePush() {
