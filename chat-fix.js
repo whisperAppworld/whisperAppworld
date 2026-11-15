@@ -121,6 +121,11 @@ function fixShowProfile(p){
   m.style.display='flex';
 }
 window.fixShowProfileById=fixShowProfileById; window.fixShowProfile=fixShowProfile;
+function fixFmtLastSeen(ts){ if(!ts) return 'Last seen recently'; var d=new Date(ts); var diff=Date.now()-d.getTime(); if(diff<120000) return 'Online'; var sameDay=new Date().toDateString()===d.toDateString(); var hh=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); if(sameDay) return 'Last seen today '+hh; var y=new Date(Date.now()-86400000); if(y.toDateString()===d.toDateString()) return 'Last seen yesterday '+hh; return 'Last seen '+d.toLocaleDateString()+' '+hh; }
+function fixIsOnline(ts){ if(!ts) return false; return (Date.now()-new Date(ts).getTime())<120000; }
+async function fixHeartbeat(){ try{ var uid=await fixGetUid(); if(!uid) return; await window.supabase.from('profiles').update({last_seen:new Date().toISOString()}).eq('user_id',uid); }catch(e){} }
+if(!window._fixHb){ window._fixHb=setInterval(fixHeartbeat,30000); fixHeartbeat(); }
+async function fixMarkRead(){ try{ if(!_fixMeId||!_fixOtherId) return; await window.supabase.from('chat_messages').update({read_at:new Date().toISOString()}).eq('receiver_id',_fixMeId).eq('sender_id',_fixOtherId).is('read_at',null); }catch(e){} }
 async function loadChat(){
   if(!window.currentChatWith) return; fixSetup();
   var myToken=++_fixLoadToken;
@@ -134,18 +139,18 @@ async function loadChat(){
   if(myToken!==_fixLoadToken) return;
   _fixOtherProfile=(pr&&pr.data)?pr.data:null; _fixOtherId=_fixOtherProfile?_fixOtherProfile.user_id:null;
   if(!_fixOtherId){ list.innerHTML='<div style="padding:12px">Cannot find '+window.currentChatWith+'</div>'; return; }
-  localStorage.setItem('read_'+_fixOtherId, Date.now().toString());
+  localStorage.setItem('read_'+_fixOtherId, Date.now().toString()); fixMarkRead();
   var tt=document.getElementById('chat-title');
   if(tt){
     var img=fixImg(_fixOtherProfile);
-    tt.innerHTML='<button class="iconbtn" onclick="showChatList()">←</button>'+(img?'<img src="'+img+'" onclick="fixShowProfileById(\''+_fixOtherId+'\')">':'<div style="width:44px;height:44px;border-radius:50%;background:#ff5a8a;display:flex;align-items:center;justify-content:center" onclick="fixShowProfileById(\''+_fixOtherId+'\')">'+fixEsc(window.currentChatWith.charAt(0))+'</div>')+'<div class="namewrap"><div class="nm">'+fixEsc(window.currentChatWith)+(_fixOtherProfile.age?', '+_fixOtherProfile.age:'')+fixBadge(_fixOtherProfile)+'</div><div class="sub">● Online</div></div><button class="iconbtn" onclick="fixBlock()">🛡️</button>';
+    tt.innerHTML='<button class="iconbtn" onclick="showChatList()">←</button>'+(img?'<img src="'+img+'" onclick="fixShowProfileById(\''+_fixOtherId+'\')">':'<div style="width:44px;height:44px;border-radius:50%;background:#ff5a8a;display:flex;align-items:center;justify-content:center" onclick="fixShowProfileById(\''+_fixOtherId+'\')">'+fixEsc(window.currentChatWith.charAt(0))+'</div>')+'<div class="namewrap"><div class="nm">'+fixEsc(window.currentChatWith)+(_fixOtherProfile.age?', '+_fixOtherProfile.age:'')+fixBadge(_fixOtherProfile)+'</div><div class="sub" id="fix-presence">'+(fixIsOnline(_fixOtherProfile.last_seen)?'<span style="color:#22c55e">● Online</span>':fixEsc(fixFmtLastSeen(_fixOtherProfile.last_seen)))+'</div></div><button class="iconbtn" onclick="fixBlock()">🛡️</button>';
   }
   var d=await window.supabase.from('chat_messages').select('*').or('and(sender_id.eq.'+_fixMeId+',receiver_id.eq.'+_fixOtherId+'),and(sender_id.eq.'+_fixOtherId+',receiver_id.eq.'+_fixMeId+')').order('created_at',{ascending:true});
   if(myToken!==_fixLoadToken) return;
   var rows=d.data||[];
   list.innerHTML=rows.length?rows.map(function(m){
     var mine=m.sender_id===_fixMeId; var av=mine?'':fixImg(_fixOtherProfile);
-    return '<div class="msg-row '+(mine?'mine':'')+'">'+(av?'<img src="'+av+'">':'')+'<div><div class="msg-bubble">'+fixEsc(m.content)+'</div><div class="msg-time">'+fixTime(m.created_at)+'</div></div></div>';
+    var tick=mine?(m.read_at?'<span style="color:#38bdf8"> ✓✓ Seen</span>':'<span style="color:#aaa"> ✓ Delivered</span>'):''; return '<div class="msg-row '+(mine?'mine':'')+'">'+(av?'<img src="'+av+'">':'')+'<div><div class="msg-bubble">'+fixEsc(m.content)+'</div><div class="msg-time">'+fixTime(m.created_at)+tick+'</div></div></div>';
   }).join(''):'<div style="padding:20px;text-align:center;color:#888">No messages yet<br>Say hi to '+fixEsc(window.currentChatWith)+' 👋</div>';
   list.scrollTop=list.scrollHeight;
   try{ window.supabase.removeChannel(window._chatCh); window._chatCh=window.supabase.channel('chat-'+_fixMeId+'-'+_fixOtherId).on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_messages'},function(){ loadChat(); }).subscribe(); }catch(e){}
