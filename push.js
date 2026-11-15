@@ -16,7 +16,7 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
-window.isPushEnabled = () => localStorage.getItem('whisper_push_enabled') === '1' && Notification.permission === 'granted';
+window.isPushEnabled = () => (localStorage.getItem('whisper_push_enabled') === '1' || localStorage.getItem('whisper_push_auto') === '1') && Notification.permission === 'granted';
 window.isInAppEnabled = () => localStorage.getItem('whisper_inapp_enabled') !== '0';
 window.setInAppEnabled = (on) => { localStorage.setItem('whisper_inapp_enabled', on ? '1' : '0'); };
 
@@ -27,7 +27,7 @@ async function setupPush() {
     const perm = await Notification.requestPermission();
     if (perm !== 'granted') { localStorage.setItem('whisper_push_enabled', '0'); return false; }
     let sub = await reg.pushManager.getSubscription();
-  if (sub) { try { await sub.unsubscribe(); } catch(e){} sub = null; }
+  // REUSE existing subscription - never unsubscribe here, or old pushes die
     if (!sub) {
       sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) });
     }
@@ -122,3 +122,27 @@ async function sendPushToUser(userId, title, body) {
   } catch(e) { console.log('sendPush failed', e); }
 }
 window.sendPushToUser = sendPushToUser;
+
+// Auto-restore: on login, if browser already allowed push, re-save subscription for this user silently
+async function autoRestorePush() {
+  try {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    if (Notification.permission !== 'granted') return;
+    if (localStorage.getItem('whisper_push_enabled') === '0' && !localStorage.getItem('whisper_push_auto')) return; // user explicitly turned OFF
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (!reg) return;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) return; // never subscribed in this browser, user must tap ON once
+    var _uid = getPushUid();
+    if (!_uid) { try { const { data: { user } } = await window.supabase.auth.getUser(); if (user) _uid = user.id; } catch(e){} }
+    if (!_uid) return;
+    localStorage.setItem('whisper_push_auto', '1');
+    const _res = await window.supabase.from('push_subscriptions').upsert({ user_id: _uid, subscription: sub.toJSON(), updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+    console.log('Auto-restore push for', _uid, _res.error || 'OK');
+    if (!_res.error) localStorage.setItem('whisper_push_enabled', '1');
+  } catch(e) { console.log('autoRestorePush', e); }
+}
+window.autoRestorePush = autoRestorePush;
+// Run on load + on every login
+document.addEventListener('DOMContentLoaded', () => setTimeout(autoRestorePush, 1500));
+try { window.supabase.auth.onAuthStateChange((ev) => { if (ev === 'SIGNED_IN') setTimeout(autoRestorePush, 1500); }); } catch(e){}
