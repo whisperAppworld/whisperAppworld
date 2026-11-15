@@ -60,3 +60,14 @@ async function flushPendingPush() {
   console.log('Pending push subscription flushed');
 }
 window.supabase.auth.onAuthStateChange(() => { flushPendingPush(); });
+
+// Show Enable button if permission not granted yet
+(function addEnableBtn(){
+  if (Notification.permission === 'granted') return;
+  const btn = document.createElement('button');
+  btn.textContent = '🔔 Enable Notifications';
+  btn.style.cssText = 'position:fixed;bottom:90px;right:12px;z-index:9999;padding:12px 14px;border-radius:999px;border:none;background:#ff2d55;color:#fff;font-weight:bold;box-shadow:0 4px 14px rgba(0,0,0,.4)';
+  btn.onclick = async () => { await setupPush(); btn.remove(); };
+  document.addEventListener('DOMContentLoaded', () => document.body.appendChild(btn));
+  if (document.body) document.body.appendChild(btn);
+})();
