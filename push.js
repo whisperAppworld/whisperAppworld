@@ -13,8 +13,8 @@ async function setupPush() {
   try {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
     const reg = await navigator.serviceWorker.register('sw.js');
-    console.log('SW registered', reg);
-    const perm = await Notification.requestPermission();
+    alert('SW OK'); console.log('SW registered', reg);
+    alert('Asking permission...'); const perm = await Notification.requestPermission(); alert('Permission: ' + perm);
     if (perm !== 'granted') return;
     let sub = await reg.pushManager.getSubscription();
     if (!sub) {
@@ -36,7 +36,7 @@ async function setupPush() {
     } else {
       localStorage.setItem('pending_push_sub', JSON.stringify(sub.toJSON()));
     }
-  } catch (e) { console.log('Push setup failed', e); }
+  } catch (e) { alert('Push failed: ' + e.message); console.log('Push setup failed', e); }
 }
 
 // Run after login / on load
