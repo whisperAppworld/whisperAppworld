@@ -43,7 +43,7 @@ async function setupPush() {
                                         } else { localStorage.setItem('whisper_push_db_error','no-uid');
                                             localStorage.setItem('pending_push_sub', JSON.stringify(sub.toJSON()));
                                         }
-    } catch (dbErr) { console.log('Push DB save failed (Push still ON)', dbErr); localStorage.setItem('pending_push_sub', JSON.stringify(sub.toJSON())); }
+    } catch (dbErr) { console.log('Push DB save failed, trying REST fallback', dbErr); try{ var _uid2=getPushUid(); if(_uid2){ var _r=await fetch('https://jztfakvawduanyovbbkt.supabase.co/rest/v1/push_subscriptions', {method:'POST', headers:{'apikey':'sb_publishable_Xgea70sY3vlxZQD0PTWFYQ_ySQN2K4C','Authorization':'Bearer sb_publishable_Xgea70sY3vlxZQD0PTWFYQ_ySQN2K4C','Content-Type':'application/json','Prefer':'resolution=merge-duplicates'}, body: JSON.stringify({user_id:_uid2, subscription: sub.toJSON(), updated_at: new Date().toISOString()})}); console.log('REST fallback', _r.status); if(_r.ok){ localStorage.removeItem('pending_push_sub'); return true; } else localStorage.setItem('whisper_push_db_error','REST '+_r.status+' '+(await _r.text()).slice(0,200)); } }catch(e2){ localStorage.setItem('whisper_push_db_error', String(e2.message||e2)); } console.log('Push DB save failed (Push still ON)', dbErr); localStorage.setItem('pending_push_sub', JSON.stringify(sub.toJSON())); }
     return true;
   } catch (e) { console.log('Push setup failed', e); localStorage.setItem('whisper_push_error', String(e.message || e)); localStorage.setItem('whisper_push_enabled', '0'); return false; }
 }
@@ -91,6 +91,7 @@ function syncNotifToggles() {
   inappEl.checked = window.isInAppEnabled();
   if (statusEl) {
     if (Notification.permission === 'denied') statusEl.textContent = 'Push is blocked in browser settings. Allow notifications for this site to turn it on.';
+    else if (localStorage.getItem('pending_push_sub')) statusEl.textContent = 'Push ON but NOT SAVED to DB. DB Err: ' + (localStorage.getItem('whisper_push_db_error')||'unknown') + ' | uid:' + (getPushUid()||'none');
     else if (pushEl.checked) statusEl.textContent = 'Push is ON.';
     else if (localStorage.getItem('pending_push_sub')) statusEl.textContent = 'Push ON but NOT SAVED to DB. DB Err: ' + (localStorage.getItem('whisper_push_db_error')||'unknown') + ' | uid:' + (getPushUid()||'none');
     else statusEl.textContent = 'Push is OFF. Err: ' + (localStorage.getItem('whisper_push_error')||'none') + ' | perm:' + Notification.permission;
