@@ -40,7 +40,7 @@ function fixSetup(){
     var emoji=document.createElement('button'); emoji.className='tool'; emoji.type='button'; emoji.textContent='😀';
     emoji.onclick=function(ev){ ev.stopPropagation(); _fixEmojiOpen=!_fixEmojiOpen; picker.style.display=_fixEmojiOpen?'grid':'none'; };
     var photo=document.createElement('button'); photo.className='tool'; photo.type='button'; photo.textContent='📷';
-    photo.onclick=function(){ alert('Photo messages coming next — for now send text / emoji'); };
+    photo.onclick=function(){var fi=document.createElement("input");fi.type="file";fi.accept="image/*";fi.setAttribute("capture","user");fi.onchange=function(){var f=fi.files[0];if(!f)return;var img=new Image();var url=URL.createObjectURL(f);img.onload=async function(){var c=document.createElement("canvas");var s=Math.min(1,800/Math.max(img.width,img.height));c.width=img.width*s;c.height=img.height*s;c.getContext("2d").drawImage(img,0,0,c.width,c.height);var data=c.toDataURL("image/jpeg",0.7);var meId=await fixGetUid();if(!_fixOtherId){await loadChat();}var err=(await window.supabase.from("chat_messages").insert([{sender_id:meId,receiver_id:_fixOtherId,content:"IMG:"+data}])).error;if(err)alert("Send failed: "+err.message);else loadChat();};img.src=url;};fi.click();};
     inp.parentNode.insertBefore(bar,inp); bar.appendChild(emoji); bar.appendChild(photo); bar.appendChild(inp); if(btn) bar.appendChild(btn); bar.appendChild(picker);
     btn.textContent='➤';
     document.addEventListener('click',function(){ if(_fixEmojiOpen){ _fixEmojiOpen=false; picker.style.display='none'; } });
@@ -150,7 +150,7 @@ async function loadChat(){
   var rows=d.data||[];
   list.innerHTML=rows.length?rows.map(function(m){
     var mine=m.sender_id===_fixMeId; var av=mine?'':fixImg(_fixOtherProfile);
-    var tick=mine?(m.read_at?'<span style="color:#38bdf8"> ✓✓ Seen</span>':'<span style="color:#aaa"> ✓ Delivered</span>'):''; return '<div class="msg-row '+(mine?'mine':'')+'">'+(av?'<img src="'+av+'">':'')+'<div><div class="msg-bubble">'+fixEsc(m.content)+'</div><div class="msg-time">'+fixTime(m.created_at)+tick+'</div></div></div>';
+    var tick=mine?(m.read_at?'<span style="color:#38bdf8"> ✓✓ Seen</span>':'<span style="color:#aaa"> ✓ Delivered</span>'):''; return '<div class="msg-row '+(mine?'mine':'')+'">'+(av?'<img src="'+av+'">':'')+'<div><div class="msg-bubble">'+(m.content&&m.content.indexOf("IMG:")===0?"<img src="+m.content.slice(4)+" style=\"max-width:220px;border-radius:10px;display:block\">":fixEsc(m.content))+'</div><div class="msg-time">'+fixTime(m.created_at)+tick+'</div></div></div>';
   }).join(''):'<div style="padding:20px;text-align:center;color:#888">No messages yet<br>Say hi to '+fixEsc(window.currentChatWith)+' 👋</div>';
   list.scrollTop=list.scrollHeight;
   try{ window.supabase.removeChannel(window._chatCh); window._chatCh=window.supabase.channel('chat-'+_fixMeId+'-'+_fixOtherId).on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_messages'},function(){ loadChat(); }).subscribe(); }catch(e){}
