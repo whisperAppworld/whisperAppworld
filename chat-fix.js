@@ -104,7 +104,7 @@ async function showChatList(){
   list.innerHTML=convos.map(function(c){
     var p=_fixProfiles[c.other]||{name:'Unknown'}; var nm=p.name||'Unknown'; var img=fixImg(p);
     var lastRead=parseInt(localStorage.getItem('read_'+c.other)||'0');
-    var unread=rows.filter(function(m){ return m.sender_id===c.other && new Date(m.created_at).getTime()>lastRead; }).length;
+    var unread=rows.filter(function(m){ return m.sender_id===c.other && !m.read_at; }).length;
     var av=img?'<img src="'+img+'" onclick="event.stopPropagation();fixShowProfileById(\''+c.other+'\')">':'<div class="av" onclick="event.stopPropagation();fixShowProfileById(\''+c.other+'\')">'+fixEsc(nm.charAt(0))+'</div>';
     return '<div class="chat-row" onclick="window.openChat(\''+fixEsc(nm)+'\')">'+av+'<div class="meta"><div class="top"><span class="nm">'+fixEsc(nm)+(p.age?', '+p.age:'')+fixBadge(p)+'</span><span class="tm">'+fixTime(c.last.created_at)+'</span></div><div class="prev">'+(c.last.sender_id===_fixMeId?'You: ':'')+(c.last.content&&c.last.content.indexOf("IMG:")===0?"📷 Image":fixEsc(c.last.content))+'</div></div>'+(unread?'<div class="unread">'+unread+'</div>':'')+'</div>';
   }).join('');
@@ -126,13 +126,13 @@ function fixIsOnline(ts){ if(!ts) return false; return (Date.now()-new Date(ts).
 async function fixHeartbeat(){ try{ var uid=await fixGetUid(); if(!uid) return; await window.supabase.from('profiles').update({last_seen:new Date().toISOString()}).eq('user_id',uid); }catch(e){} }
 if(!window._fixHb){ window._fixHb=setInterval(fixHeartbeat,30000); fixHeartbeat(); }
 async function fixMarkRead(){ try{ if(!_fixMeId||!_fixOtherId) return; await window.supabase.from('chat_messages').update({read_at:new Date().toISOString()}).eq('receiver_id',_fixMeId).eq('sender_id',_fixOtherId).is('read_at',null); }catch(e){} }
-async function loadChat(){
+async function loadChat(silent){
   if(!window.currentChatWith) return; fixSetup();
   var myToken=++_fixLoadToken;
   var lv=document.getElementById('chat-list-view'); if(lv) lv.style.display='none';
   var cv=document.getElementById('chat-view'); if(cv) cv.style.display='block';
   var list=document.getElementById('messages-list'); if(!list) return;
-  list.innerHTML='<div style="padding:20px;text-align:center;color:#888">⏳ Loading chat...</div>';
+  if(!silent){list.innerHTML='<div style="padding:20px;text-align:center;color:#888">⏳ Loading chat...</div>';}
   _fixMeId=await fixGetUid(); if(myToken!==_fixLoadToken) return;
   await fixLoadProfiles();
   var pr=await window.supabase.from('profiles').select('*').eq('name', window.currentChatWith).maybeSingle();
@@ -153,7 +153,7 @@ async function loadChat(){
     var tick=mine?(m.read_at?'<span style="color:#38bdf8"> ✓✓ Seen</span>':'<span style="color:#aaa"> ✓ Delivered</span>'):''; return '<div class="msg-row '+(mine?'mine':'')+'">'+(av?'<img src="'+av+'">':'')+'<div><div class="msg-bubble">'+(m.content&&m.content.indexOf("IMG:")===0?"<img src="+m.content.slice(4)+" style=\"width:100%;max-width:340px;min-width:240px;height:auto;cursor:zoom-in;border-radius:10px;display:block\">":fixEsc(m.content))+'</div><div class="msg-time">'+fixTime(m.created_at)+tick+'</div></div></div>';
   }).join(''):'<div style="padding:20px;text-align:center;color:#888">No messages yet<br>Say hi to '+fixEsc(window.currentChatWith)+' 👋</div>';
   list.scrollTop=list.scrollHeight;
-  try{ window.supabase.removeChannel(window._chatCh); window._chatCh=window.supabase.channel('chat-'+_fixMeId+'-'+_fixOtherId).on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_messages'},function(){ loadChat(); }).subscribe(); }catch(e){}
+  try{ window.supabase.removeChannel(window._chatCh); window._chatCh=window.supabase.channel('chat-'+_fixMeId+'-'+_fixOtherId).on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_messages'},function(){ loadChat(true); }).subscribe(); }catch(e){}
 }
 function fixBlock(){
   if(!confirm('Block '+window.currentChatWith+'? You will no longer see their messages.')) return;
@@ -168,7 +168,7 @@ async function sendMsg(){
   if(!_fixOtherId){ await loadChat(); if(!_fixOtherId) return; }
   var err=(await window.supabase.from('chat_messages').insert([{sender_id:meId, receiver_id:_fixOtherId, content:text}])).error;
   if(err){ alert('Send failed: '+err.message); return; }
-  inp.value=''; loadChat();
+  inp.value=''; loadChat(true);
 }
 window.loadChat=loadChat; window.sendMsg=sendMsg; window.showChatList=showChatList;
 window._lastOpen=0; window._lastOpenName="";
