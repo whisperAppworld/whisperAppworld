@@ -65,7 +65,7 @@ section.active{display:block}
 </div>
 </div><div id="profile-sub-settings" style="display:none"><h2>⚙️ Settings</h2>
 <div class="card"><label style="display:block;margin-bottom:8px">Notifications</label>
-<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid #333"><span>🔔 Push Notifications<br><small style="color:#aaa">Alerts even when app is closed</small></span><input type="checkbox" id="t-push" style="width:22px;height:22px"></div>
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid #333"><span>🔔 Push Notifications<br><small style="color:#aaa">Alerts even when app is closed</small></span><input type="checkbox" id="t-push" onchange="window.handlePushToggle(this)" style="width:22px;height:22px"></div>
 <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid #333"><span>💬 In-app Notifications<br><small style="color:#aaa">Banners + sound inside the app</small></span><input type="checkbox" id="t-inapp" checked style="width:22px;height:22px"></div>
 <p id="notif-status" style="color:#aaa;font-size:13px;margin:6px 0 0"></p><label>Show my profile</label><select id="s-visible"><option>Everyone</option><option>Only Matches</option><option>Hidden</option></select><label>Language</label><select id="s-lang"><option>English</option><option>Spanish</option><option>French</option></select><button onclick="alert('Settings saved')">Save Settings</button></div>
 </div></section>

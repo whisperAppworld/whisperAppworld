@@ -57,6 +57,16 @@ async function disablePush() {
   } catch (e) {}
 }
 window.setupPush = setupPush;
+window.handlePushToggle = async (el) => {
+  console.log('Push toggle clicked', el.checked);
+  if (el.checked) {
+    const ok = await window.setupPush();
+    if (!ok) el.checked = false;
+  } else {
+    await window.disablePush();
+  }
+  syncNotifToggles();
+};
 window.disablePush = disablePush;
 
 async function flushPendingPush() {
