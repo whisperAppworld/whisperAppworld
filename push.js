@@ -39,8 +39,8 @@ async function setupPush() {
                                         if (_uid) {
                                             const _res = await window.supabase.from('push_subscriptions').upsert({ user_id: _uid, subscription: sub.toJSON(), updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
                                             console.log('Push DB save', _res.error || 'OK', _uid);
-                                            if (_res.error) localStorage.setItem('pending_push_sub', JSON.stringify(sub.toJSON()));
-                                        } else {
+                                            if (_res.error) { localStorage.setItem('whisper_push_db_error', String(_res.error.message||_res.error)); localStorage.setItem('pending_push_sub', JSON.stringify(sub.toJSON()));
+                                        } else { localStorage.setItem('whisper_push_db_error','no-uid');
                                             localStorage.setItem('pending_push_sub', JSON.stringify(sub.toJSON()));
                                         }
     } catch (dbErr) { console.log('Push DB save failed (Push still ON)', dbErr); localStorage.setItem('pending_push_sub', JSON.stringify(sub.toJSON())); }
@@ -92,6 +92,7 @@ function syncNotifToggles() {
   if (statusEl) {
     if (Notification.permission === 'denied') statusEl.textContent = 'Push is blocked in browser settings. Allow notifications for this site to turn it on.';
     else if (pushEl.checked) statusEl.textContent = 'Push is ON.';
+    else if (localStorage.getItem('pending_push_sub')) statusEl.textContent = 'Push ON but NOT SAVED to DB. DB Err: ' + (localStorage.getItem('whisper_push_db_error')||'unknown') + ' | uid:' + (getPushUid()||'none');
     else statusEl.textContent = 'Push is OFF. Err: ' + (localStorage.getItem('whisper_push_error')||'none') + ' | perm:' + Notification.permission;
   }
 }
