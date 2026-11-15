@@ -1,4 +1,4 @@
-const VAPID_PUBLIC_KEY = 'BB0X3OuIloyBI9zBzwpjGgGmWCiVu4-5e5XQx_nNjHSg3tqGdNMvfbrux_80FWVyJneoSxHASib-Jr7090J4HgU';
+const VAPID_PUBLIC_KEY = 'BLoymFpiiLWh1Eji-g3yMRNFT-7NaCMWVmqWDX-wCZcGOIFgasAXfmJ7ItHSWrQyhwa7flcJFTW4cF5yXkDQJyM';
 
 
 function getPushUid(){
