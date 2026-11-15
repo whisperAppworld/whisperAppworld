@@ -110,3 +110,15 @@ document.addEventListener('DOMContentLoaded', () => {
   if (settingsBtn) settingsBtn.addEventListener('click', () => setTimeout(syncNotifToggles, 100));
   syncNotifToggles();
 });
+
+async function sendPushToUser(userId, title, body) {
+  if (!userId) return;
+  try {
+    await fetch('https://jztfakvawduanyovbbkt.supabase.co/functions/v1/send-push', {
+      method: 'POST',
+      headers: { 'apikey': 'sb_publishable_Xgea70sY3vlxZQD0PTWFYQ_ySQN2K4C', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId, title: title || 'Whisper 🔔', body: body || 'You have a new message', url: '/' })
+    });
+  } catch(e) { console.log('sendPush failed', e); }
+}
+window.sendPushToUser = sendPushToUser;
