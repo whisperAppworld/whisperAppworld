@@ -1,5 +1,12 @@
 const VAPID_PUBLIC_KEY = 'BB0X3OuIloyBI9zBzwpjGgGmWCiVu4-5e5XQx_nNjHSg3tqGdNMvfbrux_80FWVyJneoSxHASib-Jr7090J4HgU';
 
+
+function getPushUid(){
+  try{ var mp=JSON.parse(localStorage.getItem('my_profile')||'{}'); if(mp.user_id) return mp.user_id; if(mp.id) return mp.id; }catch(e){}
+  if(window._myUid) return window._myUid;
+  return null;
+}
+
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
@@ -27,12 +34,15 @@ async function setupPush() {
     localStorage.setItem('whisper_push_enabled', '1');
     // DB save must never break Push - save in background
     try {
-      const { data: { user } } = await window.supabase.auth.getUser();
-      if (user) {
-        await window.supabase.from('push_subscriptions').upsert({ user_id: user.id, subscription: sub.toJSON(), updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
-      } else {
-        localStorage.setItem('pending_push_sub', JSON.stringify(sub.toJSON()));
-      }
+      var _uid = getPushUid();
+                                        if (!_uid) { try { const { data: { user } } = await window.supabase.auth.getUser(); if (user) _uid = user.id; } catch(e){} }
+                                        if (_uid) {
+                                            const _res = await window.supabase.from('push_subscriptions').upsert({ user_id: _uid, subscription: sub.toJSON(), updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+                                            console.log('Push DB save', _res.error || 'OK', _uid);
+                                            if (_res.error) localStorage.setItem('pending_push_sub', JSON.stringify(sub.toJSON()));
+                                        } else {
+                                            localStorage.setItem('pending_push_sub', JSON.stringify(sub.toJSON()));
+                                        }
     } catch (dbErr) { console.log('Push DB save failed (Push still ON)', dbErr); localStorage.setItem('pending_push_sub', JSON.stringify(sub.toJSON())); }
     return true;
   } catch (e) { console.log('Push setup failed', e); localStorage.setItem('whisper_push_error', String(e.message || e)); localStorage.setItem('whisper_push_enabled', '0'); return false; }
@@ -50,13 +60,15 @@ window.setupPush = setupPush;
 window.disablePush = disablePush;
 
 async function flushPendingPush() {
-  const pending = localStorage.getItem('pending_push_sub');
-  if (!pending) return;
-  const { data: { user } } = await window.supabase.auth.getUser();
-  if (!user) return;
-  await window.supabase.from('push_subscriptions').upsert({ user_id: user.id, subscription: JSON.parse(pending), updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
-  localStorage.removeItem('pending_push_sub');
-}
+                                const pending = localStorage.getItem('pending_push_sub');
+                                if (!pending) return;
+                                var _uid = getPushUid();
+                                if (!_uid) { try { const { data: { user } } = await window.supabase.auth.getUser(); if (user) _uid = user.id; } catch(e){} }
+                                if (!_uid) return;
+                                const _res = await window.supabase.from('push_subscriptions').upsert({ user_id: _uid, subscription: JSON.parse(pending), updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+                                console.log('Flush push', _res.error || 'OK');
+                                if (!_res.error) localStorage.removeItem('pending_push_sub');
+                            }
 window.supabase.auth.onAuthStateChange(() => { flushPendingPush(); });
 
 // --- Wire Settings toggles ---
