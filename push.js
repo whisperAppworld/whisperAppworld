@@ -9,65 +9,84 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
+window.isPushEnabled = () => localStorage.getItem('whisper_push_enabled') === '1' && Notification.permission === 'granted';
+window.isInAppEnabled = () => localStorage.getItem('whisper_inapp_enabled') !== '0';
+window.setInAppEnabled = (on) => { localStorage.setItem('whisper_inapp_enabled', on ? '1' : '0'); };
+
 async function setupPush() {
   try {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
     const reg = await navigator.serviceWorker.register('sw.js');
-    console.log('SW registered', reg);
     const perm = await Notification.requestPermission();
-    if (perm !== 'granted') return;
+    if (perm !== 'granted') { localStorage.setItem('whisper_push_enabled', '0'); return false; }
+    localStorage.setItem('whisper_push_enabled', '1');
     let sub = await reg.pushManager.getSubscription();
     if (!sub) {
-      sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-      });
+      sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) });
     }
-    console.log('Push subscription:', JSON.stringify(sub));
-    // Save to Supabase - will work after you create push_subscriptions table
     const { data: { user } } = await window.supabase.auth.getUser();
     if (user) {
-      await window.supabase.from('push_subscriptions').upsert({
-        user_id: user.id,
-        subscription: sub.toJSON(),
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'user_id' });
-      console.log('Push subscription saved for', user.id);
+      await window.supabase.from('push_subscriptions').upsert({ user_id: user.id, subscription: sub.toJSON(), updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
     } else {
       localStorage.setItem('pending_push_sub', JSON.stringify(sub.toJSON()));
     }
-  } catch (e) { console.log('Push setup failed', e); }
+    return true;
+  } catch (e) { console.log('Push setup failed', e); return false; }
 }
 
-// Run after login / on load
-window.addEventListener('load', () => {
-  setTimeout(setupPush, 2000);
-});
+async function disablePush() {
+  localStorage.setItem('whisper_push_enabled', '0');
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    const sub = await reg?.pushManager.getSubscription();
+    if (sub) await sub.unsubscribe();
+  } catch (e) {}
+}
 window.setupPush = setupPush;
+window.disablePush = disablePush;
 
-// Flush pending subscription after login
 async function flushPendingPush() {
   const pending = localStorage.getItem('pending_push_sub');
   if (!pending) return;
   const { data: { user } } = await window.supabase.auth.getUser();
   if (!user) return;
-  await window.supabase.from('push_subscriptions').upsert({
-    user_id: user.id,
-    subscription: JSON.parse(pending),
-    updated_at: new Date().toISOString()
-  }, { onConflict: 'user_id' });
+  await window.supabase.from('push_subscriptions').upsert({ user_id: user.id, subscription: JSON.parse(pending), updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
   localStorage.removeItem('pending_push_sub');
-  console.log('Pending push subscription flushed');
 }
 window.supabase.auth.onAuthStateChange(() => { flushPendingPush(); });
 
-// Show Enable button if permission not granted yet
-(function addEnableBtn(){
-  if (Notification.permission === 'granted') return;
-  const btn = document.createElement('button');
-  btn.textContent = '🔔 Enable Notifications';
-  btn.style.cssText = 'position:fixed;bottom:90px;right:12px;z-index:9999;padding:12px 14px;border-radius:999px;border:none;background:#ff2d55;color:#fff;font-weight:bold;box-shadow:0 4px 14px rgba(0,0,0,.4)';
-  btn.onclick = async () => { await setupPush(); btn.remove(); };
-  document.addEventListener('DOMContentLoaded', () => document.body.appendChild(btn));
-  if (document.body) document.body.appendChild(btn);
-})();
+// --- Wire Settings toggles ---
+function syncNotifToggles() {
+  const pushEl = document.getElementById('t-push');
+  const inappEl = document.getElementById('t-inapp');
+  const statusEl = document.getElementById('notif-status');
+  if (!pushEl || !inappEl) return;
+  pushEl.checked = window.isPushEnabled();
+  inappEl.checked = window.isInAppEnabled();
+  if (statusEl) {
+    if (Notification.permission === 'denied') statusEl.textContent = 'Push is blocked in browser settings. Allow notifications for this site to turn it on.';
+    else if (pushEl.checked) statusEl.textContent = 'Push is ON.';
+    else statusEl.textContent = 'Push is OFF.';
+  }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const pushEl = document.getElementById('t-push');
+  const inappEl = document.getElementById('t-inapp');
+  if (pushEl) pushEl.addEventListener('change', async () => {
+    if (pushEl.checked) {
+      const ok = await window.setupPush();
+      if (!ok) pushEl.checked = false;
+    } else {
+      await window.disablePush();
+    }
+    syncNotifToggles();
+  });
+  if (inappEl) inappEl.addEventListener('change', () => {
+    window.setInAppEnabled(inappEl.checked);
+    syncNotifToggles();
+  });
+  // Refresh when user opens Settings
+  const settingsBtn = document.getElementById('psub-settings-btn');
+  if (settingsBtn) settingsBtn.addEventListener('click', () => setTimeout(syncNotifToggles, 100));
+  syncNotifToggles();
+});
