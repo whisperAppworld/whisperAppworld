@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>WhisperApp</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f0f0f">
 <style>
 body{font-family:sans-serif;background:#111;color:#fff;padding:16px;max-width:980px;margin:auto;padding-bottom:80px}
 input,textarea,select{width:100%;padding:12px;margin:8px 0;border-radius:10px;border:none;box-sizing:border-box}
@@ -248,6 +250,7 @@ renderCircles(); renderSwipe();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase.js"></script>
+<script src="push.js"></script>
 <script>
 function clearLocalProfileAndForm(){
   try{ localStorage.removeItem('my_profile'); localStorage.removeItem('all_profiles'); localStorage.removeItem('_last_uid'); }catch(e){}
