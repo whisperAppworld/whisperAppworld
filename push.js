@@ -20,6 +20,7 @@ async function setupPush() {
     const perm = await Notification.requestPermission();
     if (perm !== 'granted') { localStorage.setItem('whisper_push_enabled', '0'); return false; }
     let sub = await reg.pushManager.getSubscription();
+  if (sub) { try { await sub.unsubscribe(); } catch(e){} sub = null; }
     if (!sub) {
       sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) });
     }
