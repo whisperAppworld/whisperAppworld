@@ -66,11 +66,43 @@
   'Likes left today':['Me gusta restantes hoy','Likes restants aujourd\'hui'],
   'All Countries':['Todos los paises','Tous les pays'],'Email':['Correo','Email'],
   'Password':['Contrasena','Mot de passe'],
+
+  'Tap photo for next':['Toca la foto para siguiente','Touche la photo pour suivant'],
+  'Tap a circle to Like. Each Like uses 1 of your 30 daily. Resets tomorrow.':['Toca un circulo para dar Me gusta. Cada Me gusta usa 1 de tus 30 diarios. Se reinicia manana.','Touche un cercle pour Liker. Chaque Like utilise 1 de tes 30 quotidiens. Reinitialise demain.'],
+  'No Likes left today - come back tomorrow!':['Sin Me gusta hoy - vuelve manana!','Plus de Likes aujourd\'hui - reviens demain!'],
+  'Out of Likes!':['Sin Me gusta!','Plus de Likes!'],
+  'Likes Left Today':['Me gusta restantes hoy','Likes restants aujourd\'hui'],
+  'Likes left today':['Me gusta restantes hoy','Likes restants aujourd\'hui'],
+  'Pass':['Pasar','Passer'],'Like':['Me gusta','J\'aime'],'Message':['Mensaje','Message'],
+  'Chat Now':['Chatear ahora','Discuter maintenant'],
+  'Looking for:':['Buscando:','Recherche:'],
+  'Verification & Badges':['Verificacion e insignias','Verification et badges'],
+  'Verified profiles get more matches. We never show your ID or selfie to other users.':['Los perfiles verificados consiguen mas coincidencias. Nunca mostramos tu ID ni tu selfie a otros usuarios.','Les profils verifies obtiennent plus de matchs. Nous ne montrons jamais ta piece ni ton selfie aux autres.'],
+  'Email Verification':['Verificacion de correo','Verification email'],
+  'Confirms you own this email. Sent when you signed up.':['Confirma que este correo es tuyo. Enviado al registrarte.','Confirme que cet email est a toi. Envoye a l\'inscription.'],
+  'Photo Verification':['Verificacion de foto','Verification photo'],
+  'Take a live selfie copying the pose. Our team reviews it — usually within 24h.':['Hazte un selfie en vivo copiando la pose. Nuestro equipo lo revisa - normalmente en 24h.','Prends un selfie en direct en copiant la pose. Notre equipe le verifie - generalement sous 24h.'],
+  'Verify My Photo':['Verificar mi foto','Verifier ma photo'],
+  'ID Verification':['Verificacion de ID','Verification ID'],
+  'Passport / national ID. Coming soon — we are building secure ID handling first.':['Pasaporte / ID nacional. Proximamente - primero estamos creando un manejo seguro de ID.','Passeport / piece nationale. Bientot - nous construisons d\'abord une gestion securisee des ID.'],
+  'Photo Verification':['Verificacion de foto','Verification photo'],
+  'Cancel':['Cancelar','Annuler'],'CHECKING…':['COMPROBANDO…','VERIFICATION…'],
+  'NOT VERIFIED':['NO VERIFICADO','NON VERIFIE'],'SOON':['PRONTO','BIENTOT'],
+  'Email Verified':['Correo verificado','Email verifie'],
+  'Photo Verified':['Foto verificada','Photo verifiee'],
+  'Copy this pose exactly, so we can match it to your profile photos.':['Copia esta pose exactamente, para compararla con tus fotos de perfil.','Copie cette pose exactement, pour la comparer a tes photos de profil.'],
   'Country - City e.g. Equatorial Guinea - Malabo':['Pais - Ciudad p. ej. Guinea Ecuatorial - Malabo','Pays - Ville ex. Guinee equatoriale - Malabo']
   };
   function tr(orig,lang){
     if(lang==='English'||!orig) return orig;
     var i=lang==='Spanish'?0:1;
+    var mNum=orig.match(/^(\W*\s*)(\d+)\s+Likes\s+left\s+today\s*$/i);
+    if(mNum) return mNum[1]+mNum[2]+(lang==='Spanish'?' Me gusta restantes hoy':' Likes restants aujourd\'hui');
+    var mNum2=orig.match(/^(\W*\s*)(\d+)\s+Likes\s+Left\s+Today\s*$/i);
+    if(mNum2) return mNum2[1]+mNum2[2]+(lang==='Spanish'?' Me gusta restantes hoy':' Likes restants aujourd\'hui');
+    var mLike=orig.match(/^(.*liked\s+)(.+)(!\s*)(\d+)(\s+left today.*)$/i);
+    if(mLike) return orig; // leave alert text, it is rebuilt by JS
+
     // strip leading emoji / symbols, translate rest, put emoji back
     var m=orig.match(/^(\W*\s*)/); var pre='', rest=orig;
     if(m){ pre=m[0]; rest=orig.slice(pre.length); }
