@@ -1,22 +1,22 @@
 <!DOCTYPE html><html><body style="font-family:sans-serif;padding:20px">
-<h2>Push Check</h2><pre id="out">waiting for login + SW... (2 sec)</pre>
+<h2>Push Check</h2><pre id="out">trying setupPush()...</pre>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase.js"></script>
 <script src="push.js"></script>
 <script>
 (async()=>{
   let out=document.getElementById('out');
+  let logs=[];
+  let oldLog=console.log; console.log=(...a)=>{ logs.push(a.map(x=>{try{return JSON.stringify(x)}catch(e){return String(x)}}).join(' ')); oldLog(...a); };
   try{
-    await new Promise(r=>setTimeout(r,2000));
-    let reg = await navigator.serviceWorker.register('sw.js?v=6');
-    await navigator.serviceWorker.ready;
-    let perm=Notification.permission;
-    let reg2=await navigator.serviceWorker.getRegistration();
-    let sub=await reg2?.pushManager.getSubscription();
+    await new Promise(r=>setTimeout(r,1500));
+    let ok = await window.setupPush();
+    await new Promise(r=>setTimeout(r,500));
+    let reg=await navigator.serviceWorker.getRegistration();
+    let sub=await reg?.pushManager.getSubscription();
     let uid=await getCurrentUid();
-    let sess=await window.supabase.auth.getSession();
     let db=await window.isPushEnabledInDB();
-    out.textContent='perm: '+perm+'\nreg: '+!!reg2+'\nsub: '+!!sub+'\nuid: '+(uid||'NULL')+'\nsession: '+!!sess.data.session+'\nDB check: '+db;
-  }catch(e){ out.textContent='ERROR: '+e.message; }
+    out.textContent='setupPush returned: '+ok+'\nsub now: '+!!sub+'\nuid: '+(uid||'NULL')+'\nDB check: '+db+'\n\nLOGS:\n'+logs.join('\n');
+  }catch(e){ out.textContent='ERROR: '+e.message+'\n\nLOGS:\n'+logs.join('\n'); }
 })();
 </script></body></html>
