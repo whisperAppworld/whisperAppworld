@@ -43,7 +43,7 @@ window.isPushEnabledInDB = isPushEnabledInDB;
 async function setupPush() {
   try {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
-    const reg = await navigator.serviceWorker.register('sw.js?v=3');
+    const reg = await navigator.serviceWorker.register('sw.js?v=4');
     const perm = await Notification.requestPermission();
     if (perm !== 'granted') return false;
     let sub = await reg.pushManager.getSubscription();
@@ -138,7 +138,7 @@ async function sendPushToUser(userId, title, body, data={}) {
     await fetch('https://jztfakvawduanyovbbkt.supabase.co/functions/v1/send-push', {
       method: 'POST',
       headers: { 'apikey': 'sb_publishable_Xgea70sY3vlxZQD0PTWFYQ_ySQN2K4C', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: userId, sender_id: data.sender_id || null, sender_photo: data.sender_photo||data.photo||null, sender_name: data.sender_name||null, icon: data.sender_photo||data.photo||null, image: data.sender_photo||data.photo||null, title: title || 'Whisper 🔔', body: body || 'You have a new message', url: data.url || '/', data })
+      body: JSON.stringify({ user_id: userId, sender_id: data.sender_id || null, sender_photo: data.sender_photo||data.photo||null, sender_name: data.sender_name||null, icon: data.sender_photo||data.photo||null, title: title || 'Whisper 🔔', body: body || 'You have a new message', url: data.url || '/', data })
     });
   } catch(e) { console.log('sendPush failed', e); }
 }

@@ -14,7 +14,7 @@ self.addEventListener('push', function(event) {
         if(photo && icon===fallbackIcon) icon = photo;
       }
     }catch(e){}
-    const options = { body: data.body || 'You have a new message', icon: icon, image: (data.image||data.sender_photo||null), badge: fallbackIcon, data: { url: (data.url || (data.data && data.data.url) || './index.html') } };
+    const options = { body: data.body || 'You have a new message', icon: icon, badge: fallbackIcon, data: { url: (data.url || (data.data && data.data.url) || './index.html') } };
     await self.registration.showNotification(title, options);
   })());
 });
