@@ -4,8 +4,8 @@ async function notifyUser(userId, type, title, body, extra={}){
   if(!userId) return;
   var me = await notifGetMyProfile();
   var _senderId = me.user_id||me.id||null;
-  try{ var _r = await window.supabase.from('notifications').insert([{ user_id:userId, type, title, body, sender_id: _senderId, sender_name: extra.sender_name||me.name||'', sender_photo: extra.sender_photo||me.img||me.photo||me.image_url||'', data: extra.data||{} }]); if(_r && _r.error) console.log('NOTIF INSERT FAILED:', _r.error.message); else console.log('NOTIF INSERT OK for', userId); }catch(e){ console.log('notif save',e); }
-  var _pushData = Object.assign({}, extra.data||{}, {sender_id:_senderId});
+  try{ var _r = await window.supabase.from('notifications').insert([{ user_id:userId, type, title, body, sender_id: _senderId, sender_name: extra.sender_name||me.name||'', sender_photo: extra.sender_photo||me.photo||me.image_url||me.img||(me.photos&&me.photos[0])||'', data: extra.data||{} }]); if(_r && _r.error) console.log('NOTIF INSERT FAILED:', _r.error.message); else console.log('NOTIF INSERT OK for', userId); }catch(e){ console.log('notif save',e); }
+  var _photo = extra.sender_photo||me.photo||me.image_url||me.img||(me.photos&&me.photos[0])||''; var _pushData = Object.assign({}, extra.data||{}, {sender_id:_senderId, sender_photo:_photo, sender_name: extra.sender_name||me.name||''});
   if(window.sendPushToUser) window.sendPushToUser(userId, title, body, _pushData);
   // DO NOT showInAppBanner here - this runs in SENDER browser, would show sender their own message.
 }
@@ -15,15 +15,16 @@ window.notifyUser = notifyUser;
 async function notifyPushOnly(userId, title, body, extra={}){
   if(!userId) return;
   var me = await notifGetMyProfile();
-  var pushData = Object.assign({}, extra.data||{}, {sender_id: me.user_id||me.id||null});
+  var _photo2 = extra.sender_photo||me.photo||me.image_url||me.img||(me.photos&&me.photos[0])||''; var pushData = Object.assign({}, extra.data||{}, {sender_id: me.user_id||me.id||null, sender_photo:_photo2, sender_name: extra.sender_name||me.name||''});
   if(window.sendPushToUser) window.sendPushToUser(userId, title, body, pushData);
 }
 window.notifyPushOnly = notifyPushOnly;
-function showInAppBanner(title, body){
+function showInAppBanner(title, body, photo){
+  var _ph = photo || '';
   try{ if(window.whisperPlayAlert) window.whisperPlayAlert(); }catch(e){}
   var b=document.getElementById('whisper-inapp-banner');
   if(!b){ b=document.createElement('div'); b.id='whisper-inapp-banner'; b.style.cssText='position:fixed;top:10px;left:10px;right:10px;z-index:10001;background:#1a1a1a;border:1px solid #ff5a8a;border-radius:14px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.5)'; b.onclick=()=>{ b.style.display='none'; openNotifInbox(); }; document.body.appendChild(b); }
-  b.innerHTML='<b>'+title+'</b><div style="color:#ccc;font-size:13px">'+body+'</div>';
+  b.innerHTML=(_ph?'<img src="'+_ph+'" onerror="this.remove()" style="width:44px;height:44px;border-radius:50%;object-fit:cover;float:left;margin-right:10px">':'<div style="width:44px;height:44px;border-radius:50%;background:#ff5a8a;color:#fff;display:flex;align-items:center;justify-content:center;float:left;margin-right:10px;font-size:20px">'+(title||'W').charAt(0)+'</div>')+'<b>'+title+'</b><div style="color:#ccc;font-size:13px">'+body+'</div><div style="clear:both"></div>';
   b.style.display='block';
   setTimeout(()=>{ b.style.display='none'; }, 4000);
 }
@@ -39,7 +40,7 @@ async function renderNotifBell(){
 async function openNotifInbox(){
   var uid=await notifGetUid(); if(!uid) return alert('Login first');
   var r=await window.supabase.from('notifications').select('*').eq('user_id',uid).order('created_at',{ascending:false}).limit(50);
-  var list=(r.data||[]);
+  if(r.error) alert('Notifications failed: '+r.error.message); var list=(r.data||[]);
   var m=document.getElementById('notif-inbox');
   if(!m){ m=document.createElement('div'); m.id='notif-inbox'; m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:10002;display:flex;align-items:flex-end;justify-content:center'; m.onclick=e=>{ if(e.target===m) m.style.display='none'; }; document.body.appendChild(m); }
   m.innerHTML='<div style="background:#1a1a1a;width:100%;max-width:420px;max-height:88vh;overflow-y:auto;border-radius:20px 20px 0 0;padding:16px"><h3 style="margin:0">🔔 '+((localStorage.getItem('whisper_lang')||'English')==='French'?'Notifications':(localStorage.getItem('whisper_lang')||'English')==='Spanish'?'Notificaciones':'Notifications')+'</h3><button onclick="notifMarkAllRead()" style="margin:10px 0;padding:8px 14px;border-radius:10px;border:0;background:#333;color:#fff">'+((localStorage.getItem('whisper_lang')||'English')==='French'?'Tout marquer comme lu':(localStorage.getItem('whisper_lang')||'English')==='Spanish'?'Marcar todo como leído':'Mark all read')+'</button><div>'+(list.length?list.map(n=>'<div onclick="notifOpen(\''+n.id+'\',\''+(n.data?.chat_with||'')+'\')" style="padding:12px;border-bottom:1px solid #333;cursor:pointer;background:'+(n.is_read?'transparent':'#222')+'"><b>'+n.title+'</b><div style="color:#ccc;font-size:13px">'+n.body+'</div><div style="color:#888;font-size:11px">'+new Date(n.created_at).toLocaleString()+'</div></div>').join(''):'<p style="color:#888">'+((localStorage.getItem('whisper_lang')||'English')==='French'?'Aucune notification pour le moment':(localStorage.getItem('whisper_lang')||'English')==='Spanish'?'Sin notificaciones aún':'No notifications yet')+'</p>')+'</div><button onclick="document.getElementById(\'notif-inbox\').style.display=\'none\'" style="width:100%;padding:12px;border-radius:12px;border:0;background:#333;color:#fff;margin-top:10px">Close</button></div>';

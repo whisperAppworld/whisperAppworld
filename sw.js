@@ -4,17 +4,17 @@ self.addEventListener('push', function(event) {
   const title = data.title || 'WhisperApp';
   const fallbackIcon = 'images/icon-192.png';
   event.waitUntil((async function(){
-    let icon = fallbackIcon;
+    let icon = data.icon || data.sender_photo || (data.data && (data.data.sender_photo||data.data.icon)) || fallbackIcon;
     try{
       var sid = data.sender_id || (data.data && data.data.sender_id);
       if(sid){
-        var res = await fetch('https://jztfakvawduanyovbbkt.supabase.co/rest/v1/profiles?user_id=eq.'+encodeURIComponent(sid)+'&select=photo,photos', { headers: { 'apikey': 'sb_publishable_Xgea70sY3vlxZQD0PTWFYQ_ySQN2K4C', 'Authorization': 'Bearer sb_publishable_Xgea70sY3vlxZQD0PTWFYQ_ySQN2K4C' } });
+        var res = await fetch('https://jztfakvawduanyovbbkt.supabase.co/rest/v1/profiles?user_id=eq.'+encodeURIComponent(sid)+'&select=photo,photos,image_url', { headers: { 'apikey': 'sb_publishable_Xgea70sY3vlxZQD0PTWFYQ_ySQN2K4C', 'Authorization': 'Bearer sb_publishable_Xgea70sY3vlxZQD0PTWFYQ_ySQN2K4C' } });
         var rows = await res.json();
-        var photo = rows && rows[0] && (rows[0].photo || (rows[0].photos && rows[0].photos[0]));
-        if(photo && (photo.indexOf('http')===0 || photo.indexOf('data:image')===0)) icon = photo;
+        var photo = rows && rows[0] && (rows[0].photo || rows[0].image_url || (rows[0].photos && rows[0].photos[0]));
+        if(photo && icon===fallbackIcon) icon = photo;
       }
     }catch(e){}
-    const options = { body: data.body || 'You have a new message', icon: icon, badge: fallbackIcon, data: { url: data.url || './index.html' } };
+    const options = { body: data.body || 'You have a new message', icon: icon, image: (data.image||data.sender_photo||null), badge: fallbackIcon, data: { url: (data.url || (data.data && data.data.url) || './index.html') } };
     await self.registration.showNotification(title, options);
   })());
 });

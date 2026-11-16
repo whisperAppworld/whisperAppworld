@@ -3,8 +3,8 @@
   var KEY='whisper_settings_v1';
   var defaults={inapp:true,sound:true,vibrate:true,push:false,lang:'English',visible:'Everyone'};
   function load(){ try{return Object.assign({},defaults,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return Object.assign({},defaults)} }
-  function save(s){ localStorage.setItem(KEY,JSON.stringify(s)); return s; }
-  var settings=load(); window.whisperSettings=settings;
+  function save(s){ localStorage.setItem(KEY,JSON.stringify(s)); try{ localStorage.setItem('whisper_lang', s.lang||'English'); }catch(e){} return s; }
+  var settings=load(); window.whisperSettings=settings; try{ localStorage.setItem('whisper_lang', settings.lang||'English'); }catch(e){}
   // --- Push toggle: was missing, so browser kept asking ---
   window.handlePushToggle=function(el){
     settings.push=!!el.checked; save(settings);
@@ -91,6 +91,14 @@
   'Email Verified':['Correo verificado','Email verifie'],
   'Photo Verified':['Foto verificada','Photo verifiee'],
   'Copy this pose exactly, so we can match it to your profile photos.':['Copia esta pose exactamente, para compararla con tus fotos de perfil.','Copie cette pose exactement, pour la comparer a tes photos de profil.'],
+  'Loading chats...':['Cargando chats...','Chargement des discussions...'],
+  'Loading chat...':['Cargando chat...','Chargement de la discussion...'],
+  'Loading...':['Cargando...','Chargement...'],
+  'Online':['En linea','En ligne'],
+  'Offline':['Sin conexion','Hors ligne'],
+  'Notifications':['Notificaciones','Notifications'],
+  'Mark all read':['Marcar todo como leido','Tout marquer comme lu'],
+  'No notifications yet':['Sin notificaciones aun','Aucune notification pour le moment'],
   'Country - City e.g. Equatorial Guinea - Malabo':['Pais - Ciudad p. ej. Guinea Ecuatorial - Malabo','Pays - Ville ex. Guinee equatoriale - Malabo']
   };
   function tr(orig,lang){
