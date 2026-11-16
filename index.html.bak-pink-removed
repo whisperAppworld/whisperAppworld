@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WhisperApp</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f0f0f">
+<style>
+body{font-family:sans-serif;background:#111;color:#fff;padding:16px;max-width:980px;margin:auto;padding-bottom:80px}
+input,textarea,select{width:100%;padding:12px;margin:8px 0;border-radius:10px;border:none;box-sizing:border-box}
+button{padding:12px 18px;border:none;border-radius:10px;background:#ff5a8a;color:#fff;font-weight:bold}
+.card{background:#222;padding:12px;border-radius:12px;margin:10px 0}
+.card img{width:100%;border-radius:10px}
+h2{margin-top:24px}
+nav{position:fixed;bottom:0;left:0;right:0;background:#1a1a1a;display:flex;justify-content:space-around;padding:10px;border-top:1px solid #333}
+nav button{background:none;color:#aaa;font-size:11px;flex:1;padding:6px 2px}
+.circles{display:flex;gap:10px;overflow-x:auto;padding:10px 0}
+.circle{flex:0 0 62px;width:62px;height:62px;border-radius:50%;border:3px solid #ff5a8a;display:flex;align-items:center;justify-content:center;font-size:22px;background:#222;cursor:pointer}
+.circle span{font-size:10px;display:block;text-align:center}
+nav button.active{color:#ff5a8a}
+section{display:none}
+section.active{display:block}
+#map{height:calc(100vh - 210px);min-height:520px;border-radius:16px;margin:10px 0;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12)}
+#tab-discover{padding-bottom:10px}
+#tab-discover h2{margin:6px 0 8px}
+#tab-discover #map-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:none;flex-direction:column;padding:12px}#map-modal.open{display:flex}#map-modal #map{flex:1;width:100%;height:auto !important;min-height:0}.swipe-card{background:#222;border-radius:20px;overflow:hidden;margin:12px 0;box-shadow:0 10px 30px rgba(0,0,0,.4)}.swipe-card .photo img{width:100%;height:100%;object-fit:cover;display:block}.swipe-card .photo{height:360px;background:linear-gradient(135deg,#ff5a8a,#ff8a5c);display:flex;align-items:center;justify-content:center;font-size:110px}.swipe-card .info{padding:16px}.swipe-card .info h3{margin:0;font-size:26px}.swipe-card .info p{margin:6px 0;color:#bbb}.swipe-actions{display:flex;gap:12px;padding:0 16px 16px}.swipe-actions button{flex:1;padding:16px;font-size:18px;border-radius:50px}.btn-pass{background:#333 !important}.btn-like{background:#ff5a8a !important}.counter{margin-bottom:8px}
+.counter{background:#ff5a8a;padding:10px;border-radius:10px;text-align:center;font-weight:bold}
+</style><link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'>
+</head>
+<body>
+<h1>WhisperApp</h1>
+
+<section id="tab-profile"><div style="display:flex;gap:8px;margin:10px 0">
+<button type="button" onclick="showProfileSub('login')" id="psub-login-btn" style="flex:1;padding:10px;border-radius:10px;border:none;background:#ff5a8a;color:white;font-weight:bold">Login</button>
+<button type="button" onclick="showProfileSub('my')" id="psub-my-btn" style="flex:1;padding:10px;border-radius:10px;border:none;background:#333;color:white;font-weight:bold">My Profile</button>
+<button type="button" onclick="showProfileSub('settings')" id="psub-settings-btn" style="flex:1;padding:10px;border-radius:10px;border:none;background:#333;color:white;font-weight:bold">Settings</button>
+</div><div id="profile-sub-login"><div id="login-box" style="background:#222;padding:15px;border-radius:12px;margin:10px 0">
+<h3>Login / Sign Up</h3>
+<input id="auth-email" type="email" placeholder="Email">
+<input id="auth-pass" type="password" placeholder="Password">
+<button onclick="loginUser()" style="width:100%;margin:5px 0">Login</button>
+<button onclick="signupUser()" style="width:100%;background:#333;margin:5px 0">Sign Up</button>
+<p id="auth-status" style="color:#0f0"></p>
+</div>
+</div><div id="profile-sub-my" style="display:none"><div id="account-bar" style="display:none;background:#222;padding:12px 15px;border-radius:12px;margin:10px 0;color:white">Logged in as <b id="account-email"></b> <button onclick="logoutUser()" type="button" style="float:right;background:#333;color:white;border:none;padding:8px 14px;border-radius:8px;font-weight:bold">Logout</button><div style="clear:both"></div></div><div style="background:linear-gradient(135deg,#ff5a8a,#ff8a5c);border-radius:20px;padding:20px;color:white;margin-bottom:16px">
+<div style="display:flex;align-items:center;gap:14px">
+<div id="p-avatar-preview" style="width:84px;height:84px;border-radius:50%;background:white;color:#ff5a8a;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;overflow:hidden;flex-shrink:0;border:3px solid white">😊</div>
+<div><div id="p-header-name" style="font-size:26px;font-weight:900;line-height:1.1">Your Name</div><div id="p-header-age" style="margin-top:6px;background:white;color:#ff5a8a;display:inline-block;padding:5px 12px;border-radius:20px;font-size:15px;font-weight:800">Age • --</div><div style="opacity:0.9;font-size:13px;margin-top:6px">Make it beautiful, get more matches ✨</div><div id="p-preview-name" style="display:none">Your Name • Age</div></div>
+</div></div>
+<div style="background:white;border-radius:18px;padding:16px;box-shadow:0 4px 20px rgba(0,0,0,0.08);margin-bottom:14px">
+<div style="font-weight:800;font-size:15px;margin-bottom:10px;color:#222">📸 Profile Photos <span style="font-weight:400;color:#888;font-size:12px">- tap a block to add (1st is main)</span></div>
+<div id="p-blocks" style="display:flex;gap:8px;flex-wrap:wrap"></div><input id="p-img" placeholder="Photo link" style="display:none">
+</div>
+<div style="background:white;border-radius:18px;padding:16px;box-shadow:0 4px 20px rgba(0,0,0,0.08);margin-bottom:14px">
+<div style="font-weight:800;font-size:15px;margin-bottom:10px;color:#222">👤 About You</div>
+<input oninput="syncProfileHeader()" id="p-name" placeholder="Your name" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8;font-size:15px">
+<div style="display:flex;gap:8px"><input oninput="syncProfileHeader()" id="p-age" type="number" placeholder="Age" style="flex:1;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><select id="p-gender" style="flex:1;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><option value="">Gender</option><option>Female</option><option>Male</option><option>Other</option></select></div>
+<input id="p-location" placeholder="📍 Country - City e.g. Equatorial Guinea - Malabo" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8">
+<select id="p-looking" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><option value="">Looking for</option><option>Female</option><option>Male</option><option>Anyone</option></select><select id="p-relationship" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><option value="">💍 Relationship status</option><option>Single</option><option>In a relationship</option><option>Engaged</option><option>Married</option><option>It's complicated</option><option>Prefer not to say</option></select>
+<textarea id="p-bio" placeholder="✍️ Bio - about you..." style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8;min-height:70px"></textarea>
+<input id="p-interests" placeholder="❤️ Interests - e.g. Music, Football, Movies" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><div id="p-interest-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 8px"></div><script>try{(function(){var list=["Gym","Wine","Music","Football","Movies","Travel","Food","Reading","Dancing","Gaming"];var w=document.getElementById('p-interest-chips');if(!w)return;w.innerHTML=list.map(function(x){return '<button type="button" onclick="toggleInterest(this)" style="padding:6px 12px;border-radius:20px;border:1px solid #eee;background:#f8f8f8;font-size:13px;cursor:pointer">'+x+'</button>'}).join('');})();}catch(e){} function toggleInterest(btn){var inp=document.getElementById('p-interests');var cur=(inp.value||'').split(',').map(function(s){return s.trim()}).filter(Boolean);var v=btn.textContent.trim();var i=cur.indexOf(v);if(i>=0){cur.splice(i,1);btn.style.background='#f8f8f8';btn.style.color='#222';}else{cur.push(v);btn.style.background='#ff5a8a';btn.style.color='white';}inp.value=cur.join(', ');}</script>
+<input id="p-language" placeholder="🌍 Language - e.g. Spanish, English, French" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8">
+<button onclick="saveProfile()" style="background:linear-gradient(135deg,#ff5a8a,#ff8a5c);color:white;border:none;padding:14px;width:100%;border-radius:14px;font-weight:800;font-size:16px;margin-top:8px">Save Profile 💖</button>
+</div>
+</div><div id="profile-sub-settings" style="display:none"><h2>⚙️ Settings</h2>
+<div class="card"><label style="display:block;margin-bottom:8px">Notifications</label>
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid #333"><span>🔔 Push Notifications<br><small style="color:#aaa">Alerts even when app is closed</small></span><input type="checkbox" id="t-push" onchange="window.handlePushToggle(this)" style="width:22px;height:22px"></div>
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid #333"><span>💬 In-app Notifications<br><small style="color:#aaa">Banners + sound inside the app</small></span><input type="checkbox" id="t-inapp" checked style="width:22px;height:22px"></div>
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid #333"><span>🔊 Sound<br><small style="color:#aaa">Beep for new messages</small></span><input type="checkbox" id="t-sound" checked style="width:22px;height:22px"></div>
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid #333"><span>📳 Vibration<br><small style="color:#aaa">Buzz for new messages</small></span><input type="checkbox" id="t-vibrate" checked style="width:22px;height:22px"></div>
+<p id="notif-status" style="color:#aaa;font-size:13px;margin:6px 0 0"></p><label>Show my profile</label><select id="s-visible"><option value="Everyone">Everyone</option><option value="Only Matches">Only Matches</option><option value="Hidden">Hidden</option></select><label>Language</label><select id="s-lang"><option value="English">English</option><option value="Spanish">Spanish</option><option value="French">French</option></select><button onclick="alert('Settings saved')">Save Settings</button></div>
+</div></section>
+<script>
+function showProfileSub(n){
+  ['login','my','settings'].forEach(function(k){
+    var el = document.getElementById('profile-sub-'+k);
+    if(el) el.style.display = (k===n ? 'block' : 'none');
+    var b = document.getElementById('psub-'+k+'-btn');
+    if(b) b.style.background = (k===n ? '#ff5a8a' : '#333');
+  });
+}
+</script>
+
+<section id="tab-people">
+<h2>People by Country</h2>
+<div id="profiles"></div>
+</section>
+
+<section id="tab-whisper">
+<h2>Whisper</h2>
+<input id="name" placeholder="Your name">
+<textarea id="text" placeholder="Write a whisper..."></textarea>
+<button onclick="sendWhisper()">Send Whisper</button>
+<div id="list"></div>
+</section>
+
+
+<section id="tab-discover" class="active">
+<div style="display:flex;align-items:center;justify-content:space-between"><h2 style="margin:0">🔥 Discover</h2><button onclick="openMap()" style="font-size:26px;background:#222;padding:10px 14px;border-radius:50%">🌎</button></div>
+<div class="counter" id="daily-counter">❤️ 30 Likes left today</div>
+<select id="country-filter" onchange="swipeIdx=0;renderSwipe()" style="margin-top:8px"><option value="ALL">🌍 All Countries</option></select><div id="discover-loading" style="display:none;text-align:center;padding:30px;color:#aaa">⏳ Loading people...<br><span style="font-size:13px">Fetching from cloud</span></div><div id="swipe-card"></div><div id="map-modal"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">🌎 People Near You</h3><button onclick="closeMap()" style="background:#333">✖️ Close</button></div><div id="map"></div></div>
+<p style="font-size:13px;color:#aaa">Tap a circle to Like. Each Like uses 1 of your 30 daily. Resets tomorrow.</p>
+<div class="circles" id="circles" style="display:none"></div>
+</p>
+<div id="discover-list"></div>
+</section>
+<section id="tab-matches">
+<h2>❤️ Matches</h2>
+<div id="matches-list"><p>No matches yet. Like people in Discover.</p></div>
+</section>
+<section id="tab-messages">
+<h2>💬 Messages</h2>
+<div id="chat-view"><h3 id="chat-title">Chat</h3><div id="messages-list"><p>No messages yet.</p></div>
+<input id="msg-input" placeholder="Type a message..."><button onclick="sendMsg()">Send</button></div>
+</section>
+<div id="top-bell" style="position:fixed;top:10px;right:12px;z-index:9999">
+<button onclick="openNotifInbox()" style="position:relative;background:#1a1a1a;border:1px solid #333;color:#fff;font-size:22px;width:44px;height:44px;border-radius:50%;cursor:pointer">🔔<span id="bell-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#ff5a8a;color:#fff;font-size:11px;min-width:18px;height:18px;line-height:18px;border-radius:999px;text-align:center;padding:0 4px;font-weight:800">0</span></button>
+</div>
+<nav>
+<button id="btn-discover" class="active" onclick="showTab('discover')">🔥 Discover</button>
+<button id="btn-people" onclick="showTab('people')">🌍 People</button>
+<button id="btn-matches" onclick="showTab('matches')">❤️ Matches</button>
+<button id="btn-messages" onclick="showTab('messages')">💬 Messages</button>
+<button id="btn-whisper" onclick="showTab('whisper')">🗣️ Whisper</button>
+<button id="btn-profile" onclick="showTab('profile')">👤 Profile</button>
+</nav>
+
+<script>
+// MAP + 30 DAILY LIMIT
+const names=[];
+const countries=["Equatorial Guinea","Nigeria","Cameroon","Spain","Ghana","France","USA","Kenya","Brazil","Germany","Morocco","Italy","Senegal","UK","Mexico","Portugal","Egypt","Canada","Colombia","Turkey","South Africa","India","Poland","Netherlands","Chile","Argentina","Japan","Australia","Peru","Belgium","Nigeria","Kenya","Ghana","Sweden","Mexico","Japan","India","Brazil","Germany","Nigeria","Ethiopia","France","Spain","India","Germany","Morocco","Brazil","USA","Japan","South Africa","Spain","Ethiopia","Nigeria","Brazil","Russia","Korea","Italy","Finland","Nigeria","UK","China","Mexico","Ghana","Brazil","Egypt","Spain","Norway","China","Poland","Greece"];
+// Auto-fill profile country dropdown from same countries list
+(function(){ var pc=document.getElementById('pf-country'); if(!pc) return; pc.innerHTML=''; [...new Set(countries)].sort().forEach(function(c){ var o=document.createElement('option'); o.value=c; o.textContent=c; pc.appendChild(o); }); })();
+
+function todayKey(){ return 'likes_'+new Date().toISOString().slice(0,10); }
+function getLiked(){ try{ return JSON.parse(localStorage.getItem(todayKey())||'[]'); }catch(e){ return []; } }
+function renderCircles(){
+  let liked=getLiked();
+  let left=30-liked.length;
+  let ctr=document.getElementById('daily-counter');
+  if(ctr){ var _L=(localStorage.getItem('whisper_lang')||'English'); if(left<=0) ctr.textContent=_L==='French'?'😴 Plus de Likes aujourd\'hui - reviens demain!':_L==='Spanish'?'😴 Sin Me gusta hoy - vuelve manana!':'😴 No Likes left today - come back tomorrow!'; else ctr.textContent=_L==='French'?'❤️ '+left+' Likes restants aujourd\'hui':_L==='Spanish'?'❤️ '+left+' Me gusta restantes hoy':'❤️ '+left+' Likes left today'; }
+  let c=document.getElementById('circles');
+  if(!c) return;
+  c.innerHTML=names.map((n,i)=>{
+    let isLiked=liked.includes(n);
+    let style=isLiked ? 'border-color:#555;opacity:0.4' : '';
+    return `<div class="circle" style="${style}" onclick="likePerson('${n}')"><div>${isLiked?'❤️':'👤'}<br><span>${n}</span><br><span style="font-size:8px">${countries[i]}</span></div></div>`;
+  }).join('');
+}
+
+
+
+function renderPeople(){
+  var el=document.getElementById('profiles'); if(!el) return;
+  var all=getDeck();
+  all=all.filter(function(x){return x && x.name;});
+  if(!all.length){ all=[]; }
+  var dbg='<p style="font-size:12px;color:#888">DEBUG: all_profiles='+all.length+' | my_profile='+(function(){try{return JSON.parse(localStorage.getItem('my_profile')||'{}').name||'(empty)'}catch(e){return '(err)'}})()+'</p>';
+  if(!all.length){ el.innerHTML=dbg+'<p style="color:#aaa">No people yet. Go to Profile, fill Name + Age + Country, tap Save, then come back here.</p>'; return; }
+  el.innerHTML=dbg+el.innerHTML;
+  el.innerHTML=all.map(function(p){
+    var photo=p.photo||p.photos&&p.photos[0]||'';
+    var relPill=p.relationship?'<span style="display:inline-block;background:#fdf2f8;color:#be185d;padding:5px 10px;border-radius:20px;font-size:12px;font-weight:700;margin:2px 4px 2px 0">💍 '+p.relationship+'</span>':''; var intPills=p.interests?p.interests.split(',').map(function(s){return s.trim()}).filter(Boolean).map(function(s){return '<span style="display:inline-block;background:#fff1f2;color:#e11d48;padding:5px 10px;border-radius:20px;font-size:12px;font-weight:700;margin:2px 4px 2px 0">❤️ '+s+'</span>'}).join(''):''; return '<div class="card" style="padding:0;overflow:hidden;border-radius:18px;background:white;box-shadow:0 4px 20px rgba(0,0,0,0.08);margin-bottom:16px"><div style="height:220px;background:#333;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative">'+(photo?'<img src="'+photo+'" style="width:100%;height:100%;object-fit:cover">':'<span style="font-size:80px;color:white">'+(p.name||'?').charAt(0)+'</span>')+'<div style="position:absolute;bottom:10px;left:12px;right:12px;color:white;text-shadow:0 2px 8px rgba(0,0,0,0.7)"><b style="font-size:20px">'+p.name+((p.photo_verified||p.email_verified)?'<svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:-4px;margin-left:2px;display:inline-block"><circle cx="12" cy="12" r="10.5" fill="#0095F6"/><path d="M17.2 7.8L10.6 14.4L7 10.8" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>':'')+' • '+(p.age||'')+'</b>'+badgesHtmlFor(p.name)+'<div style="font-size:13px;opacity:0.95">📍 '+(p.country||'')+'</div></div></div><div style="padding:14px"><div>'+relPill+intPills+'</div>'+(p.bio?'<p style="color:#555;font-size:13px;line-height:1.5;margin:8px 0 0">'+p.bio+'</p>':'')+'<button onclick="openChat(\''+p.name+'\')" style="width:100%;margin-top:12px;background:linear-gradient(135deg,#ff5a8a,#ff8a5c);color:white;border:none;padding:12px;border-radius:12px;font-weight:800;font-size:15px">💬 Message</button></div></div>';
+  }).join('');
+}
+
+function getDeck(){ try{ var all=JSON.parse(localStorage.getItem('all_profiles')||'[]'); var me={}; try{ me=JSON.parse(localStorage.getItem('my_profile')||'{}'); }catch(e){} var myUid=window._myUid||me.user_id||me.id||''; var myName=(me.name||'').trim().toLowerCase(); var myEmail=(me.email||'').trim().toLowerCase(); return all.filter(function(x){ if(!x||!x.name) return false; if(myUid && (x.user_id===myUid || x.id===myUid)) return false; if(myName && x.name.trim().toLowerCase()===myName) return false; if(myEmail && x.email && x.email.trim().toLowerCase()===myEmail) return false; return true; }); }catch(e){ return []; } }
+
+let swipeIdx=0;
+function getAges(){return names.map(function(n,i){return 19+((i*7)%14);});}
+function getFiltered(){
+  let f=document.getElementById('country-filter');
+  let v=f?f.value:'ALL';
+  return names.map(function(n,i){return i;}).filter(function(i){return v==='ALL'||countries[i]===v;});
+}
+function renderSwipe(){
+  let cf=document.getElementById('country-filter');
+  if(cf && cf.options.length<=1){
+    let uniq=[...new Set(getDeck().map(function(d){return d.country;}))].sort();
+    uniq.forEach(function(c){let o=document.createElement('option');o.value=c;o.textContent=c;cf.appendChild(o);});
+  }
+  let el=document.getElementById('swipe-card'); if(!el) return;
+  let liked=getLiked();
+  let deck=getDeck();
+  let v=cf?cf.value:'ALL';
+  let list=deck.map(function(d,i){return i;}).filter(function(i){return v==='ALL'||deck[i].country===v;});
+  if(!list.length && v!=='ALL' && cf){ cf.value='ALL'; v='ALL'; list=deck.map(function(d,i){return i;}); }
+  if(swipeIdx>=list.length) swipeIdx=0;
+  while(swipeIdx<list.length && liked.includes(deck[list[swipeIdx]].name)) swipeIdx++;
+  if(swipeIdx>=list.length && list.length>0){ swipeIdx=0; }
+  if(swipeIdx>=list.length){ if(window._discoverLoading){ el.innerHTML='<div style="text-align:center;padding:30px;color:#aaa">⏳ Loading people...</div>'; return; } el.innerHTML='<div class="card" style="text-align:center;padding:30px"><h3>🎉 No more people in this country</h3><p>Try All Countries or come back tomorrow.</p></div>'; return; }
+  let idx=list[swipeIdx], d=deck[idx], n=d.name, c=d.country, age=d.age;
+  var _ph=d.photos; if(typeof _ph==='string'){ try{_ph=JSON.parse(_ph);}catch(e){_ph=_ph?_ph.split(','):[];} } if(!Array.isArray(_ph)) _ph=[]; var _allPhotos=_ph.filter(function(x){return x;}); if(!_allPhotos.length && d.photo) _allPhotos=[d.photo]; if(window._swipePhotoFor!==n){window._swipePhotoFor=n; window._swipePhotoIdx=0;} if(window._swipePhotoIdx>=_allPhotos.length) window._swipePhotoIdx=0; window._swipePhotos=_allPhotos; let photo=_allPhotos[window._swipePhotoIdx]||''; let _dots=_allPhotos.map(function(_,i){return '<span style="font-size:18px;color:'+(i===window._swipePhotoIdx?'#fff':'rgba(255,255,255,.4)')+'">●</span>';}).join(' ');
+  el.innerHTML = `<div class="swipe-card"><div class="photo" onclick="nextSwipePhoto()" style="position:relative;cursor:pointer"><div style="font-size:110px">${n.charAt(0)}</div><img src="${photo}" onerror="this.remove()" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" /><div style="position:absolute;bottom:8px;left:0;right:0;text-align:center">${_dots}</div><div style="position:absolute;top:8px;right:10px;background:rgba(0,0,0,.55);padding:4px 10px;border-radius:999px;font-size:12px">👆 ${((localStorage.getItem('whisper_lang')||'English')==='French'?'Touche la photo pour suivant':(localStorage.getItem('whisper_lang')||'English')==='Spanish'?'Toca la foto para siguiente':'Tap photo for next')}</div></div><div class="info"><h3>${n}${(getVerifiedFor(n)&&(getVerifiedFor(n).email||getVerifiedFor(n).photo))?'<svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:-4px;margin-left:2px;margin-right:0;display:inline-block"><circle cx="12" cy="12" r="10.5" fill="#0095F6"/><path d="M17.2 7.8L10.6 14.4L7 10.8" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>':''} - ${age}</h3><p>${c}</p>${d.relationship?`<p>💍 ${d.relationship}</p>`:''}${d.interests?`<p>❤️ ${d.interests}</p>`:''}${d.bio?`<p>${d.bio}</p>`:''}${d.looking?`<p>Looking for: ${d.looking}</p>`:''}${badgesHtmlFor(n)}</div><div class="swipe-actions"><button class="btn-pass" onclick="passPerson()">Pass</button><button class="btn-like" onclick="likePerson('${n}')">Like</button><button onclick="openChat('${n}')" style="background:#333 !important">💬 Message</button></div></div>`;
+}
+
+function getVerifiedFor(name){ try{ var deck=null; try{ deck = (typeof getDeck==='function') ? getDeck() : null; }catch(e){} if(deck){ var fd=deck.find(function(x){return x&&x.name===name;}); if(fd && (fd.email_verified||fd.photo_verified)) return {email:!!fd.email_verified, photo:!!fd.photo_verified}; } var all=JSON.parse(localStorage.getItem('all_profiles')||'[]'); var f=all.find(function(x){return x&&x.name===name;}); if(!f) return null; return {email:!!f.email_verified, photo:!!f.photo_verified}; }catch(e){ return null; } }
+function badgesHtmlFor(name){ var v=getVerifiedFor(name); if(!v||(!v.email&&!v.photo)) return ''; var s='<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">'; if(v.email) s+='<span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:800">Email Verified</span>'; if(v.photo) s+='<span style="background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:800">📸 Photo Verified</span>'; return s+'</div>'; }
+
+window._swipePhotoIdx=0; window._swipePhotoFor=null; function nextSwipePhoto(){ var photos=window._swipePhotos||[]; if(!photos.length) return; window._swipePhotoIdx=((window._swipePhotoIdx||0)+1)%photos.length; var img=document.querySelector('#swipe-card .photo img'); if(img){ img.src=photos[window._swipePhotoIdx]; } var dots=document.querySelectorAll('#swipe-card .photo div span'); dots.forEach(function(s,i){ s.style.color=(i===window._swipePhotoIdx?'#fff':'rgba(255,255,255,.4)'); }); } function passPerson(){window._swipePhotoIdx=0; swipeIdx++;renderSwipe();}
+function openMap(){document.getElementById('map-modal').classList.add('open');setTimeout(function(){initMap();if(window._map)window._map.invalidateSize();},100);}
+function closeMap(){document.getElementById('map-modal').classList.remove('open');}
+function likePerson(name){
+  let liked=getLiked();
+  if(liked.includes(name)){ alert(name+' already liked today'); return; }
+  if(liked.length>=30){ alert('Daily limit reached! 30/30'); return; }
+  liked.push(name); localStorage.setItem(todayKey(), JSON.stringify(liked));;let _idx=names.indexOf(name);if(_idx>=0&&_idx%3===0){let ml=document.getElementById('matches-list');if(ml){if(ml.innerHTML.includes('No matches yet'))ml.innerHTML='';ml.innerHTML+='<div class=card><b>💖 '+name+' • '+getAges()[_idx]+'</b><br>📍 '+countries[_idx]+'<br><button onclick="showTab(\'messages\')">💬 Chat Now</button></div>';}alert('💖 MATCH! '+name+' liked you back!');}swipeIdx++;renderSwipe();
+  renderCircles(); initMap();
+  alert('❤️ You liked '+name+'! '+(30-liked.length)+' left today');
+}
+function initMap(){
+  let m=document.getElementById('map'); if(!m||!window.L) return;
+  if(window._map){ window._map.remove(); }
+  m.style.height='70vh'; m.style.minHeight='520px';
+  let map=L.map('map').setView([3.75, 8.78], 3); window._map=map;
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:19,attribution:'© OpenStreetMap © CARTO'}).addTo(map);
+  let liked=getLiked();
+  getDeck().forEach(function(d,di){
+    if(d.isReal){
+      let lat=3.75 + (Math.sin(di*2.3)*25);
+      let lng=8.78 + (Math.cos(di*1.7)*45);
+      let color=liked.includes(d.name)?'red':'#22c55e';
+      L.circleMarker([lat,lng],{radius:10,color:color,fillColor:color,fillOpacity:0.9}).addTo(map).bindPopup('<b>'+d.name+'</b> (Real)<br>'+d.country+badgesHtmlFor(d.name)+'<br><button onclick="likePerson(\''+d.name+'\')">❤️ Like</button>');
+    }
+  });
+  names.forEach((n,i)=>{
+    let lat=3.75 + (Math.sin(i*2.3)*25);
+    let lng=8.78 + (Math.cos(i*1.7)*45);
+    let color=liked.includes(n)?'red':'pink';
+    L.circleMarker([lat,lng],{radius:8,color:color,fillColor:color,fillOpacity:0.9}).addTo(map).bindPopup('<b>'+n+'</b><br>'+countries[i]+badgesHtmlFor(n)+'<br><button onclick="likePerson(\''+n+'\')">❤️ Like</button>');
+  });
+}
+renderCircles();
+setTimeout(()=>{initMap(); if(window._map) window._map.invalidateSize();}, 800);
+
+function showTab(name){ document.body.dataset.currentTab = name;
+ document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+ document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+ document.getElementById('tab-'+name).classList.add('active');
+ document.getElementById('btn-'+name).classList.add('active'); if(name=='discover'){ setTimeout(function(){initMap(); if(window._map) window._map.invalidateSize(); },400); } if(name==='people') renderPeople(); if(name==='discover') renderSwipe();
+}
+
+async function signupUser(){
+  let email=document.getElementById('auth-email').value;
+  let pass=document.getElementById('auth-pass').value;
+  let {data,error}=await supabase.auth.signUp({email:email,password:pass});
+  document.getElementById('auth-status').textContent=error?error.message:'Check your email to confirm, then Login!';
+}
+async function loginUser(){
+  let email=document.getElementById('auth-email').value;
+  let pass=document.getElementById('auth-pass').value;
+  let {data,error}=await supabase.auth.signInWithPassword({email:email,password:pass});
+  document.getElementById('auth-status').textContent=error?error.message:'Logged in as '+email;
+  if(!error){ document.getElementById('login-box').style.display='none'; var ab=document.getElementById('account-bar'); if(ab) ab.style.display='block'; var ae=document.getElementById('account-email'); if(ae) ae.textContent=email; if(typeof loadMyProfileFromCloud==='function') loadMyProfileFromCloud(); if(typeof showProfileSub==='function') showProfileSub('my'); }
+}
+renderCircles(); renderSwipe();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+<script src="push.js?v=5"></script>
+<script src="notifications.js?v=11"></script>
+<script>
+function clearLocalProfileAndForm(){
+  try{ localStorage.removeItem('my_profile'); localStorage.removeItem('all_profiles'); localStorage.removeItem('_last_uid'); }catch(e){}
+  window._myPhotos=['','','','','']; window._myPhoto='';
+  ['p-name','p-age','pf-name'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  var hn=document.getElementById('p-header-name'); if(hn) hn.textContent='';
+  if(typeof initPhotoBlocks==='function') initPhotoBlocks();
+  if(typeof updateAvatar==='function') updateAvatar();
+  if(typeof renderPfPhotos==='function') renderPfPhotos();
+}
+async function logoutUser(){
+  try{ if(window.supabase) await window.supabase.auth.signOut(); }catch(e){}
+  clearLocalProfileAndForm();
+  var lb=document.getElementById('login-box'); if(lb) lb.style.display='block';
+  var ab=document.getElementById('account-bar'); if(ab) ab.style.display='none';
+  var st=document.getElementById('auth-status'); if(st) st.textContent='Logged out';
+  if(typeof showProfileSub==='function') showProfileSub('login');
+}
+function fillMyProfileFromStorage(){
+  try{
+    var s=JSON.parse(localStorage.getItem('my_profile')||'{}');
+    if(s.name){
+      var hn=document.getElementById('p-header-name'); if(hn) hn.textContent=s.name;
+      var pn=document.getElementById('p-name'); if(pn && !pn.value) pn.value=s.name;
+      var pf=document.getElementById('pf-name'); if(pf && !pf.value) pf.value=s.name;
+    }
+    if(s.photo){
+      var av=document.getElementById('p-avatar-preview');
+      if(av){ av.innerHTML=''; var im=document.createElement('img'); im.src=s.photo; im.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%'; av.appendChild(im); }
+    }
+  }catch(e){}
+}
+async function refreshAuthUI(){
+  try{
+    if(!window.supabase) return;
+    var r=await window.supabase.auth.getSession();
+    var email=r && r.data && r.data.session && r.data.session.user && r.data.session.user.email;
+    if(email){
+      var lb=document.getElementById('login-box'); if(lb) lb.style.display='none';
+      var ab=document.getElementById('account-bar'); if(ab) ab.style.display='block';
+      var ae=document.getElementById('account-email'); if(ae) ae.textContent=email;
+      var st=document.getElementById('auth-status'); if(st) st.textContent='Logged in as '+email;
+      // cloud-only: do not paint stale local
+      if(typeof loadMyProfileFromCloud==='function') loadMyProfileFromCloud();
+      if(typeof showProfileSub==='function') showProfileSub('my');
+    }
+  }catch(e){}
+}
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(refreshAuthUI, 500); });
+if(window.supabase) window.supabase.auth.onAuthStateChange(function(e){ if(e==='SIGNED_OUT'){ clearLocalProfileAndForm(); refreshAuthUI(); return; } refreshAuthUI(); if(e==='SIGNED_IN'||e==='INITIAL_SESSION') loadMyProfileFromCloud(); });
+</script>
+<script src="app.js?v=104"></script>
+<script src="chat-fix.js?v=18"></script>
+<script src="chat-longpress.js?v=1"></script>
+<script src="settings-fix.js?v=1"></script>
+<script src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'></script>
+
+
+<script>
+window._myPhoto=''; window._myPhotos=['','','','',''];
+function renderPfPhotos(){
+  var wrap=document.getElementById('pf-photos'); var prev=document.getElementById('pf-previews'); if(!wrap) return;
+  wrap.innerHTML=''; prev.innerHTML='';
+  for(var i=0;i<5;i++){
+    (function(i){
+      var b=document.createElement('button'); b.type='button'; b.textContent=(window._myPhotos[i]?'Change Photo '+(i+1):'Add Photo '+(i+1)); b.style.cssText='padding:8px 10px;border-radius:8px;border:1px dashed #ff5a8a;background:#333;color:white;cursor:pointer';
+      b.onclick=function(){ window._pfPhotoIndex=i; document.getElementById('pf-photo').click(); };
+      wrap.appendChild(b);
+      if(window._myPhotos[i]){
+        var im=document.createElement('img'); im.src=window._myPhotos[i]; im.style.cssText='width:70px;height:70px;border-radius:10px;object-fit:cover;cursor:pointer'; im.title='Tap to remove';
+        im.onclick=function(){ window._myPhotos[i]=''; window._myPhoto=window._myPhotos[0]||''; renderPfPhotos(); };
+        prev.appendChild(im);
+      }
+    })(i);
+  }
+}
+document.addEventListener('change', function(e){ if(e.target && e.target.id=='pf-photo'){ var f=e.target.files[0]; if(!f) return; var idx=window._pfPhotoIndex||0; var r=new FileReader(); r.onload=function(ev){ window._myPhotos[idx]=ev.target.result; window._myPhoto=window._myPhotos[0]||''; renderPfPhotos(); }; r.readAsDataURL(f); }});
+document.addEventListener('DOMContentLoaded', renderPfPhotos); setTimeout(renderPfPhotos,500);
+function compressPhoto(dataUrl,cb){ var img=new Image(); img.onload=function(){ var max=600; var w=img.width,h=img.height; var sc=Math.min(1,max/Math.max(w,h)); var c=document.createElement('canvas'); c.width=Math.round(w*sc); c.height=Math.round(h*sc); c.getContext('2d').drawImage(img,0,0,c.width,c.height); try{cb(c.toDataURL('image/jpeg',0.7));}catch(e){cb(dataUrl);} }; img.onerror=function(){cb(dataUrl);}; img.src=dataUrl; }
+function saveProfile(){ return saveMyProfile(); }
+async function saveMyProfile(){ alert('Saving...');
+  var n=document.getElementById('p-name')||document.getElementById('pf-name');
+  var pf=document.getElementById('pf-name'); if(pf&&n&&n.value.trim()) pf.value=n.value.trim();
+  var ageEl=document.getElementById('p-age'); var age=ageEl?ageEl.value.trim():'';
+  var genEl=document.getElementById('p-gender'); var gender=genEl?genEl.value:'';
+  var locEl=document.getElementById('p-location'); var country=locEl&&locEl.value.trim()?locEl.value.trim():'Equatorial Guinea'; var bioEl=document.getElementById('p-bio'); var intEl=document.getElementById('p-interests'); var langEl=document.getElementById('p-language'); var lookEl=document.getElementById('p-looking'); var relEl=document.getElementById('p-relationship'); var c={value:country};
+  if(!n || !n.value.trim()){ alert('Please enter your name'); return; }
+  var urlPhotos=[]; for(var i=0;i<5;i++){ var u=document.getElementById('p-img-'+i); if(u&&u.value.trim()) urlPhotos[i]=u.value.trim(); }
+  var finalPhotos=[]; for(var i=0;i<5;i++){ finalPhotos[i]=window._myPhotos[i]||urlPhotos[i]||''; }
+  window._myPhotos=finalPhotos; window._myPhoto=finalPhotos[0]||'';
+  var _toCompress=finalPhotos.map(function(u){return new Promise(function(res){ if(!u){res('');return;} compressPhoto(u,function(c){res(c);}); });}); Promise.all(_toCompress).then(function(comp){ window._myPhotos=comp; return saveMyProfileCompressed(comp); }); }
+  async function saveMyProfileCompressed(finalPhotos){ window._myPhotos=finalPhotos;
+  var n=document.getElementById('p-name')||document.getElementById('pf-name');
+  var ageEl=document.getElementById('p-age'); var age=ageEl?ageEl.value.trim():'';
+  var genEl=document.getElementById('p-gender'); var gender=genEl?genEl.value:'';
+  var locEl=document.getElementById('p-location'); var country=locEl&&locEl.value.trim()?locEl.value.trim():'Equatorial Guinea';
+  var bioEl=document.getElementById('p-bio'); var intEl=document.getElementById('p-interests');
+  var langEl=document.getElementById('p-language'); var lookEl=document.getElementById('p-looking'); var relEl=document.getElementById('p-relationship'); window._myPhoto=finalPhotos[0]||'';
+  var _prev=null; try{ var _a0=JSON.parse(localStorage.getItem('all_profiles')||'[]'); _prev=_a0.find(function(x){return x&&x.name===n.value.trim();}); }catch(e){} var _ver=window._myVerification||(_prev?{email:_prev.email_verified,photo:_prev.photo_verified}:{email:false,photo:false}); var prof={name:n.value.trim(), age:age, gender:gender, country:country, bio:bioEl?bioEl.value.trim():'', interests:intEl?intEl.value.trim():'', language:langEl?langEl.value.trim():'', looking:lookEl?lookEl.value:'', relationship:relEl?relEl.value:'', photo:window._myPhoto||'', photos:finalPhotos, time:Date.now(), email_verified:!!_ver.email, photo_verified:!!_ver.photo};
+  try{ localStorage.setItem('my_profile', JSON.stringify(prof)); var all=[]; try{all=JSON.parse(localStorage.getItem('all_profiles')||'[]');}catch(e){} all=all.filter(function(x){return x.name!==prof.name}); all.unshift(prof); localStorage.setItem('all_profiles', JSON.stringify(all));
+  try{
+    if(window.supabase){
+      var _u = await window.supabase.auth.getUser();
+      var _user = _u && _u.data && _u.data.user;
+      if(_user){
+        var _row = {user_id:_user.id, email:_user.email, name:prof.name, age:prof.age?parseInt(prof.age):null, gender:prof.gender, country:prof.country, bio:prof.bio, interests:prof.interests, language:prof.language, looking:prof.looking, relationship:prof.relationship, photo:prof.photo, photos:prof.photos?JSON.stringify(prof.photos):null, email_verified:!!_ver.email, photo_verified:!!_ver.photo, updated_at:new Date().toISOString()};
+        var _up = await window.supabase.from('profiles').upsert(_row, {onConflict:'user_id'});
+        if(_up.error){ console.error('Supabase profile save failed:', _up.error.message); alert('CLOUD SAVE FAILED: '+_up.error.message); return; }
+        else console.log('Saved to Supabase cloud ✅');
+      } else console.warn('Not logged in - saved locally only');
+    }
+  }catch(e){ console.error('Cloud save error', e); }
+  alert('Saved '+prof.name+'! Total profiles now: '+all.length); }catch(e){ alert('Storage error: '+e); return; }
+  var st=document.getElementById('pf-status'); if(st) st.textContent='Saved! Go to Discover - you are now on the map!';
+  alert(prof.name+' from '+prof.country+' is now on the map!');
+  if(typeof initMap==='function'){ try{initMap();}catch(e){} }
+}
+document.addEventListener('click', function(e){ if(e.target && e.target.id=='pf-save-btn'){ saveMyProfile(); }});
+window.saveMyProfile=saveMyProfile; try{ var s=JSON.parse(localStorage.getItem('my_profile')||'{}'); if(s.photos&&s.photos.length){ window._myPhotos=s.photos.slice(0,5); while(window._myPhotos.length<5) window._myPhotos.push(''); window._myPhoto=window._myPhotos[0]||s.photo||''; } else if(s.photo){ window._myPhotos=[s.photo,'','','','']; window._myPhoto=s.photo; } if(s.name){ var pn=document.getElementById('p-name'); if(pn) pn.value=s.name; var pa=document.getElementById('p-age'); if(pa&&s.age) pa.value=s.age; } }catch(e){} if(typeof syncProfileHeader==='function') syncProfileHeader();
+</script>
+
+
+
+
+
+
+<script>
+window._myPhotos = window._myPhotos || ["","","","",""];
+function updateAvatar(){
+  var av = document.getElementById("p-avatar-preview"); if(!av) return;
+  var first = (window._myPhotos||[]).find(function(x){return x});
+  if(first){
+    av.innerHTML = '<img src="'+first+'" style="width:100%;height:100%;object-fit:cover;display:block">';
+  } else {
+    av.innerHTML = '😊';
+  }
+}
+function initPhotoBlocks(){
+  const wrap = document.getElementById("p-blocks"); if(!wrap) return;
+  wrap.innerHTML = "";
+  for(let i=0;i<5;i++){
+    const d = document.createElement("div");
+    d.style.cssText = "width:100px;height:120px;border:2px dashed #ff5a8a;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;position:relative;background:#222;cursor:pointer";
+    d.innerHTML = `<img id="p-prev-${i}" style="width:100%;height:100%;object-fit:cover;display:none"><span id="p-label-${i}" style="font-size:28px">+</span><span style="font-size:11px;color:#fff;text-align:center;padding:2px">Photo ${i+1}${i===0?' - Main':''}</span><input type="file" id="p-file-${i}" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer">`;
+    wrap.appendChild(d);
+      // Fill from saved photos (fresh login / reload)
+      if(window._myPhotos && window._myPhotos[i]){
+        var _img=document.getElementById("p-prev-"+i);
+        if(_img){ _img.src=window._myPhotos[i]; _img.style.display="block"; }
+        var _lab=document.getElementById("p-label-"+i);
+        if(_lab) _lab.style.display="none";
+      }
+    const file = d.querySelector("input");
+    file.addEventListener("change", e => {
+      const f = e.target.files[0]; if(!f) return;
+      const r = new FileReader();
+      r.onload = ev => {
+        window._myPhotos[i] = ev.target.result;
+        updateAvatar();
+        const img = document.getElementById("p-prev-"+i);
+        img.src = ev.target.result; img.style.display = "block";
+        document.getElementById("p-label-"+i).style.display = "none";
+      };
+      r.readAsDataURL(f);
+    });
+  }
+}
+document.addEventListener("DOMContentLoaded", function(){ initPhotoBlocks(); updateAvatar(); var av=document.getElementById("p-avatar-preview"); if(av){ av.style.cursor="pointer"; av.onclick=function(){
+  var first=(window._myPhotos||[]).find(function(x){return x});
+  var ov=document.getElementById("avatar-big"); if(!ov){ ov=document.createElement("div"); ov.id="avatar-big"; ov.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column"; ov.onclick=function(){ ov.style.display="none"; }; document.body.appendChild(ov); }
+  ov.innerHTML=(first?'<img src="'+first+'" style="width:98vw;max-width:480px;height:98vw;max-height:480px;object-fit:cover;border-radius:24px;border:10px solid #ff5a8a;box-shadow:0 0 0 6px white, 0 0 60px #ff5a8a">':'<div style="font-size:200px">😊</div>')+'<p style="color:white;margin-top:16px;font-weight:bold">Tap anywhere to close ✕</p>';
+  ov.style.display="flex";
+  return;
+  var bold = av.dataset.bold==="1"; var bold = av.dataset.bold==="1"; av.dataset.bold = bold?"0":"1"; av.style.transition = "all 0.25s ease"; av.style.border = bold ? "3px solid white" : "8px solid #ff5a8a"; av.style.boxShadow = bold ? "none" : "0 0 0 4px white, 0 0 0 10px #ff5a8a, 0 12px 32px rgba(255,90,138,0.7)"; av.style.transform = bold ? "scale(1)" : "scale(1.22)"; av.style.outline = bold ? "none" : "3px solid #ff8a5c"; }; } });
+initPhotoBlocks(); updateAvatar();
+</script>
+<script>
+function syncProfileHeader(){
+  var nameEl=document.getElementById('p-name'); var ageEl=document.getElementById('p-age');
+  var name=(nameEl&&nameEl.value.trim())||'';
+  var age=(ageEl&&ageEl.value.trim())||'';
+  if(!name){ try{ var s=JSON.parse(localStorage.getItem('my_profile')||'{}'); name=s.name||''; age=s.age||age; }catch(e){} }
+  if(!name){ var pf=document.getElementById('pf-name'); if(pf&&pf.value.trim()) name=pf.value.trim(); }
+  var hn=document.getElementById('p-header-name'); if(hn) hn.textContent=name||'Your Name';
+  var ha=document.getElementById('p-header-age'); if(ha) ha.textContent=(age?age+' years old':'Age • --');
+  var pv=document.getElementById('p-preview-name'); if(pv) pv.textContent=(name||'Your Name')+' • '+(age||'Age');
+}
+document.addEventListener('input',function(e){ if(e.target&&(e.target.id=='p-name'||e.target.id=='p-age'||e.target.id=='pf-name')) syncProfileHeader(); });
+document.addEventListener('DOMContentLoaded',syncProfileHeader);
+setTimeout(syncProfileHeader,500); setTimeout(syncProfileHeader,1500); setInterval(syncProfileHeader,1000);
+</script>
+
+<script>
+(function(){
+  var css = `
+  .v-badges{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 0}
+  .v-badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:5px 10px;border-radius:999px;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe}
+  .v-badge.photo{background:#ecfdf5;color:#047857;border-color:#a7f3d0}
+  .v-panel{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:16px;margin:14px 0;box-shadow:0 4px 20px rgba(0,0,0,.05)}
+  .v-panel h3{margin:0 0 4px;font-size:17px}
+  .v-panel p.sub{margin:0 0 14px;color:#6b7280;font-size:13px}
+  .v-progress{height:8px;background:#f3f4f6;border-radius:999px;overflow:hidden;margin-bottom:14px}
+  .v-progress>div{height:100%;background:linear-gradient(90deg,#6366f1,#22c55e);border-radius:999px;transition:width .4s}
+  .v-card{display:flex;gap:12px;align-items:flex-start;border:1px solid #eef0f3;border-radius:12px;padding:12px;margin-bottom:10px;background:#fafafa}
+  .v-card.done{background:#f0fdf4;border-color:#bbf7d0}
+  .v-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;background:#fff;border:1px solid #e5e7eb;flex-shrink:0}
+  .v-card b{font-size:14px;display:block}
+  .v-card small{color:#6b7280;font-size:12px;line-height:1.4;display:block;margin-top:2px}
+  .v-status{font-size:11px;font-weight:800;padding:4px 8px;border-radius:999px;white-space:nowrap}
+  .v-status.verified{background:#dcfce7;color:#166534}
+  .v-status.pending{background:#fef9c3;color:#854d0e}
+  .v-status.unverified{background:#f3f4f6;color:#6b7280}
+  .v-btn{border:none;padding:9px 14px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:#111827;color:#fff}
+  .v-btn:disabled{opacity:.5;cursor:not-allowed}
+  .v-btn.ghost{background:#fff;color:#111827;border:1px solid #e5e7eb}
+  .v-modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;z-index:9999}
+  .v-modal.open{display:flex}
+  .v-sheet{background:#fff;width:100%;max-width:520px;border-radius:20px 20px 0 0;padding:20px;padding-bottom:30px;max-height:90vh;overflow:auto}
+  .v-pose{font-size:42px;text-align:center;background:#eef2ff;border-radius:14px;padding:16px;margin:12px 0}
+  .v-preview{width:100%;border-radius:12px;display:none;margin-top:10px}
+  `;
+  var st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
+  function renderBadges(emailVerified, photoVerified){
+    var badges=document.getElementById('v-badges');
+    if(!badges){
+      badges=document.createElement('div'); badges.id='v-badges'; badges.className='v-badges';
+      var anchor=document.getElementById('p-header-name')||document.getElementById('my-profile-box')||document.getElementById('profile-sub-my');
+      if(anchor) anchor.after(badges); else document.body.prepend(badges);
+    }
+    var html='';
+    if(emailVerified) html+='<span class="v-badge">Email Verified</span>';
+    if(photoVerified) html+='<span class="v-badge photo">📸 Photo Verified</span>';
+    badges.innerHTML=html;
+  }
+  function buildPanel(){
+    var _e=document.getElementById('verification-panel'); if(_e) _e.remove();
+    var host=document.getElementById('profile-sub-my'); if(!host) return;
+    var div=document.createElement('div'); div.id='verification-panel'; div.className='v-panel';
+    div.innerHTML=`
+      <h3>Verification &amp; Badges</h3>
+      <p class="sub">Verified profiles get more matches. We never show your ID or selfie to other users.</p>
+      <div class="v-progress"><div id="v-progress-bar" style="width:0%"></div></div>
+      <div class="v-card" id="v-card-email">
+        <div class="v-icon">✉️</div>
+        <div style="flex:1"><b>Email Verification</b><small>Confirms you own this email. Sent when you signed up.</small></div>
+        <span class="v-status unverified" id="v-email-status">CHECKING…</span>
+      </div>
+      <div class="v-card" id="v-card-photo">
+        <div class="v-icon">📸</div>
+        <div style="flex:1"><b>Photo Verification</b><small>Take a live selfie copying the pose. Our team reviews it — usually within 24h.</small><div style="margin-top:8px"><button class="v-btn" id="v-photo-btn" onclick="openVerifyModal()">Verify My Photo</button></div></div>
+        <span class="v-status unverified" id="v-photo-status">NOT VERIFIED</span>
+      </div>
+      <div class="v-card" style="opacity:.65">
+        <div class="v-icon">🪪</div>
+        <div style="flex:1"><b>ID Verification</b><small>Passport / national ID. Coming soon — we are building secure ID handling first.</small></div>
+        <span class="v-status unverified">SOON</span>
+      </div>`;
+    var ab=document.getElementById('account-bar');
+    if(ab) ab.after(div); else host.prepend(div);
+    var m=document.createElement('div'); m.id='v-modal'; m.className='v-modal';
+    m.innerHTML=`<div class="v-sheet">
+      <h3 style="margin:0">📸 Photo Verification</h3>
+      <p style="color:#6b7280;font-size:13px">Copy this pose exactly, so we can match it to your profile photos.</p>
+      <div class="v-pose">✌️ <span style="font-size:16px;color:#4338ca;font-weight:800">Hold up 2 fingers</span></div>
+      <label class="v-btn ghost" style="display:block;text-align:center">Take / Upload Selfie<input type="file" id="v-selfie-input" accept="image/*" capture="user" style="display:none"></label>
+      <img id="v-selfie-preview" class="v-preview">
+      <p id="v-submit-msg" style="font-size:13px;color:#047857"></p>
+      <button class="v-btn" id="v-submit-btn" style="width:100%;margin-top:10px" disabled>Submit for Review</button>
+      <button class="v-btn ghost" style="width:100%;margin-top:8px" onclick="closeVerifyModal()">Cancel</button>
+    </div>`;
+    document.body.appendChild(m);
+    m.addEventListener('click',e=>{ if(e.target===m) closeVerifyModal(); });
+    document.getElementById('v-selfie-input').addEventListener('change',function(){
+      var f=this.files[0]; if(!f) return;
+      var r=new FileReader(); r.onload=e=>{ var img=document.getElementById('v-selfie-preview'); img.src=e.target.result; img.style.display='block'; document.getElementById('v-submit-btn').disabled=false; };
+      r.readAsDataURL(f);
+    });
+    document.getElementById('v-submit-btn').addEventListener('click',submitPhotoVerification);
+  }
+  window.openVerifyModal=function(){ document.getElementById('v-modal').classList.add('open'); };
+  window.closeVerifyModal=function(){ document.getElementById('v-modal').classList.remove('open'); };
+  async function submitPhotoVerification(){
+    var btn=document.getElementById('v-submit-btn'); btn.disabled=true; btn.textContent='Uploading…';
+    var msg=document.getElementById('v-submit-msg'); msg.textContent='';
+    try{
+      var user=null;
+      if(window.supabase){ var s=await window.supabase.auth.getUser(); user=s.data && s.data.user; }
+      if(!user){ msg.textContent='Please log in first.'; btn.disabled=false; btn.textContent='Submit for Review'; return; }
+      var file=document.getElementById('v-selfie-input').files[0];
+      var selfieUrl='';
+      try{
+        var path=user.id+'/'+Date.now()+'.jpg';
+        var up=await window.supabase.storage.from('verification').upload(path, file, {upsert:true});
+        if(up.error) throw new Error('Upload failed: '+up.error.message); var pub=window.supabase.storage.from('verification').getPublicUrl(path); selfieUrl=pub.data.publicUrl;
+      }catch(e){}
+      try{
+        var ins=await window.supabase.from('verification_requests').insert({user_id:user.id,email:user.email,type:'photo',status:'pending',selfie_url:selfieUrl});
+        if(ins.error) throw ins.error;
+      }catch(e){
+        localStorage.setItem('verification_photo_pending','1');
+        console.warn('verification_requests table missing:', e.message);
+      }
+      msg.textContent='✅ Submitted! Status: Pending review.';
+      setTimeout(()=>{ closeVerifyModal(); refreshVerification(); }, 1200);
+    }catch(e){ msg.textContent='Error: '+e.message; btn.disabled=false; btn.textContent='Submit for Review'; }
+  }
+  async function refreshVerification(){
+    buildPanel();
+    var emailVerified=false, photoVerified=false, photoPending=false;
+    try{
+      if(window.supabase){
+        var s=await window.supabase.auth.getUser();
+        var user=s.data && s.data.user;
+        if(user){
+          emailVerified=!!user.email_confirmed_at;
+          var q=await window.supabase.from('verification_requests').select('status').eq('user_id',user.id).eq('type','photo').order('created_at',{ascending:false}).limit(1);
+          if(!q.error && q.data && q.data[0]){
+            photoVerified=String(q.data[0].status||'').trim().toLowerCase()==='approved';
+            photoPending=String(q.data[0].status||'').trim().toLowerCase()==='pending';
+          }
+        }
+      }
+    }catch(e){}
+    if(localStorage.getItem('verification_photo_pending')==='1' && !photoVerified) photoPending=true;
+    var es=document.getElementById('v-email-status'); if(es){ es.textContent=emailVerified?'VERIFIED':'NOT VERIFIED'; es.className='v-status '+(emailVerified?'verified':'unverified'); }
+    var ec=document.getElementById('v-card-email'); if(ec) ec.classList.toggle('done', emailVerified);
+    var ps=document.getElementById('v-photo-status'); if(ps){ ps.textContent=photoVerified?'VERIFIED':(photoPending?'PENDING REVIEW':'NOT VERIFIED'); ps.className='v-status '+(photoVerified?'verified':(photoPending?'pending':'unverified')); }
+    var pc=document.getElementById('v-card-photo'); if(pc) pc.classList.toggle('done', photoVerified);
+    var pb=document.getElementById('v-photo-btn'); if(pb) pb.textContent=photoVerified?'Verified ✓':(photoPending?'Pending Review…':'Verify My Photo');
+    var pct=(emailVerified?50:0)+(photoVerified?50:0);
+    var bar=document.getElementById('v-progress-bar'); if(bar) bar.style.width=pct+'%';
+    window._myVerification = {email: !!emailVerified, photo: !!photoVerified}; try{ if(window.supabase && user){ await window.supabase.from('profiles').update({email_verified:!!emailVerified, photo_verified:!!photoVerified}).eq('user_id', user.id); } }catch(e){}
+    try{ var _mp = JSON.parse(localStorage.getItem('my_profile')||'{}'); if(_mp && _mp.name){ _mp.email_verified = !!emailVerified; _mp.photo_verified = !!photoVerified; localStorage.setItem('my_profile', JSON.stringify(_mp)); var _al = JSON.parse(localStorage.getItem('all_profiles')||'[]'); var _f = _al.find(function(x){return x && x.name===_mp.name;}); if(_f){ _f.email_verified=!!emailVerified; _f.photo_verified=!!photoVerified; localStorage.setItem('all_profiles', JSON.stringify(_al)); } } }catch(e){}
+    renderBadges(emailVerified, photoVerified);
+  }
+  window.refreshVerification=refreshVerification;
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(refreshVerification,800));
+})();
+</script>
+
+
+<!-- ADMIN PANEL -->
+<button id="adminBtn" onclick="openAdmin()" style="display:none;position:fixed;bottom:90px;right:12px;z-index:9999;background:#111;color:#fff;border:1px solid #333;padding:8px 12px;border-radius:999px;font-size:12px;opacity:0.7">Admin</button>
+<div id="adminPanel" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.85);overflow:auto;padding:16px">
+  <div style="max-width:520px;margin:20px auto;background:#111;border:1px solid #333;border-radius:16px;padding:16px;color:#fff">
+    <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">Admin - Photo Verification</h3><button onclick="closeAdmin()" style="background:#333;color:#fff;border:0;padding:6px 12px;border-radius:999px">Close</button></div>
+    <p id="adminMsg" style="font-size:13px;color:#aaa"></p>
+    <div id="adminList"></div>
+    <button onclick="loadAdmin()" style="margin-top:12px;background:#fff;color:#000;border:0;padding:10px 16px;border-radius:999px;width:100%">Refresh</button>
+  </div>
+</div>
+<script>
+const ADMIN_CODE = "WHISPER-ADMIN-2026";
+async function openAdmin(){
+  var code = prompt("Enter admin code:");
+  if(code !== ADMIN_CODE){ alert("Wrong code"); return; }
+  document.getElementById("adminPanel").style.display = "block";
+  loadAdmin();
+}
+function closeAdmin(){ document.getElementById("adminPanel").style.display = "none"; }
+async function loadAdmin(){
+  var list = document.getElementById("adminList");
+  var msg = document.getElementById("adminMsg");
+  list.innerHTML = "Loading...";
+  try{
+    var r = await window.supabase.from("verification_requests").select("*").eq("status","pending").order("created_at",{ascending:false});
+    if(r.error) throw r.error;
+    var rows = r.data || [];
+    msg.textContent = rows.length + " pending request(s)";
+    if(!rows.length){ list.innerHTML = "<p style='color:#888'>No pending requests.</p>"; return; }
+    list.innerHTML = rows.map(function(x){
+      return '<div style="border:1px solid #333;border-radius:12px;padding:12px;margin-top:10px">'
+        + '<div style="font-size:13px;color:#aaa">'+(x.email||"")+' • '+(x.type||"photo")+' • '+(x.created_at||"").slice(0,10)+'</div>'
+        + (x.selfie_url ? '<img src="'+x.selfie_url+'" onclick="window.open(\''+x.selfie_url+'\',\'_blank\')" style="width:100%;border-radius:10px;margin-top:8px;max-height:600px;object-fit:contain;cursor:zoom-in;background:#000;display:block"><button onclick="window.open(\''+x.selfie_url+'\',\'_blank\')" style="width:100%;margin-top:8px;background:#3b82f6;color:#fff;border:0;padding:12px;border-radius:999px;font-weight:bold">🔍 TAP TO OPEN FULL SIZE</button>' : '<p style="color:#888">No selfie URL</p>')
+        + '<div style="display:flex;gap:8px;margin-top:10px"><button onclick="adminDecision(\''+x.id+'\',\'approved\')" style="flex:1;background:#22c55e;color:#fff;border:0;padding:10px;border-radius:999px">Approve</button><button onclick="adminDecision(\''+x.id+'\',\'rejected\')" style="flex:1;background:#ef4444;color:#fff;border:0;padding:10px;border-radius:999px">Reject</button></div>'
+        + '</div>';
+    }).join("");
+  }catch(e){ list.innerHTML = "<p style='color:#f87171'>Error: "+(e.message||e)+"</p>"; }
+}
+async function adminDecision(id, status){
+  if(!confirm(status==="approved" ? "Approve this photo?" : "Reject this photo?")) return;
+  try{
+    var r = await window.supabase.from("verification_requests").update({status: status}).eq("id", id);
+    if(r.error) throw r.error;
+    alert(status==="approved" ? "Approved - user will get badge on next reload" : "Rejected");
+    loadAdmin();
+  }catch(e){ alert("Error: "+(e.message||e)); }
+}
+</script>
+
+<script>
+async function checkAdmin(){
+  try{
+    var u = await window.supabase.auth.getUser();
+    var email = u && u.data && u.data.user && u.data.user.email;
+    if(!email) return;
+    var r = await window.supabase.from("admins").select("email").eq("email", email).maybeSingle();
+    if(r.data){
+      var b = document.getElementById("adminBtn");
+      if(b) b.style.display = "block";
+    }
+  }catch(e){}
+}
+checkAdmin();
+</script>
+
+<script>
+async function loadMyProfileFromCloud(){
+  try{
+    if(!window.supabase) return;
+    var u=await window.supabase.auth.getUser(); var user=u&&u.data&&u.data.user; if(!user) return;
+    try{ var _last=localStorage.getItem('_last_uid'); if(_last && _last!==user.id){ localStorage.removeItem('my_profile'); localStorage.removeItem('all_profiles'); window._myPhotos=['','','','','']; } localStorage.setItem('_last_uid', user.id); }catch(e){}
+    var q=await window.supabase.from('profiles').select('*').eq('user_id',user.id).maybeSingle();
+    if(q.error||!q.data) { console.log('No cloud profile yet - clearing stale local'); clearLocalProfileAndForm(); try{ localStorage.setItem('_last_uid', user.id); }catch(e){} return; }
+    var r=q.data; var photos=r.photos;
+    try{ if(typeof photos==='string') photos=JSON.parse(photos); }catch(e){ photos=[]; }
+    if(!Array.isArray(photos)) photos=[];
+    while(photos.length<5) photos.push('');
+    var prof={name:r.name,age:r.age!=null?String(r.age):'',gender:r.gender||'',country:r.country||'',bio:r.bio||'',interests:r.interests||'',language:r.language||'',looking:r.looking||'',relationship:r.relationship||'',photo:r.photo||photos[0]||'',photos:photos,time:Date.now(),email_verified:!!user.email_confirmed_at,photo_verified:false};
+    if(!prof.name){ clearLocalProfileAndForm(); try{ localStorage.setItem('_last_uid', user.id); }catch(e){} return; }
+    // Keep local photo_verified flag if present
+    try{ var old=JSON.parse(localStorage.getItem('my_profile')||'{}'); if(old&&old.name===prof.name) prof.photo_verified=!!old.photo_verified; }catch(e){}
+    localStorage.setItem('my_profile', JSON.stringify(prof));
+    var all=[]; try{all=JSON.parse(localStorage.getItem('all_profiles')||'[]');}catch(e){}
+    all=all.filter(function(x){return x&&x.name!==prof.name}); all.unshift(prof);
+    localStorage.setItem('all_profiles', JSON.stringify(all));
+    window._myPhotos=photos.slice(0,5); window._myPhoto=prof.photo||'';
+    if(typeof renderPfPhotos==='function') renderPfPhotos();
+    if(typeof updateAvatar==='function') updateAvatar();
+    if(typeof initPhotoBlocks==='function') initPhotoBlocks();
+    if(typeof renderSwipe==='function') renderSwipe();
+    console.log('Loaded profile from Supabase ✅', prof.name, 'photo:', prof.photo?prof.photo.length+' chars':'none');
+  }catch(e){ console.error('Cloud load failed', e); }
+}
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadMyProfileFromCloud, 800); });
+</script>
+
+<script>
+// --- CLOUD ONLY DISCOVER - overrides index.html local logic ---
+async function loadCloudDiscover(){
+  try{
+    window._discoverLoading=true; var _ld=document.getElementById('discover-loading'); if(_ld) _ld.style.display='block';
+    if(!window.supabase){ window._discoverLoading=false; if(_ld) _ld.style.display='none'; return; }
+    var u = await window.supabase.auth.getUser();
+    var uid = u && u.data && u.data.user ? u.data.user.id : null; window._myUid = uid;
+    var uemail = u && u.data && u.data.user ? (u.data.user.email||'').toLowerCase() : '';
+    var meName=''; try{ meName=(JSON.parse(localStorage.getItem('my_profile')||'{}').name||'').trim().toLowerCase(); }catch(e){}
+    var r = await window.supabase.from('profiles').select('*').order('created_at',{ascending:false}).limit(200);
+    if(r.error){ console.log('cloud discover error', r.error); window._discoverLoading=false; if(_ld) _ld.style.display='none'; return; }
+    var others = (r.data||[]).filter(function(pr){
+      if(!pr||!pr.name) return false;
+      if(uid && (pr.id===uid || pr.user_id===uid)) return false;
+      if(uemail && pr.email && pr.email.toLowerCase()===uemail) return false;
+      if(meName && pr.name.trim().toLowerCase()===meName) return false;
+      return true;
+    });
+    console.log('CLOUD index.html: total='+(r.data||[]).length+' others='+others.map(function(x){return x.name;}).join(', '));
+    // Replace local list with cloud others ONLY - never yourself
+    try{ localStorage.setItem('all_profiles', JSON.stringify(others)); }catch(e){}
+    // Re-render using existing render functions if they exist
+    if(typeof renderCircles==='function') renderCircles();
+    if(typeof renderSwipe==='function') renderSwipe();
+    if(typeof renderProfiles==='function') renderProfiles();
+    if(typeof renderDeck==='function') renderDeck();
+    if(typeof initMap==='function') initMap();
+    window._discoverLoading=false; if(_ld) _ld.style.display='none';
+  }catch(e){ console.log('loadCloudDiscover failed', e); window._discoverLoading=false; var _ld2=document.getElementById('discover-loading'); if(_ld2) _ld2.style.display='none'; }
+}
+setTimeout(loadCloudDiscover, 800);
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadCloudDiscover, 800); });
+</script>
+
+
+<script>
+// --- VISIBLE DEBUG FOR ANDROID - shows on Discover ---
+async function showPhoneDebug(){
+  try{
+    var box = document.getElementById('phone-debug');
+    if(!box){
+      box = document.createElement('div');
+      box.id='phone-debug';
+      box.style.cssText='position:fixed;bottom:10px;left:10px;right:10px;z-index:9999;background:#000;color:#0f0;padding:12px;font-size:12px;border-radius:10px;border:2px solid #0f0';
+      box.innerHTML='<textarea id="dbg-txt" style="width:100%;height:220px;background:#000;color:#0f0;font-size:12px;border:none">Loading...</textarea><button id="dbg-copy" style="width:100%;padding:10px;background:#0f0;color:#000;font-weight:bold;border-radius:8px;margin-top:6px">COPY DEBUG - then paste here</button>';
+      document.body.appendChild(box);
+      document.getElementById('dbg-copy').onclick=function(){ var ta=document.getElementById('dbg-txt'); ta.select(); try{document.execCommand('copy');}catch(e){} try{navigator.clipboard.writeText(ta.value);}catch(e){} this.textContent='COPIED! Now paste in chat'; };
+    }
+    var ta=document.getElementById('dbg-txt');
+    var mp='(empty)'; try{ mp=localStorage.getItem('my_profile')||'(empty)'; }catch(e){ mp='err:'+e; }
+    var ap='(empty)'; try{ ap=localStorage.getItem('all_profiles')||'(empty)'; }catch(e){ ap='err:'+e; }
+    ta.value='STEP1 LOCAL ONLY
+MY_PROFILE='+mp+'
+ALL_PROFILES='+ap+'
+SUPABASE='+(typeof window.supabase)+'
+(cloud loading...)';
+    if(!window.supabase){ ta.value+='
+NO SUPABASE - app.js not loaded'; return; }
+    var u = await window.supabase.auth.getUser();
+    var uid = u && u.data && u.data.user ? u.data.user.id : 'NO-AUTH';
+    var uemail = u && u.data && u.data.user ? (u.data.user.email||'') : 'NO-EMAIL';
+    var r = await window.supabase.from('profiles').select('*');
+    var rows = r.data||[];
+    var txt='AUTH id='+uid+'
+AUTH email='+uemail+'
+MY_PROFILE='+mp+'
+CLOUD total='+rows.length+' ERROR='+(r.error?JSON.stringify(r.error):'none')+'
+';
+    rows.forEach(function(pr,i){ txt+=(i+1)+') name='+pr.name+' | user_id='+pr.user_id+' | id='+pr.id+' | email='+pr.email+' | country='+pr.country+'
+'; });
+    txt+='
+ALL_PROFILES='+ap;
+    ta.value=txt;
+  }catch(e){ var ta2=document.getElementById('dbg-txt'); if(ta2) ta2.value='DEBUG ERROR: '+e+'
+'+(e.stack||''); }
+}
+setTimeout(showPhoneDebug, 1500);
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(showPhoneDebug, 1500); });
+</script>
+
+
+<script>
+// --- FINAL FIX: restore me from cloud, delete orphan, cloud-only render ---
+async function finalFix(){
+  try{
+    if(!window.supabase) return;
+    var u = await window.supabase.auth.getUser();
+    if(!u || !u.data || !u.data.user) return;
+    var uid = u.data.user.id;
+    // 1) Restore MY_PROFILE from my cloud row
+    var me = await window.supabase.from('profiles').select('*').eq('user_id', uid).maybeSingle();
+    if(me.data){
+      try{ localStorage.setItem('my_profile', JSON.stringify(me.data)); }catch(e){}
+    }
+    // 2) Delete orphan Donald (user_id null)
+    await window.supabase.from('profiles').delete().is('user_id', null);
+    // 3) Cloud-only Discover: everyone EXCEPT my uid
+    var r = await window.supabase.from('profiles').select('*').order('created_at',{ascending:false}).limit(200);
+    var others = (r.data||[]).filter(function(pr){ return pr && pr.name && pr.user_id !== uid; });
+    try{ localStorage.setItem('all_profiles', JSON.stringify(others)); }catch(e){}
+    if(typeof renderCircles==='function') renderCircles();
+    if(typeof renderSwipe==='function') renderSwipe();
+    if(typeof renderProfiles==='function') renderProfiles();
+    if(typeof initMap==='function') initMap();
+    var ta=document.getElementById('dbg-txt');
+    if(ta) ta.value='FINAL FIX DONE\nMY_PROFILE restored='+(me.data?me.data.name:'none')+'\nOrphan Donald deleted\nOthers now=' + others.map(function(x){return x.name;}).join(', ');
+  }catch(e){ console.log('finalFix', e); }
+}
+setTimeout(finalFix, 1000);
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(finalFix, 1000); });
+</script>
+
+</body>
+</html>
