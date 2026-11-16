@@ -168,7 +168,7 @@ async function sendMsg(){
   if(!_fixOtherId){ await loadChat(); if(!_fixOtherId) return; }
   var err=(await window.supabase.from('chat_messages').insert([{sender_id:meId, receiver_id:_fixOtherId, content:text}])).error;
   if(err){ alert('Send failed: '+err.message); return; }
-  if(window.sendPushToUser) window.sendPushToUser(_fixOtherId, 'Whisper 🔔', text);
+  if(window.sendPushToUser) window.sendPushToUser(_fixOtherId, 'Whisper 🔔', text, {url:'/?chat='+encodeURIComponent(window.currentChatWith||''), type:'chat', sender_id:meId});
   inp.value=''; loadChat(true);
 }
 window.loadChat=loadChat; window.sendMsg=sendMsg; window.showChatList=showChatList;
