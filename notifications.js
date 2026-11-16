@@ -20,6 +20,7 @@ async function notifyPushOnly(userId, title, body, extra={}){
 }
 window.notifyPushOnly = notifyPushOnly;
 function showInAppBanner(title, body){
+  try{ if(window.whisperPlayAlert) window.whisperPlayAlert(); }catch(e){}
   var b=document.getElementById('whisper-inapp-banner');
   if(!b){ b=document.createElement('div'); b.id='whisper-inapp-banner'; b.style.cssText='position:fixed;top:10px;left:10px;right:10px;z-index:10001;background:#1a1a1a;border:1px solid #ff5a8a;border-radius:14px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.5)'; b.onclick=()=>{ b.style.display='none'; openNotifInbox(); }; document.body.appendChild(b); }
   b.innerHTML='<b>'+title+'</b><div style="color:#ccc;font-size:13px">'+body+'</div>';
