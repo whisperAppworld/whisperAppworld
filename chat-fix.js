@@ -190,3 +190,22 @@ document.addEventListener("click",function(e){
   e.stopPropagation(); window.openChat(nm);
 });
 document.addEventListener("DOMContentLoaded",fixSetup); fixSetup();
+
+// Auto-open chat from ?chat=Name (push notification tap)
+(function(){
+  try{
+    var name = new URLSearchParams(window.location.search).get('chat');
+    if(name==null || name=='') return;
+    var tries=0;
+    var iv=setInterval(function(){
+      tries++;
+      if(typeof window.openChat==='function'){
+        clearInterval(iv);
+        try{ window.openChat(decodeURIComponent(name)); }catch(e){ window.openChat(name); }
+        try{ history.replaceState(null,'', window.location.pathname); }catch(e){}
+      }
+      if(tries>50) clearInterval(iv);
+    }, 200);
+  }catch(e){}
+})();
+
