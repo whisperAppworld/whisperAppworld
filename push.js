@@ -132,13 +132,13 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 try { window.supabase.auth.onAuthStateChange((ev) => { if (ev === 'SIGNED_IN') setTimeout(autoRestorePush, 1500); }); } catch(e){}
 
-async function sendPushToUser(userId, title, body) {
+async function sendPushToUser(userId, title, body, data={}) {
   if (!userId) return;
   try {
     await fetch('https://jztfakvawduanyovbbkt.supabase.co/functions/v1/send-push', {
       method: 'POST',
       headers: { 'apikey': 'sb_publishable_Xgea70sY3vlxZQD0PTWFYQ_ySQN2K4C', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: userId, title: title || 'Whisper 🔔', body: body || 'You have a new message', url: '/' })
+      body: JSON.stringify({ user_id: userId, title: title || 'Whisper 🔔', body: body || 'You have a new message', url: data.url || '/', data })
     });
   } catch(e) { console.log('sendPush failed', e); }
 }
