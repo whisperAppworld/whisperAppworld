@@ -42,7 +42,7 @@ async function openNotifInbox(){
   var list=(r.data||[]);
   var m=document.getElementById('notif-inbox');
   if(!m){ m=document.createElement('div'); m.id='notif-inbox'; m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:10002;display:flex;align-items:flex-end;justify-content:center'; m.onclick=e=>{ if(e.target===m) m.style.display='none'; }; document.body.appendChild(m); }
-  m.innerHTML='<div style="background:#1a1a1a;width:100%;max-width:420px;max-height:88vh;overflow-y:auto;border-radius:20px 20px 0 0;padding:16px"><h3 style="margin:0">🔔 Notifications</h3><button onclick="notifMarkAllRead()" style="margin:10px 0;padding:8px 14px;border-radius:10px;border:0;background:#333;color:#fff">Mark all read</button><div>'+(list.length?list.map(n=>'<div onclick="notifOpen(\''+n.id+'\',\''+(n.data?.chat_with||'')+'\')" style="padding:12px;border-bottom:1px solid #333;cursor:pointer;background:'+(n.is_read?'transparent':'#222')+'"><b>'+n.title+'</b><div style="color:#ccc;font-size:13px">'+n.body+'</div><div style="color:#888;font-size:11px">'+new Date(n.created_at).toLocaleString()+'</div></div>').join(''):'<p style="color:#888">No notifications yet</p>')+'</div><button onclick="document.getElementById(\'notif-inbox\').style.display=\'none\'" style="width:100%;padding:12px;border-radius:12px;border:0;background:#333;color:#fff;margin-top:10px">Close</button></div>';
+  m.innerHTML='<div style="background:#1a1a1a;width:100%;max-width:420px;max-height:88vh;overflow-y:auto;border-radius:20px 20px 0 0;padding:16px"><h3 style="margin:0">🔔 '+((localStorage.getItem('whisper_lang')||'English')==='French'?'Notifications':(localStorage.getItem('whisper_lang')||'English')==='Spanish'?'Notificaciones':'Notifications')+'</h3><button onclick="notifMarkAllRead()" style="margin:10px 0;padding:8px 14px;border-radius:10px;border:0;background:#333;color:#fff">'+((localStorage.getItem('whisper_lang')||'English')==='French'?'Tout marquer comme lu':(localStorage.getItem('whisper_lang')||'English')==='Spanish'?'Marcar todo como leído':'Mark all read')+'</button><div>'+(list.length?list.map(n=>'<div onclick="notifOpen(\''+n.id+'\',\''+(n.data?.chat_with||'')+'\')" style="padding:12px;border-bottom:1px solid #333;cursor:pointer;background:'+(n.is_read?'transparent':'#222')+'"><b>'+n.title+'</b><div style="color:#ccc;font-size:13px">'+n.body+'</div><div style="color:#888;font-size:11px">'+new Date(n.created_at).toLocaleString()+'</div></div>').join(''):'<p style="color:#888">'+((localStorage.getItem('whisper_lang')||'English')==='French'?'Aucune notification pour le moment':(localStorage.getItem('whisper_lang')||'English')==='Spanish'?'Sin notificaciones aún':'No notifications yet')+'</p>')+'</div><button onclick="document.getElementById(\'notif-inbox\').style.display=\'none\'" style="width:100%;padding:12px;border-radius:12px;border:0;background:#333;color:#fff;margin-top:10px">Close</button></div>';
   m.style.display='flex';
 }
 async function notifOpen(id, chatWith){
@@ -51,7 +51,7 @@ async function notifOpen(id, chatWith){
   renderNotifBell();
   if(chatWith && window.openChat){ var p=await window.supabase.from('profiles').select('*').eq('user_id',chatWith).maybeSingle(); if(p.data) window.openChat(p.data.name); }
 }
-async function notifMarkAllRead(){ var uid=await notifGetUid(); await window.supabase.from('notifications').update({is_read:true}).eq('user_id',uid).eq('is_read',false); openNotifInbox(); renderNotifBell(); }
+async function notifMarkAllRead(){ var uid=await notifGetUid(); var r=await window.supabase.from('notifications').update({is_read:true}).eq('user_id',uid).eq('is_read',false); if(r&&r.error){ alert('Mark read failed: '+r.error.message); return; } openNotifInbox(); renderNotifBell(); }
 window.openNotifInbox=openNotifInbox; window.notifMarkAllRead=notifMarkAllRead; window.notifOpen=notifOpen; window.renderNotifBell=renderNotifBell;
 async function heartbeat(){
   var uid=await notifGetUid(); if(!uid) return;
@@ -61,7 +61,7 @@ async function heartbeat(){
     var mine=await window.supabase.from('online_alerts').select('*').eq('target_id',uid);
     for(var m of (mine.data||[])){
       var w=await window.supabase.from('profiles').select('name').eq('user_id',uid).maybeSingle();
-      await notifyUser(m.watcher_id,'online',(w.data&&w.data.name||'Someone')+' is online now 🟢','Tap to chat now',{sender_name:(w.data&&w.data.name)||'',data:{chat_with:uid}});
+      await notifyUser(m.watcher_id,'online',(w.data&&w.data.name||'Someone')+' is online now 🟢',''+((localStorage.getItem('whisper_lang')||'English')==='French'?'Appuie pour discuter':(localStorage.getItem('whisper_lang')||'English')==='Spanish'?'Toca para chatear':'Tap to chat now')+'',{sender_name:(w.data&&w.data.name)||'',data:{chat_with:uid}});
       await window.supabase.from('online_alerts').delete().eq('id',m.id);
     }
   }catch(e){ console.log('online-notify-as-target',e); }
@@ -70,7 +70,7 @@ async function heartbeat(){
     for(var a of (alerts.data||[])){
       var t=await window.supabase.from('profiles').select('name,last_seen').eq('user_id',a.target_id).maybeSingle();
       if(t.data && t.data.last_seen && (Date.now()-new Date(t.data.last_seen).getTime())<120000){
-        await notifyUser(uid,'online',(t.data.name||'Someone')+' is online now 🟢','Tap to chat now',{sender_name:t.data.name,data:{chat_with:a.target_id}});
+        await notifyUser(uid,'online',(t.data.name||'Someone')+' is online now 🟢',''+((localStorage.getItem('whisper_lang')||'English')==='French'?'Appuie pour discuter':(localStorage.getItem('whisper_lang')||'English')==='Spanish'?'Toca para chatear':'Tap to chat now')+'',{sender_name:t.data.name,data:{chat_with:a.target_id}});
         await window.supabase.from('online_alerts').delete().eq('id',a.id);
       }
     }
@@ -97,9 +97,9 @@ async function checkOfflineBanner(otherId, otherName, lastSeen){
   el.innerHTML=''; el.style.display='';
   var box=document.createElement('div');
   box.style.cssText='background:#222;border:1px solid #333;border-radius:12px;padding:10px;margin:8px;text-align:center';
-  box.textContent=otherName+' is offline  \u25cf';
+  box.textContent=otherName+((localStorage.getItem('whisper_lang')||'English')==='French'?' est hors ligne  ●':(localStorage.getItem('whisper_lang')||'English')==='Spanish'?' esta sin conexion  ●':' is offline  ●');
   var btn=document.createElement('button');
-  btn.textContent='Notify me when online';
+  btn.textContent=((localStorage.getItem('whisper_lang')||'English')==='French'?'Préviens-moi quand en ligne':(localStorage.getItem('whisper_lang')||'English')==='Spanish'?'Avísame cuando esté en línea':'Notify me when online');
   btn.style.cssText='margin-top:8px;padding:10px 16px;border-radius:999px;border:0;background:#ff5a8a;color:#fff;font-weight:700';
   btn.onclick=function(){ window.handleNotifyClick(otherId, otherName); };
   box.appendChild(document.createElement('br')); box.appendChild(btn); el.appendChild(box);

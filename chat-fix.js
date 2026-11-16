@@ -93,7 +93,7 @@ async function showChatList(){
   var myToken=++_fixLoadToken;
   _fixMeId=await fixGetUid(); if(myToken!==_fixLoadToken) return;
   if(!_fixMeId){ list.innerHTML='<div style="padding:12px">Please login first</div>'; return; }
-  list.innerHTML='<div style="padding:20px;text-align:center;color:#888">⏳ Loading chats...</div>';
+  list.innerHTML='<div style="padding:20px;text-align:center;color:#888">⏳ '+((localStorage.getItem('whisper_lang')||'English')==='French'?'Chargement des discussions...':(localStorage.getItem('whisper_lang')||'English')==='Spanish'?'Cargando chats...':'Loading chats...')+'</div>';
   await fixLoadProfiles();
   var d=await window.supabase.from('chat_messages').select('*').or('sender_id.eq.'+_fixMeId+',receiver_id.eq.'+_fixMeId).order('created_at',{ascending:false});
   if(myToken!==_fixLoadToken) return;
@@ -132,7 +132,7 @@ async function loadChat(silent){
   var lv=document.getElementById('chat-list-view'); if(lv) lv.style.display='none';
   var cv=document.getElementById('chat-view'); if(cv) cv.style.display='block';
   var list=document.getElementById('messages-list'); if(!list) return;
-  if(!silent){list.innerHTML='<div style="padding:20px;text-align:center;color:#888">⏳ Loading chat...</div>';}
+  if(!silent){list.innerHTML='<div style="padding:20px;text-align:center;color:#888">⏳ '+((localStorage.getItem('whisper_lang')||'English')==='French'?'Chargement de la discussion...':(localStorage.getItem('whisper_lang')||'English')==='Spanish'?'Cargando chat...':'Loading chat...')+'</div>';}
   _fixMeId=await fixGetUid(); if(myToken!==_fixLoadToken) return;
   await fixLoadProfiles();
   var pr=await window.supabase.from('profiles').select('*').eq('name', window.currentChatWith).maybeSingle();
@@ -177,7 +177,7 @@ window.openChat=async function(name){
   var now=Date.now(); if(window._lastOpenName===name && now-window._lastOpen<800) return;
   window._lastOpen=now; window._lastOpenName=name; window.currentChatWith=name;
   _fixOtherId=null; _fixOtherProfile=null; _fixChatLoaded=false;
-  try{ var _ml=document.getElementById('messages-list'); if(_ml) _ml.innerHTML='<div style="padding:20px;text-align:center;color:#888">⏳ Loading chat...</div>'; var _tt=document.getElementById('chat-title'); if(_tt) _tt.innerHTML='<button class="iconbtn" onclick="showChatList()">←</button><div class="namewrap"><div class="nm">Loading...</div><div class="sub">...</div></div>'; var _lv=document.getElementById('chat-list-view'); if(_lv) _lv.style.display='none'; var _cv=document.getElementById('chat-view'); if(_cv) _cv.style.display='block'; }catch(e){}
+  try{ var _ml=document.getElementById('messages-list'); if(_ml) _ml.innerHTML='<div style="padding:20px;text-align:center;color:#888">⏳ '+((localStorage.getItem('whisper_lang')||'English')==='French'?'Chargement de la discussion...':(localStorage.getItem('whisper_lang')||'English')==='Spanish'?'Cargando chat...':'Loading chat...')+'</div>'; var _tt=document.getElementById('chat-title'); if(_tt) _tt.innerHTML='<button class="iconbtn" onclick="showChatList()">←</button><div class="namewrap"><div class="nm">'+((localStorage.getItem('whisper_lang')||'English')==='French'?'Chargement...':(localStorage.getItem('whisper_lang')||'English')==='Spanish'?'Cargando...':'Loading...')+'</div><div class="sub">...</div></div>'; var _lv=document.getElementById('chat-list-view'); if(_lv) _lv.style.display='none'; var _cv=document.getElementById('chat-view'); if(_cv) _cv.style.display='block'; }catch(e){}
   _fixOpening=true;
   if(typeof showTab==="function") showTab("messages");
   _fixOpening=false;
