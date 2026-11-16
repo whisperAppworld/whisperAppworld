@@ -16,12 +16,12 @@ function showInAppBanner(title, body){
   setTimeout(()=>{ b.style.display='none'; }, 4000);
 }
 async function renderNotifBell(){
+  var old=document.getElementById('notif-bell'); if(old) old.remove();
   var uid=await notifGetUid(); if(!uid) return;
   var r=await window.supabase.from('notifications').select('id').eq('user_id',uid).eq('is_read',false);
   var n=(r.data||[]).length;
-  var bell=document.getElementById('notif-bell');
-  if(!bell){ bell=document.createElement('button'); bell.id='notif-bell'; bell.style.cssText='position:relative;font-size:22px;background:none;border:0;cursor:pointer'; bell.onclick=openNotifInbox; var header=document.querySelector('header')||document.body; header.appendChild(bell); }
-  bell.innerHTML='🔔'+(n?'<span style="position:absolute;top:-4px;right:-4px;background:#ff5a8a;color:#fff;font-size:10px;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px">'+n+'</span>':'');
+  var el=document.getElementById('bell-badge'); if(!el) return;
+  if(n>0){ el.style.display='block'; el.textContent=n>99?'99+':String(n); } else { el.style.display='none'; }
 }
 async function openNotifInbox(){
   var uid=await notifGetUid(); if(!uid) return alert('Login first');

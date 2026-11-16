@@ -113,13 +113,13 @@ function showProfileSub(n){
 <input id="msg-input" placeholder="Type a message..."><button onclick="sendMsg()">Send</button></div>
 </section>
 <div id="top-bell" style="position:fixed;top:10px;right:12px;z-index:9999">
-<button onclick="showTab('messages')" style="position:relative;background:#1a1a1a;border:1px solid #333;color:#fff;font-size:22px;width:44px;height:44px;border-radius:50%;cursor:pointer">🔔<span id="bell-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#ff5a8a;color:#fff;font-size:11px;min-width:18px;height:18px;line-height:18px;border-radius:999px;text-align:center;padding:0 4px;font-weight:800">0</span></button>
+<button onclick="openNotifInbox()" style="position:relative;background:#1a1a1a;border:1px solid #333;color:#fff;font-size:22px;width:44px;height:44px;border-radius:50%;cursor:pointer">🔔<span id="bell-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#ff5a8a;color:#fff;font-size:11px;min-width:18px;height:18px;line-height:18px;border-radius:999px;text-align:center;padding:0 4px;font-weight:800">0</span></button>
 </div>
 <nav>
 <button id="btn-discover" class="active" onclick="showTab('discover')">🔥 Discover</button>
 <button id="btn-people" onclick="showTab('people')">🌍 People</button>
 <button id="btn-matches" onclick="showTab('matches')">❤️ Matches</button>
-<button id="btn-messages" onclick="showTab('messages')">💬 Messages</button>
+<button id="btn-messages" onclick="openNotifInbox()">💬 Messages</button>
 <button id="btn-whisper" onclick="showTab('whisper')">🗣️ Whisper</button>
 <button id="btn-profile" onclick="showTab('profile')">👤 Profile</button>
 </nav>

@@ -14,7 +14,7 @@ self.addEventListener('push', function(event) {
         if (photo && (photo.indexOf('http') === 0 || photo.indexOf('data:image') === 0)) icon = photo;
       }
     } catch(e) {}
-    const options = { body: data.body || 'You have a new message', icon: icon, badge: fallbackIcon, image: icon !== fallbackIcon ? icon : undefined, data: { url: data.url || './index.html' } };
+    const options = { body: data.body || 'You have a new message', icon: icon, badge: fallbackIcon, data: { url: data.url || './index.html' } };
     await self.registration.showNotification(title, options);
   })());
 });
