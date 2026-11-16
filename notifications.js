@@ -10,6 +10,15 @@ async function notifyUser(userId, type, title, body, extra={}){
   // DO NOT showInAppBanner here - this runs in SENDER browser, would show sender their own message.
 }
 window.notifyUser = notifyUser;
+// Push ONLY - for online alerts. No notifications table row, so no bell entry.
+// This is what wakes the user when app is closed.
+async function notifyPushOnly(userId, title, body, extra={}){
+  if(!userId) return;
+  var me = await notifGetMyProfile();
+  var pushData = Object.assign({}, extra.data||{}, {sender_id: me.user_id||me.id||null});
+  if(window.sendPushToUser) window.sendPushToUser(userId, title, body, pushData);
+}
+window.notifyPushOnly = notifyPushOnly;
 function showInAppBanner(title, body){
   var b=document.getElementById('whisper-inapp-banner');
   if(!b){ b=document.createElement('div'); b.id='whisper-inapp-banner'; b.style.cssText='position:fixed;top:10px;left:10px;right:10px;z-index:10001;background:#1a1a1a;border:1px solid #ff5a8a;border-radius:14px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.5)'; b.onclick=()=>{ b.style.display='none'; openNotifInbox(); }; document.body.appendChild(b); }
@@ -51,7 +60,7 @@ async function heartbeat(){
     for(var a of (alerts.data||[])){
       var t=await window.supabase.from('profiles').select('name,last_seen').eq('user_id',a.target_id).maybeSingle();
       if(t.data && t.data.last_seen && (Date.now()-new Date(t.data.last_seen).getTime())<120000){
-        await notifyUser(uid,'online', (t.data.name||'Someone')+' is online now 🟢', 'Tap to chat now', {sender_name:t.data.name, data:{chat_with:a.target_id}});
+        await notifyPushOnly(uid, (t.data.name||'Someone')+' is online now 🟢', 'Tap to chat now', {sender_name:t.data.name, data:{chat_with:a.target_id}});
         await window.supabase.from('online_alerts').delete().eq('id',a.id);
       }
     }
