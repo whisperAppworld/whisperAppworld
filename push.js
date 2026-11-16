@@ -145,14 +145,9 @@ async function sendPushToUser(userId, title, body, data={}) {
 window.sendPushToUser = sendPushToUser;
 
 async function updateBellBadge(){
-  try{
-    var uid = await getCurrentUid(); if(!uid) return;
-    var el = document.getElementById('bell-badge'); if(!el) return;
-    var r = await window.supabase.from('chat_messages').select('id', {count:'exact', head:true}).eq('receiver_id', uid).is('read_at', null);
-    var n = r.count || 0;
-    el.style.display = n > 0 ? 'block' : 'none';
-    el.textContent = n > 99 ? '99+' : String(n);
-  }catch(e){}
+  // Single source of truth: notifications table (renderNotifBell).
+  // Do NOT count chat_messages here - that made bell != inbox.
+  if(window.renderNotifBell) return window.renderNotifBell();
 }
 window.updateBellBadge = updateBellBadge;
 setInterval(updateBellBadge, 10000);
