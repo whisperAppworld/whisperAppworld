@@ -79,13 +79,15 @@ async function askNotifyWhenOnline(targetId, targetName){
 window.askNotifyWhenOnline=askNotifyWhenOnline;
 async function checkOfflineBanner(otherId, otherName, lastSeen){
   var el=document.getElementById('offline-notify-bar');
-  if(!el){ el=document.createElement('div'); el.id='offline-notify-bar'; var cv=document.getElementById('chat-view'); if(cv) cv.parentNode.insertBefore(el,cv); }
+  if(!el){ el=document.createElement('div'); el.id='offline-notify-bar'; var cv=document.getElementById('chat-view'); if(cv) cv.insertBefore(el, cv.firstChild); }
   var isOnline = lastSeen && (Date.now()-new Date(lastSeen).getTime())<120000;
   if(isOnline){ el.innerHTML=''; return; }
+  try{ if(window._notifyDone && window._notifyDone[otherId]){ el.innerHTML=''; return; } }catch(e){}
+  try{ if(localStorage.getItem('notify_done_'+otherId)==='1'){ el.innerHTML=''; return; } }catch(e){}
   el.innerHTML='';
   var box=document.createElement('div');
   box.style.cssText='background:#222;border:1px solid #333;border-radius:12px;padding:10px;margin:8px;text-align:center';
-  box.textContent=otherName+' is offline';
+  box.textContent=otherName+' is offline  \u25cf';
   var btn=document.createElement('button');
   btn.textContent='Notify me when online';
   btn.style.cssText='margin-top:8px;padding:10px 16px;border-radius:999px;border:0;background:#ff5a8a;color:#fff;font-weight:700';
@@ -94,6 +96,7 @@ async function checkOfflineBanner(otherId, otherName, lastSeen){
 }
 window.checkOfflineBanner=checkOfflineBanner;
 window.handleNotifyClick=function(otherId, otherName){
+  try{ window._notifyDone = window._notifyDone || {}; window._notifyDone[otherId]=1; localStorage.setItem('notify_done_'+otherId,'1'); }catch(e){}
   try{ askNotifyWhenOnline(otherId, otherName); }catch(e){}
   var el=document.getElementById('offline-notify-bar'); if(!el) return;
   el.textContent='We will notify you when '+otherName+' is online';

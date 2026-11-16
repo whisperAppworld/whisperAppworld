@@ -257,7 +257,7 @@ renderCircles(); renderSwipe();
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase.js"></script>
 <script src="push.js?v=5"></script>
-<script src="notifications.js?v=6"></script>
+<script src="notifications.js?v=9"></script>
 <script>
 function clearLocalProfileAndForm(){
   try{ localStorage.removeItem('my_profile'); localStorage.removeItem('all_profiles'); localStorage.removeItem('_last_uid'); }catch(e){}
@@ -310,7 +310,7 @@ document.addEventListener('DOMContentLoaded', function(){ setTimeout(refreshAuth
 if(window.supabase) window.supabase.auth.onAuthStateChange(function(e){ if(e==='SIGNED_OUT'){ clearLocalProfileAndForm(); refreshAuthUI(); return; } refreshAuthUI(); if(e==='SIGNED_IN'||e==='INITIAL_SESSION') loadMyProfileFromCloud(); });
 </script>
 <script src="app.js?v=104"></script>
-<script src="chat-fix.js?v=16"></script>
+<script src="chat-fix.js?v=18"></script>
 <script src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'></script>
 
 
