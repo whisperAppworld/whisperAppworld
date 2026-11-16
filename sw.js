@@ -12,5 +12,9 @@ self.addEventListener('push', function(event) {
 });
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
-  event.waitUntil(clients.openWindow(event.notification.data.url));
+  var url = (event.notification.data && event.notification.data.url) || './index.html';
+  event.waitUntil(clients.matchAll({type:'window', includeUncontrolled:true}).then(function(list){
+    for(var i=0;i<list.length;i++){ if('focus' in list[i]) return list[i].focus().then(function(c){ if(c.navigate) { try{ c.navigate(url); }catch(e){} } return c; }); }
+    if(clients.openWindow) return clients.openWindow(url);
+  }));
 });
