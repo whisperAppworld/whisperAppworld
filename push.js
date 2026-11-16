@@ -43,7 +43,7 @@ window.isPushEnabledInDB = isPushEnabledInDB;
 async function setupPush() {
   try {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
-    const reg = await navigator.serviceWorker.register('sw.js');
+    const reg = await navigator.serviceWorker.register('sw.js?v=2');
     const perm = await Notification.requestPermission();
     if (perm !== 'granted') return false;
     let sub = await reg.pushManager.getSubscription();

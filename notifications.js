@@ -5,7 +5,7 @@ async function notifyUser(userId, type, title, body, extra={}){
   var me = await notifGetMyProfile();
   try{ await window.supabase.from('notifications').insert([{ user_id:userId, type, title, body, sender_id: me.user_id||me.id||null, sender_name: extra.sender_name||me.name||'', sender_photo: extra.sender_photo||me.img||me.photo||me.image_url||'', data: extra.data||{} }]); }catch(e){ console.log('notif save',e); }
   if(window.sendPushToUser) window.sendPushToUser(userId, title, body, extra.data||{});
-  if(window.isInAppEnabled && window.isInAppEnabled()) showInAppBanner(title, body);
+  // DO NOT showInAppBanner here - this runs in SENDER browser, would show sender their own message.
 }
 window.notifyUser = notifyUser;
 function showInAppBanner(title, body){
