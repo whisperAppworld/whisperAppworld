@@ -4,7 +4,7 @@ self.addEventListener('push', function(event) {
   const title = data.title || 'WhisperApp';
   const fallbackIcon = 'images/icon-192.png';
   event.waitUntil((async function(){
-    let icon = data.icon || data.sender_photo || (data.data && (data.data.sender_photo||data.data.icon)) || fallbackIcon;
+    let _ic = data.icon || data.sender_photo || (data.data && (data.data.sender_photo||data.data.icon)) || ''; let icon = (_ic && String(_ic).indexOf('data:')===0) ? fallbackIcon : (_ic || fallbackIcon);
     try{
       var sid = data.sender_id || (data.data && data.data.sender_id);
       if(sid){

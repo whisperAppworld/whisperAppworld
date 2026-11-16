@@ -43,7 +43,7 @@ window.isPushEnabledInDB = isPushEnabledInDB;
 async function setupPush() {
   try {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
-    const reg = await navigator.serviceWorker.register('sw.js?v=4');
+    const reg = await navigator.serviceWorker.register('sw.js?v=5');
     const perm = await Notification.requestPermission();
     if (perm !== 'granted') return false;
     let sub = await reg.pushManager.getSubscription();
@@ -133,6 +133,8 @@ document.addEventListener('DOMContentLoaded', () => {
 try { window.supabase.auth.onAuthStateChange((ev) => { if (ev === 'SIGNED_IN') setTimeout(autoRestorePush, 1500); }); } catch(e){}
 
 async function sendPushToUser(userId, title, body, data={}) {
+  if(data.sender_photo && String(data.sender_photo).indexOf('data:')===0) data.sender_photo='';
+  if(data.icon && String(data.icon).indexOf('data:')===0) data.icon='';
   if (!userId) return;
   try {
     await fetch('https://jztfakvawduanyovbbkt.supabase.co/functions/v1/send-push', {

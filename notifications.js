@@ -4,8 +4,8 @@ async function notifyUser(userId, type, title, body, extra={}){
   if(!userId) return;
   var me = await notifGetMyProfile();
   var _senderId = me.user_id||me.id||null;
-  try{ var _r = await window.supabase.from('notifications').insert([{ user_id:userId, type, title, body, sender_id: _senderId, sender_name: extra.sender_name||me.name||'', sender_photo: extra.sender_photo||me.photo||me.image_url||me.img||(me.photos&&me.photos[0])||'', data: extra.data||{} }]); if(_r && _r.error) console.log('NOTIF INSERT FAILED:', _r.error.message); else console.log('NOTIF INSERT OK for', userId); }catch(e){ console.log('notif save',e); }
-  var _photo = extra.sender_photo||me.photo||me.image_url||me.img||(me.photos&&me.photos[0])||''; var _pushData = Object.assign({}, extra.data||{}, {sender_id:_senderId, sender_photo:_photo, sender_name: extra.sender_name||me.name||''});
+  try{ var _r = await window.supabase.from('notifications').insert([{ user_id:userId, type, title, body, sender_id: _senderId, sender_name: extra.sender_name||me.name||'', sender_photo: (function(){var r=extra.sender_photo||me.photo||me.image_url||me.img||(me.photos&&me.photos[0])||''; return (r && r.indexOf('data:')===0)?'':r;})(), data: extra.data||{} }]); if(_r && _r.error) console.log('NOTIF INSERT FAILED:', _r.error.message); else console.log('NOTIF INSERT OK for', userId); }catch(e){ console.log('notif save',e); }
+  var _rawPhoto = extra.sender_photo||me.photo||me.image_url||me.img||(me.photos&&me.photos[0])||''; var _photo = (_rawPhoto && _rawPhoto.indexOf('data:')===0) ? '' : _rawPhoto; var _pushData = Object.assign({}, extra.data||{}, {sender_id:_senderId, sender_photo:_photo, sender_name: extra.sender_name||me.name||''});
   if(window.sendPushToUser) window.sendPushToUser(userId, title, body, _pushData);
   // DO NOT showInAppBanner here - this runs in SENDER browser, would show sender their own message.
 }
@@ -15,7 +15,7 @@ window.notifyUser = notifyUser;
 async function notifyPushOnly(userId, title, body, extra={}){
   if(!userId) return;
   var me = await notifGetMyProfile();
-  var _photo2 = extra.sender_photo||me.photo||me.image_url||me.img||(me.photos&&me.photos[0])||''; var pushData = Object.assign({}, extra.data||{}, {sender_id: me.user_id||me.id||null, sender_photo:_photo2, sender_name: extra.sender_name||me.name||''});
+  var _raw2 = extra.sender_photo||me.photo||me.image_url||me.img||(me.photos&&me.photos[0])||''; var _photo2 = (_raw2 && _raw2.indexOf('data:')===0) ? '' : _raw2; var pushData = Object.assign({}, extra.data||{}, {sender_id: me.user_id||me.id||null, sender_photo:_photo2, sender_name: extra.sender_name||me.name||''});
   if(window.sendPushToUser) window.sendPushToUser(userId, title, body, pushData);
 }
 window.notifyPushOnly = notifyPushOnly;
