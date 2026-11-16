@@ -57,11 +57,20 @@ async function heartbeat(){
   var uid=await notifGetUid(); if(!uid) return;
   try{ await window.supabase.from('profiles').update({last_seen:new Date().toISOString()}).eq('user_id',uid); }catch(e){}
   try{
+    // I just came online -> tell everyone waiting for ME (this runs even if watcher closed the app)
+    var mine=await window.supabase.from('online_alerts').select('*').eq('target_id',uid);
+    for(var m of (mine.data||[])){
+      var w=await window.supabase.from('profiles').select('name').eq('user_id',uid).maybeSingle();
+      await notifyUser(m.watcher_id,'online',(w.data&&w.data.name||'Someone')+' is online now 🟢','Tap to chat now',{sender_name:(w.data&&w.data.name)||'',data:{chat_with:uid}});
+      await window.supabase.from('online_alerts').delete().eq('id',m.id);
+    }
+  }catch(e){ console.log('online-notify-as-target',e); }
+  try{
     var alerts=await window.supabase.from('online_alerts').select('*').eq('watcher_id',uid);
     for(var a of (alerts.data||[])){
       var t=await window.supabase.from('profiles').select('name,last_seen').eq('user_id',a.target_id).maybeSingle();
       if(t.data && t.data.last_seen && (Date.now()-new Date(t.data.last_seen).getTime())<120000){
-        await notifyPushOnly(uid, (t.data.name||'Someone')+' is online now 🟢', 'Tap to chat now', {sender_name:t.data.name, data:{chat_with:a.target_id}});
+        await notifyUser(uid,'online',(t.data.name||'Someone')+' is online now 🟢','Tap to chat now',{sender_name:t.data.name,data:{chat_with:a.target_id}});
         await window.supabase.from('online_alerts').delete().eq('id',a.id);
       }
     }
@@ -103,3 +112,23 @@ window.handleNotifyClick=function(otherId, otherName){
   el.innerHTML=''; el.style.display='none';
 };
 
+
+// Realtime notifications: banner + sound when app is open
+(function(){
+  var started=false;
+  async function start(){
+    if(started) return; started=true;
+    try{
+      var uid=await notifGetUid(); if(!uid) { started=false; return; }
+      window.supabase.channel('whisper-notif-realtime-'+uid)
+        .on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:'user_id=eq.'+uid},function(payload){
+          var n=payload.new||{};
+          if(window.whisperSettings && window.whisperSettings.inapp===false) return;
+          showInAppBanner(n.title||'Whisper', n.body||'');
+          if(window.renderNotifBell) window.renderNotifBell();
+        }).subscribe();
+    }catch(e){}
+  }
+  document.addEventListener('DOMContentLoaded',function(){ setTimeout(start,1500); });
+  setTimeout(start,3000);
+})();
