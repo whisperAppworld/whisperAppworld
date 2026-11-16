@@ -1,0 +1,17 @@
+<!DOCTYPE html><html><body style="font-family:sans-serif;padding:20px">
+<h2>Push Check</h2><pre id="out">checking...</pre>
+<script src="supabase.js"></script>
+<script src="push.js"></script>
+<script>
+(async()=>{
+  let out=document.getElementById('out');
+  try{
+    let perm=Notification.permission;
+    let reg=await navigator.serviceWorker.getRegistration();
+    let sub=await reg?.pushManager.getSubscription();
+    let uid=await getCurrentUid();
+    let db=await window.isPushEnabledInDB();
+    out.textContent='perm: '+perm+'\nreg: '+!!reg+'\nsub: '+!!sub+'\nuid: '+(uid||'NULL')+'\nDB check: '+db;
+  }catch(e){ out.textContent='ERROR: '+e.message; }
+})();
+</script></body></html>
