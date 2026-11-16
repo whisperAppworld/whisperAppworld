@@ -2,13 +2,21 @@ self.addEventListener('push', function(event) {
   let data = {};
   try { data = event.data.json(); } catch(e) { data = { body: event.data ? event.data.text() : 'New message' }; }
   const title = data.title || 'WhisperApp';
-  const options = {
-    body: data.body || 'You have a new message',
-    icon: 'images/icon-192.png',
-    badge: 'images/icon-192.png',
-    data: { url: data.url || './index.html' }
-  };
-  event.waitUntil(self.registration.showNotification(title, options));
+  const fallbackIcon = 'images/icon-192.png';
+  event.waitUntil((async function(){
+    let icon = fallbackIcon;
+    try {
+      var sid = data.sender_id || (data.data && data.data.sender_id);
+      if (sid) {
+        var res = await fetch('https://jztfakvawduanyovbbkt.supabase.co/rest/v1/profiles?user_id=eq.' + encodeURIComponent(sid) + '&select=photo', { headers: { 'apikey': 'sb_publishable_Xgea70sY3vlxZQD0PTWFYQ_ySQN2K4C', 'Authorization': 'Bearer sb_publishable_Xgea70sY3vlxZQD0PTWFYQ_ySQN2K4C' } });
+        var rows = await res.json();
+        var photo = rows && rows[0] && rows[0].photo;
+        if (photo && (photo.indexOf('http') === 0 || photo.indexOf('data:image') === 0)) icon = photo;
+      }
+    } catch(e) {}
+    const options = { body: data.body || 'You have a new message', icon: icon, badge: fallbackIcon, image: undefined, data: { url: data.url || './index.html' } };
+    await self.registration.showNotification(title, options);
+  })());
 });
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
