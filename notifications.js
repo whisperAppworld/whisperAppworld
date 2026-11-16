@@ -3,8 +3,10 @@ async function notifGetMyProfile(){ try{ var mp=JSON.parse(localStorage.getItem(
 async function notifyUser(userId, type, title, body, extra={}){
   if(!userId) return;
   var me = await notifGetMyProfile();
-  try{ await window.supabase.from('notifications').insert([{ user_id:userId, type, title, body, sender_id: me.user_id||me.id||null, sender_name: extra.sender_name||me.name||'', sender_photo: extra.sender_photo||me.img||me.photo||me.image_url||'', data: extra.data||{} }]); }catch(e){ console.log('notif save',e); }
-  if(window.sendPushToUser) window.sendPushToUser(userId, title, body, extra.data||{});
+  var _senderId = me.user_id||me.id||null;
+  try{ var _r = await window.supabase.from('notifications').insert([{ user_id:userId, type, title, body, sender_id: _senderId, sender_name: extra.sender_name||me.name||'', sender_photo: extra.sender_photo||me.img||me.photo||me.image_url||'', data: extra.data||{} }]); if(_r && _r.error) console.log('NOTIF INSERT FAILED:', _r.error.message); else console.log('NOTIF INSERT OK for', userId); }catch(e){ console.log('notif save',e); }
+  var _pushData = Object.assign({}, extra.data||{}, {sender_id:_senderId});
+  if(window.sendPushToUser) window.sendPushToUser(userId, title, body, _pushData);
   // DO NOT showInAppBanner here - this runs in SENDER browser, would show sender their own message.
 }
 window.notifyUser = notifyUser;
@@ -16,9 +18,10 @@ function showInAppBanner(title, body){
   setTimeout(()=>{ b.style.display='none'; }, 4000);
 }
 async function renderNotifBell(){
-  var old=document.getElementById('notif-bell'); if(old) old.remove();
+  // do NOT remove bell - top-bell is the bell
   var uid=await notifGetUid(); if(!uid) return;
   var r=await window.supabase.from('notifications').select('id').eq('user_id',uid).eq('is_read',false);
+  if(r.error) console.log('BELL QUERY FAILED:', r.error.message);
   var n=(r.data||[]).length;
   var el=document.getElementById('bell-badge'); if(!el) return;
   if(n>0){ el.style.display='block'; el.textContent=n>99?'99+':String(n); } else { el.style.display='none'; }

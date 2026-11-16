@@ -11,7 +11,7 @@ self.addEventListener('push', function(event) {
         var res = await fetch('https://jztfakvawduanyovbbkt.supabase.co/rest/v1/profiles?user_id=eq.'+encodeURIComponent(sid)+'&select=photo,photos', { headers: { 'apikey': 'sb_publishable_Xgea70sY3vlxZQD0PTWFYQ_ySQN2K4C', 'Authorization': 'Bearer sb_publishable_Xgea70sY3vlxZQD0PTWFYQ_ySQN2K4C' } });
         var rows = await res.json();
         var photo = rows && rows[0] && (rows[0].photo || (rows[0].photos && rows[0].photos[0]));
-        if(photo && photo.indexOf('http')===0) icon = photo;
+        if(photo && (photo.indexOf('http')===0 || photo.indexOf('data:image')===0)) icon = photo;
       }
     }catch(e){}
     const options = { body: data.body || 'You have a new message', icon: icon, badge: fallbackIcon, data: { url: data.url || './index.html' } };
