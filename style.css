@@ -255,3 +255,6 @@ body, html {
 .btn.pass { background: #888 !important; }
 .btn.view { background: #6C63FF !important; }
 .btn.like { background: #FF4D6D !important; }
+
+/* NO BANNERS EVER */
+.banner,.notice,.alert-box,[class*=banner],[id*=banner]{display:none!important;visibility:hidden!important;height:0!important}
