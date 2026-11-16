@@ -182,6 +182,12 @@ window.openChat=async function(name){
   if(typeof showTab==="function") showTab("messages");
   _fixOpening=false;
   await loadChat();
+  // Show "Notify me when online" if other person is offline - push-only, no bell
+  try{
+    if(window.checkOfflineBanner && _fixOtherId && _fixOtherProfile){
+      window.checkOfflineBanner(_fixOtherId, window.currentChatWith, _fixOtherProfile.last_seen);
+    }
+  }catch(e){}
 };
 document.addEventListener("click",function(e){
   var b=e.target.closest("button"); if(!b) return;
