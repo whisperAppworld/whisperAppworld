@@ -78,14 +78,26 @@ async function askNotifyWhenOnline(targetId, targetName){
 }
 window.askNotifyWhenOnline=askNotifyWhenOnline;
 async function checkOfflineBanner(otherId, otherName, lastSeen){
-  var el=document.getElementById('offline-notify-bar'); if(!el){ el=document.createElement('div'); el.id='offline-notify-bar'; var cv=document.getElementById('chat-view'); if(cv) cv.parentNode.insertBefore(el,cv); }
+  var el=document.getElementById('offline-notify-bar');
+  if(!el){ el=document.createElement('div'); el.id='offline-notify-bar'; var cv=document.getElementById('chat-view'); if(cv) cv.parentNode.insertBefore(el,cv); }
   var isOnline = lastSeen && (Date.now()-new Date(lastSeen).getTime())<120000;
   if(isOnline){ el.innerHTML=''; return; }
-  // Already clicked for this person? Don't show again
-  try{
-    var _subs = JSON.parse(localStorage.getItem('online_alerts')||'[]');
-    if(_subs.some(function(a){ return a.target_id===otherId || a.targetId===otherId; })){ el.innerHTML=''; return; }
-  }catch(e){}
-  el.innerHTML='<div style="background:#222;border:1px solid #333;border-radius:12px;padding:10px;margin:8px;text-align:center">⚫ '+otherName+' is offline<br><button onclick="askNotifyWhenOnline(\''+otherId+'\',\''+otherName+'\');document.getElementById(\'offline-notify-bar\').innerHTML=\'<div style=\\\"background:#222;border:1px solid #333;border-radius:12px;padding:10px;margin:8px;text-align:center\\\">✅ We will notify you when '+otherName+' is online</div>\';setTimeout(function(){var b=document.getElementById(\'offline-notify-bar\'); if(b) b.innerHTML=\'\';},2500);" style="margin-top:8px;padding:10px 16px;border-radius:999px;border:0;background:#ff5a8a;color:#fff;font-weight:700">🔔 Notify me when online</button></div>';
+  el.innerHTML='';
+  var box=document.createElement('div');
+  box.style.cssText='background:#222;border:1px solid #333;border-radius:12px;padding:10px;margin:8px;text-align:center';
+  box.textContent=otherName+' is offline';
+  var btn=document.createElement('button');
+  btn.textContent='Notify me when online';
+  btn.style.cssText='margin-top:8px;padding:10px 16px;border-radius:999px;border:0;background:#ff5a8a;color:#fff;font-weight:700';
+  btn.onclick=function(){ window.handleNotifyClick(otherId, otherName); };
+  box.appendChild(document.createElement('br')); box.appendChild(btn); el.appendChild(box);
 }
 window.checkOfflineBanner=checkOfflineBanner;
+window.handleNotifyClick=function(otherId, otherName){
+  try{ askNotifyWhenOnline(otherId, otherName); }catch(e){}
+  var el=document.getElementById('offline-notify-bar'); if(!el) return;
+  el.textContent='We will notify you when '+otherName+' is online';
+  el.style.cssText='background:#222;border:1px solid #333;border-radius:12px;padding:10px;margin:8px;text-align:center';
+  setTimeout(function(){ var b=document.getElementById('offline-notify-bar'); if(b) b.innerHTML=''; }, 2500);
+};
+
