@@ -84,7 +84,7 @@ async function checkOfflineBanner(otherId, otherName, lastSeen){
   if(isOnline){ el.innerHTML=''; return; }
   try{ if(window._notifyDone && window._notifyDone[otherId]){ el.innerHTML=''; return; } }catch(e){}
   try{ if(localStorage.getItem('notify_done_'+otherId)==='1'){ el.innerHTML=''; return; } }catch(e){}
-  el.innerHTML='';
+  el.innerHTML=''; el.style.display='';
   var box=document.createElement('div');
   box.style.cssText='background:#222;border:1px solid #333;border-radius:12px;padding:10px;margin:8px;text-align:center';
   box.textContent=otherName+' is offline  \u25cf';
@@ -99,8 +99,6 @@ window.handleNotifyClick=function(otherId, otherName){
   try{ window._notifyDone = window._notifyDone || {}; window._notifyDone[otherId]=1; localStorage.setItem('notify_done_'+otherId,'1'); }catch(e){}
   try{ askNotifyWhenOnline(otherId, otherName); }catch(e){}
   var el=document.getElementById('offline-notify-bar'); if(!el) return;
-  el.textContent='We will notify you when '+otherName+' is online';
-  el.style.cssText='background:#222;border:1px solid #333;border-radius:12px;padding:10px;margin:8px;text-align:center';
-  setTimeout(function(){ var b=document.getElementById('offline-notify-bar'); if(b) b.innerHTML=''; }, 2500);
+  el.innerHTML=''; el.style.display='none';
 };
 
