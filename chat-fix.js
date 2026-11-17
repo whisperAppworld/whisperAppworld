@@ -168,7 +168,7 @@ async function sendMsg(){
   if(!_fixOtherId){ await loadChat(); if(!_fixOtherId) return; }
   var err=(await window.supabase.from('chat_messages').insert([{sender_id:meId, receiver_id:_fixOtherId, content:text}])).error;
   if(err){ alert('Send failed: '+err.message); return; }
-  var _sn='Someone'; try{ _sn=JSON.parse(localStorage.getItem('my_profile')||'{}').name||_sn; }catch(e){} if(window.notifyUser) window.notifyUser(_fixOtherId, 'chat', _sn, text, {sender_name:_sn, data:{chat_with:meId, url:'/?chat='+encodeURIComponent(window.currentChatWith||'')}}); else if(window.sendPushToUser) window.sendPushToUser(_fixOtherId, _sn, text, {url:'/?chat='+encodeURIComponent(window.currentChatWith||''), type:'chat', sender_id:meId});
+  var _sn='Someone'; try{ _sn=JSON.parse(localStorage.getItem('my_profile')||'{}').name||_sn; }catch(e){} var _myCountry=''; try{ _myCountry=JSON.parse(localStorage.getItem('richProfile')||'{}')['p-nationality']||''; }catch(e){} var _flag=(typeof flagFor==='function')?flagFor(_myCountry):'🌍'; var _title=_flag+' '+_sn; if(window.notifyUser) window.notifyUser(_fixOtherId, 'chat', _title, text, {sender_name:_title, data:{chat_with:meId, url:'/?chat='+encodeURIComponent(window.currentChatWith||'')}}); else if(window.sendPushToUser) window.sendPushToUser(_fixOtherId, _title, text, {url:'/?chat='+encodeURIComponent(window.currentChatWith||''), type:'chat', sender_id:meId});
   inp.value=''; loadChat(true);
 }
 window.loadChat=loadChat; window.sendMsg=sendMsg; window.showChatList=showChatList;
