@@ -354,7 +354,8 @@ function renderPfPhotos(){
 document.addEventListener('change', function(e){ if(e.target && e.target.id=='pf-photo'){ var f=e.target.files[0]; if(!f) return; var idx=window._pfPhotoIndex||0; var r=new FileReader(); r.onload=function(ev){ window._myPhotos[idx]=ev.target.result; window._myPhoto=window._myPhotos[0]||''; renderPfPhotos(); }; r.readAsDataURL(f); }});
 document.addEventListener('DOMContentLoaded', renderPfPhotos); setTimeout(renderPfPhotos,500);
 function compressPhoto(dataUrl,cb){ var img=new Image(); img.onload=function(){ var max=600; var w=img.width,h=img.height; var sc=Math.min(1,max/Math.max(w,h)); var c=document.createElement('canvas'); c.width=Math.round(w*sc); c.height=Math.round(h*sc); c.getContext('2d').drawImage(img,0,0,c.width,c.height); try{cb(c.toDataURL('image/jpeg',0.7));}catch(e){cb(dataUrl);} }; img.onerror=function(){cb(dataUrl);}; img.src=dataUrl; }
-<script>function flagFor(c){var m={'Equatorial Guinea':'🇬🇶','Spain':'🇪🇸','France':'🇫🇷','Nigeria':'🇳🇬','Cameroon':'🇨🇲','Gabon':'🇬🇦','Ghana':'🇬🇭','USA':'🇺🇸','UK':'🇬🇧'};return m[c]||'🌍';}</script>
+</script><script>function flagFor(c){var m={'Equatorial Guinea':'🇬🇶','Spain':'🇪🇸','France':'🇫🇷','Nigeria':'🇳🇬','Cameroon':'🇨🇲','Gabon':'🇬🇦','Ghana':'🇬🇭','USA':'🇺🇸','UK':'🇬🇧'};return m[c]||'🌍';}</script>
+<script>
 function saveProfile(){ return saveMyProfile(); }
 async function saveMyProfile(){ alert('Saving...');
   var n=document.getElementById('p-name')||document.getElementById('pf-name');
