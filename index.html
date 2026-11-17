@@ -395,7 +395,7 @@ async function saveMyProfile(){ alert('Saving...');
   if(typeof initMap==='function'){ try{initMap();}catch(e){} }
 }
 document.addEventListener('click', function(e){ if(e.target && e.target.id=='pf-save-btn'){ saveMyProfile(); }});
-window.saveMyProfile=saveMyProfile; try{ var s=JSON.parse(localStorage.getItem('my_profile')||'{}'); if(s.photos&&s.photos.length){ window._myPhotos=s.photos.slice(0,9); while(window._myPhotos.length<9) window._myPhotos.push(''); window._myPhoto=window._myPhotos[0]||s.photo||''; } else if(s.photo){ window._myPhotos=[s.photo,'','','','','']; window._myPhoto=s.photo; } if(s.name){ var pn=document.getElementById('p-name'); if(pn) pn.value=s.name; var pa=document.getElementById('p-age'); if(pa&&s.age) pa.value=s.age; } }catch(e){} if(typeof syncProfileHeader==='function') syncProfileHeader();
+window.saveMyProfile=saveMyProfile; try{ var s=JSON.parse(localStorage.getItem('my_profile')||'{}'); if(s.photos&&s.photos.length){ window._myPhotos=s.photos.slice(0,9); while(window._myPhotos.length<9) window._myPhotos.push(''); window._myPhoto=window._myPhotos[0]||s.photo||''; } else if(s.photo){ window._myPhotos=[s.photo,'','','','','','','','']; window._myPhoto=s.photo; } if(s.name){ var pn=document.getElementById('p-name'); if(pn) pn.value=s.name; var pa=document.getElementById('p-age'); if(pa&&s.age) pa.value=s.age; } }catch(e){} if(typeof syncProfileHeader==='function') syncProfileHeader();
 </script>
 
 
