@@ -40,12 +40,33 @@ section.active{display:block}
 <div style="font-size:48px">💬</div>
 <h2 style="margin:8px 0 4px;color:#222">Welcome to WhisperChat</h2>
 <p style="color:#888;font-size:14px;margin:0 0 16px">Meet new people near you</p>
-<button onclick="loginWithGoogle()" style="width:100%;background:#fff;color:#222;border:1.5px solid #ddd;padding:13px;border-radius:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px"><span style="font-size:20px;font-weight:900;background:conic-gradient(from 0deg,#4285F4 0 25%,#34A853 0 50%,#FBBC05 0 75%,#EA4335 0);-webkit-background-clip:text;background-clip:text;color:transparent">G</span> Continue with Google</button>
-<div style="display:flex;align-items:center;gap:10px;margin:16px 0;color:#aaa;font-size:12px"><span style="flex:1;height:1px;background:#eee"></span>OR<span style="flex:1;height:1px;background:#eee"></span></div>
+
+<!-- Google - ALWAYS on top -->
+<button onclick="loginWithGoogle()" style="width:100%;background:#fff;color:#222;border:1.5px solid #ddd;padding:14px;border-radius:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px;font-size:16px"><span style="font-size:22px;font-weight:900;color:#4285F4">G</span> Continue with Google</button>
+
+<div style="display:flex;align-items:center;gap:10px;margin:16px 0;color:#aaa;font-size:12px"><span style="flex:1;height:1px;background:#eee"></span>OR WITH EMAIL<span style="flex:1;height:1px;background:#eee"></span></div>
+
+<!-- TABS: Login / Sign Up -->
+<div style="display:flex;background:#f1f1f1;border-radius:12px;padding:4px;margin-bottom:14px">
+<button id="tab-login-btn" onclick="switchAuthMode('login')" type="button" style="flex:1;padding:11px;border:none;border-radius:9px;background:#fff;color:#222;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.1)">Login</button>
+<button id="tab-signup-btn" onclick="switchAuthMode('signup')" type="button" style="flex:1;padding:11px;border:none;border-radius:9px;background:transparent;color:#888;font-weight:700">Sign Up</button>
+</div>
+
 <input id="auth-email" type="email" placeholder="Email" style="background:#f8f8f8;border:1px solid #eee;color:#222">
-<input id="auth-pass" type="password" placeholder="Password" style="background:#f8f8f8;border:1px solid #eee;color:#222">
-<button onclick="loginUser()" style="width:100%;margin:5px 0;background:linear-gradient(135deg,#ff5a8a,#ff8a5c);padding:14px;border-radius:12px">Login</button>
-<button onclick="signupUser()" style="width:100%;background:#222;margin:5px 0;padding:14px;border-radius:12px">Create Account</button>
+<input id="auth-pass" type="password" placeholder="Password (min 6 characters)" style="background:#f8f8f8;border:1px solid #eee;color:#222">
+
+<!-- LOGIN view -->
+<div id="auth-login-view">
+<button onclick="loginUser()" style="width:100%;margin:5px 0;background:linear-gradient(135deg,#ff5a8a,#ff8a5c);padding:14px;border-radius:12px;font-size:16px">Login →</button>
+<p style="font-size:13px;color:#888;margin:8px 0">New here? Tap <b style="color:#ff5a8a" onclick="switchAuthMode('signup')">Sign Up</b> above</p>
+</div>
+
+<!-- SIGNUP view -->
+<div id="auth-signup-view" style="display:none">
+<button onclick="signupUser()" style="width:100%;background:#222;margin:5px 0;padding:14px;border-radius:12px;font-size:16px">Create Account →</button>
+<p style="font-size:13px;color:#888;margin:8px 0">Already have an account? Tap <b style="color:#ff5a8a" onclick="switchAuthMode('login')">Login</b> above</p>
+</div>
+
 <p id="auth-status" style="color:#0a0;font-size:13px"></p>
 <p style="font-size:11px;color:#aaa;margin-top:10px">By continuing you agree to our Terms & Privacy</p>
 </div>
@@ -272,6 +293,21 @@ function showTab(name){ document.body.dataset.currentTab = name;
 }
 
 
+function switchAuthMode(mode){
+  var lv=document.getElementById('auth-login-view');
+  var sv=document.getElementById('auth-signup-view');
+  var lb=document.getElementById('tab-login-btn');
+  var sb=document.getElementById('tab-signup-btn');
+  if(mode==='signup'){
+    if(lv) lv.style.display='none'; if(sv) sv.style.display='block';
+    if(lb){lb.style.background='transparent';lb.style.color='#888';lb.style.boxShadow='none';}
+    if(sb){sb.style.background='#fff';sb.style.color='#222';sb.style.boxShadow='0 2px 8px rgba(0,0,0,.1)';}
+  } else {
+    if(lv) lv.style.display='block'; if(sv) sv.style.display='none';
+    if(sb){sb.style.background='transparent';sb.style.color='#888';sb.style.boxShadow='none';}
+    if(lb){lb.style.background='#fff';lb.style.color='#222';lb.style.boxShadow='0 2px 8px rgba(0,0,0,.1)';}
+  }
+}
 async function loginWithGoogle(){
   try{
     const {error} = await supabase.auth.signInWithOAuth({provider:'google', options:{redirectTo: window.location.href}});
