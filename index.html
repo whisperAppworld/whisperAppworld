@@ -509,6 +509,7 @@ setTimeout(syncProfileHeader,500); setTimeout(syncProfileHeader,1500); setInterv
     var html='';
     if(emailVerified) html+='<span class="v-badge">Email Verified</span>';
     if(photoVerified) html+='<span class="v-badge photo">📸 Photo Verified</span>';
+    try{ var _lv=JSON.parse(localStorage.getItem('my_profile')||'{}'); if(_lv.location_verified) html+='<span class="v-badge" style="background:#dcfce7;color:#166534">📍 Location Verified'+(_lv.location_city?' in '+_lv.location_city:'')+'</span>'; }catch(e){}
     badges.innerHTML=html;
   }
   function buildPanel(){
@@ -531,8 +532,8 @@ setTimeout(syncProfileHeader,500); setTimeout(syncProfileHeader,1500); setInterv
       </div>
       <div class="v-card" style="opacity:.65">
         <div class="v-icon">🪪</div>
-        <div style="flex:1"><b>ID Verification</b><small>Passport / national ID. Coming soon — we are building secure ID handling first.</small></div>
-        <span class="v-status unverified">SOON</span>
+        <div style="flex:1"><b>📍 Location Verification</b><small>We check your GPS matches your profile location. No ID, no passport, ever.</small><div style="margin-top:8px"><button class="v-btn" id="v-location-btn" onclick="verifyMyLocation()">Verify My Location</button></div><div id="v-location-city" style="font-size:12px;color:#555;margin-top:6px"></div></div>
+        <span class="v-status unverified" id="v-location-status">NOT VERIFIED</span>
       </div>`;
     var ab=document.getElementById('account-bar');
     if(ab) ab.after(div); else host.prepend(div);
@@ -583,7 +584,31 @@ setTimeout(syncProfileHeader,500); setTimeout(syncProfileHeader,1500); setInterv
       setTimeout(()=>{ closeVerifyModal(); refreshVerification(); }, 1200);
     }catch(e){ msg.textContent='Error: '+e.message; btn.disabled=false; btn.textContent='Submit for Review'; }
   }
-  async function refreshVerification(){
+  async function verifyMyLocation(){
+  var btn=document.getElementById('v-location-btn'); if(btn) btn.textContent='Checking GPS...';
+  if(!navigator.geolocation){ alert('GPS not supported on this device'); if(btn) btn.textContent='Verify My Location'; return; }
+  navigator.geolocation.getCurrentPosition(async function(pos){
+    try{
+      var lat=pos.coords.latitude, lon=pos.coords.longitude;
+      var r=await fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude='+lat+'&longitude='+lon+'&localityLanguage=en');
+      var j=await r.json(); var city=j.city||j.locality||j.principalSubdivision||''; var country=j.countryName||'';
+      var prof={}; try{ prof=JSON.parse(localStorage.getItem('my_profile')||'{}'); }catch(e){}
+      var myCountry=(prof.country||'').toLowerCase();
+      var ok = country && myCountry && (myCountry.indexOf(country.toLowerCase())!==-1 || country.toLowerCase().indexOf(myCountry)!==-1);
+      if(!ok){ alert('GPS says you are in '+(city+', '+country)+' but your profile says '+(prof.country||'unknown')+'. Update your profile location to match, then try again.'); if(btn) btn.textContent='Verify My Location'; return; }
+      prof.location_verified=true; prof.location_city=city; prof.location_country=country; prof.location_verified_at=new Date().toISOString();
+      localStorage.setItem('my_profile', JSON.stringify(prof));
+      try{ var al=JSON.parse(localStorage.getItem('all_profiles')||'[]'); var f=al.find(function(x){return x&&x.name===prof.name;}); if(f){ f.location_verified=true; f.location_city=city; localStorage.setItem('all_profiles', JSON.stringify(al)); } }catch(e){}
+      try{ if(window.supabase){ var u=(await window.supabase.auth.getUser()).data.user; if(u) await window.supabase.from('profiles').update({location_verified:true, location_city:city}).eq('user_id', u.id); } }catch(e){ console.warn('location save to Supabase skipped', e); }
+      var st=document.getElementById('v-location-status'); if(st){ st.textContent='VERIFIED'; st.className='v-status verified'; }
+      var ct=document.getElementById('v-location-city'); if(ct) ct.textContent='📍 Verified in '+city+', '+country;
+      if(btn) btn.textContent='Verified ✓';
+      alert('📍 Verified in '+city+', '+country);
+    }catch(e){ alert('Location check failed: '+e.message); if(btn) btn.textContent='Verify My Location'; }
+  }, function(err){ alert('GPS denied / unavailable. Allow location permission and try again.'); if(btn) btn.textContent='Verify My Location'; }, {enableHighAccuracy:true, timeout:15000});
+}
+window.verifyMyLocation=verifyMyLocation;
+async function refreshVerification(){
     buildPanel();
     var emailVerified=false, photoVerified=false, photoPending=false;
     try{
@@ -601,7 +626,8 @@ setTimeout(syncProfileHeader,500); setTimeout(syncProfileHeader,1500); setInterv
       }
     }catch(e){}
     if(localStorage.getItem('verification_photo_pending')==='1' && !photoVerified) photoPending=true;
-    var es=document.getElementById('v-email-status'); if(es){ es.textContent=emailVerified?'VERIFIED':'NOT VERIFIED'; es.className='v-status '+(emailVerified?'verified':'unverified'); }
+    try{ var _lp=JSON.parse(localStorage.getItem('my_profile')||'{}'); var _ls=document.getElementById('v-location-status'); if(_ls&&_lp.location_verified){ _ls.textContent='VERIFIED'; _ls.className='v-status verified'; } var _lc=document.getElementById('v-location-city'); if(_lc&&_lp.location_verified) _lc.textContent='📍 Verified in '+(_lp.location_city||''); var _lb=document.getElementById('v-location-btn'); if(_lb&&_lp.location_verified) _lb.textContent='Verified ✓'; }catch(e){}
+  var es=document.getElementById('v-email-status'); if(es){ es.textContent=emailVerified?'VERIFIED':'NOT VERIFIED'; es.className='v-status '+(emailVerified?'verified':'unverified'); }
     var ec=document.getElementById('v-card-email'); if(ec) ec.classList.toggle('done', emailVerified);
     var ps=document.getElementById('v-photo-status'); if(ps){ ps.textContent=photoVerified?'VERIFIED':(photoPending?'PENDING REVIEW':'NOT VERIFIED'); ps.className='v-status '+(photoVerified?'verified':(photoPending?'pending':'unverified')); }
     var pc=document.getElementById('v-card-photo'); if(pc) pc.classList.toggle('done', photoVerified);
