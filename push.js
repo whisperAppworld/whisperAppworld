@@ -132,10 +132,16 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 try { window.supabase.auth.onAuthStateChange((ev) => { if (ev === 'SIGNED_IN') setTimeout(autoRestorePush, 1500); }); } catch(e){}
 
+var _pushDedupe={};
 async function sendPushToUser(userId, title, body, data={}) {
+  var _pk=userId+'|'+title+'|'+body;
+  var _pn=Date.now();
+  if(_pushDedupe[_pk] && _pn-_pushDedupe[_pk]<120000) return;
+  _pushDedupe[_pk]=_pn;
   if(data.sender_photo && String(data.sender_photo).indexOf('data:')===0) data.sender_photo='';
   if(data.icon && String(data.icon).indexOf('data:')===0) data.icon='';
   if (!userId) return;
+  try{ var _fm=(title||'').match(/^[\u{1F1E6}-\u{1F1FF}]{2}/u); if(_fm && data.sender_name && !_fm[0].startsWith(data.sender_name.slice(0,2))) data.sender_name=_fm[0]+' '+data.sender_name; }catch(e){}
   try {
     fetch('https://jztfakvawduanyovbbkt.supabase.co/functions/v1/send-push', {
       method: 'POST',
