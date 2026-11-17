@@ -5,7 +5,7 @@ async function notifyUser(userId, type, title, body, extra={}){
   if(!userId) return;
   var me = await notifGetMyProfile();
   var _meFlag = notifFlagFor(me.country||me.location||'');
-  if(_meFlag && title && !title.startsWith(_meFlag)) title = _meFlag + ' ' + title;
+  if(_meFlag && title && !title.startsWith(_meFlag) && !/^[\u{1F1E6}-\u{1F1FF}]{2}/u.test(title)) title = _meFlag + ' ' + title;
   var _senderId = me.user_id||me.id||null;
   try{ var _r = await window.supabase.from('notifications').insert([{ user_id:userId, type, title, body, sender_id: _senderId, sender_name: extra.sender_name||me.name||'', sender_photo: (function(){var r=extra.sender_photo||me.photo||me.image_url||me.img||(me.photos&&me.photos[0])||''; return (r && r.indexOf('data:')===0)?'':r;})(), data: extra.data||{} }]); if(_r && _r.error) console.log('NOTIF INSERT FAILED:', _r.error.message); else console.log('NOTIF INSERT OK for', userId); }catch(e){ console.log('notif save',e); }
   var _rawPhoto = extra.sender_photo||me.photo||me.image_url||me.img||(me.photos&&me.photos[0])||''; var _photo = (_rawPhoto && _rawPhoto.indexOf('data:')===0) ? '' : _rawPhoto; var _pushData = Object.assign({}, extra.data||{}, {sender_id:_senderId, sender_photo:_photo, sender_name: extra.sender_name||me.name||''});
