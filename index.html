@@ -298,10 +298,7 @@ function closeWelcomeCard(){
   var w=document.getElementById('wc-welcome'); if(w) w.style.display='none';
   if(typeof showTab==='function') showTab('discover');
 }
-function maybeShowWelcome(isNew){
-  if(isNew && !localStorage.getItem('whisperchat_welcomed')){ setTimeout(showWelcomeCard, 600); }
-  else if(isNew){ setTimeout(showWelcomeCard, 600); }
-}
+function maybeShowWelcome(isNew){ if(isNew && !localStorage.getItem('whisperchat_welcomed')){ setTimeout(showWelcomeCard, 600); } }
 
 async function signupUser(){
   let email=document.getElementById('auth-email').value;
