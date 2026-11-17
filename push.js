@@ -137,9 +137,9 @@ async function sendPushToUser(userId, title, body, data={}) {
   if(data.icon && String(data.icon).indexOf('data:')===0) data.icon='';
   if (!userId) return;
   try {
-    await fetch('https://jztfakvawduanyovbbkt.supabase.co/functions/v1/send-push', {
+    fetch('https://jztfakvawduanyovbbkt.supabase.co/functions/v1/send-push', {
       method: 'POST',
-      headers: { 'apikey': 'sb_publishable_Xgea70sY3vlxZQD0PTWFYQ_ySQN2K4C', 'Content-Type': 'application/json' },
+      headers: { 'apikey': 'sb_publishable_Xgea70sY3vlxZQD0PTWFYQ_ySQN2K4C', 'Content-Type': 'application/json', keepalive: true },
       body: JSON.stringify({ user_id: userId, sender_id: data.sender_id || null, sender_photo: data.sender_photo||data.photo||null, sender_name: data.sender_name||null, icon: data.sender_photo||data.photo||null, title: title || 'Whisper 🔔', body: body || 'You have a new message', url: data.url || '/', data })
     });
   } catch(e) { console.log('sendPush failed', e); }
