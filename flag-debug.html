@@ -1,0 +1,19 @@
+<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><body style="font-family:system-ui;padding:16px">
+<h2>Flag Debug</h2><pre id="o">loading...</pre>
+<script src="notifications.js"></script>
+<script>
+try{
+  const mp = JSON.parse(localStorage.getItem('my_profile')||'{}');
+  const rp = JSON.parse(localStorage.getItem('richProfile')||'{}');
+  const c = mp.country||mp.location||'';
+  document.getElementById('o').textContent =
+    'my_profile country: ['+mp.country+']\n'+
+    'my_profile location: ['+mp.location+']\n'+
+    'richProfile p-nationality: ['+rp['p-nationality']+']\n'+
+    'richProfile country: ['+rp.country+']\n'+
+    'notifFlagFor exists: '+typeof notifFlagFor+'\n'+
+    'flag for Equatorial Guinea: ['+(typeof notifFlagFor==='function'?notifFlagFor('Equatorial Guinea'):'?')+']\n'+
+    'flag for my country ['+c+']: ['+(typeof notifFlagFor==='function'?notifFlagFor(c):'?')+']\n'+
+    'full my_profile: '+JSON.stringify(mp);
+}catch(e){ document.getElementById('o').textContent='ERR: '+e.message; }
+</script>
