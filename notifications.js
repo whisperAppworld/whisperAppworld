@@ -1,8 +1,13 @@
 async function notifGetUid(){ try{ const {data:{user}} = await window.supabase.auth.getUser(); if(user) return user.id; }catch(e){} try{ var mp=JSON.parse(localStorage.getItem('my_profile')||'{}'); return mp.user_id||mp.id||null; }catch(e){} return null; }
 async function notifGetMyProfile(){ try{ var mp=JSON.parse(localStorage.getItem('my_profile')||'{}'); if(mp.name) return mp; }catch(e){} var uid=await notifGetUid(); if(!uid) return {}; var r=await window.supabase.from('profiles').select('*').eq('user_id',uid).maybeSingle(); return r.data||{}; }
 function notifFlagFor(c){ if(!c) return ''; var m={'Equatorial Guinea':'GQ','Spain':'ES','Nigeria':'NG','Cameroon':'CM','Gabon':'GA','France':'FR','Germany':'DE','Italy':'IT','Portugal':'PT','United Kingdom':'GB','USA':'US','Canada':'CA','Brazil':'BR','Mexico':'MX','Morocco':'MA','Ghana':'GH','Kenya':'KE','South Africa':'ZA','India':'IN','Philippines':'PH','China':'CN','Japan':'JP','Russia':'RU','Poland':'PL','Netherlands':'NL','Belgium':'BE','Switzerland':'CH','Austria':'AT','Sweden':'SE','Norway':'NO','Denmark':'DK','Finland':'FI','Ireland':'IE','Greece':'GR','Turkey':'TR','Egypt':'EG','Algeria':'DZ','Angola':'AO','Senegal':'SN','Congo':'CG','Chad':'TD','Mali':'ML','Ethiopia':'ET','Tanzania':'TZ','Uganda':'UG','Zambia':'ZM','Australia':'AU','Argentina':'AR','Chile':'CL','Colombia':'CO','Peru':'PE','Venezuela':'VE','Cuba':'CU'}; var code=m[c]||m[String(c).trim()]||''; if(!code && String(c).length==2) code=String(c).toUpperCase(); if(!code) return ''; return String.fromCodePoint.apply(null, Array.from(code).map(function(ch){return 127397+ch.charCodeAt(0);})); }
+var _notifyDedupe={};
 async function notifyUser(userId, type, title, body, extra={}){
   if(!userId) return;
+  var _dk=userId+'|'+type+'|'+title+'|'+body;
+  var _now=Date.now();
+  if(_notifyDedupe[_dk] && _now-_notifyDedupe[_dk]<120000) return;
+  _notifyDedupe[_dk]=_now;
   var me = await notifGetMyProfile();
   var _meFlag = notifFlagFor(me.country||me.location||'');
   if(_meFlag && title && !title.startsWith(_meFlag) && !/^[\u{1F1E6}-\u{1F1FF}]{2}/u.test(title)) title = _meFlag + ' ' + title;
@@ -67,8 +72,8 @@ async function heartbeat(){
     var mine=await window.supabase.from('online_alerts').select('*').eq('target_id',uid);
     for(var m of (mine.data||[])){
       var w=await window.supabase.from('profiles').select('name,country').eq('user_id',uid).maybeSingle();
-      await notifyUser(m.watcher_id,'online',(notifFlagFor(w.data&&w.data.country||'')+' '+(w.data&&w.data.name||'Someone')).trim()+' is online now 🟢',''+((localStorage.getItem('whisper_lang')||'English')==='French'?'Appuie pour discuter':(localStorage.getItem('whisper_lang')||'English')==='Spanish'?'Toca para chatear':'Tap to chat now')+'',{sender_name:(w.data&&w.data.name)||'',data:{chat_with:uid}});
       await window.supabase.from('online_alerts').delete().eq('id',m.id);
+      await notifyUser(m.watcher_id,'online',(notifFlagFor(w.data&&w.data.country||'')+' '+(w.data&&w.data.name||'Someone')).trim()+' is online now 🟢',''+((localStorage.getItem('whisper_lang')||'English')==='French'?'Appuie pour discuter':(localStorage.getItem('whisper_lang')||'English')==='Spanish'?'Toca para chatear':'Tap to chat now')+'',{sender_name:(w.data&&w.data.name)||'',data:{chat_with:uid}});
     }
   }catch(e){ console.log('online-notify-as-target',e); }
   try{
@@ -76,8 +81,8 @@ async function heartbeat(){
     for(var a of (alerts.data||[])){
       var t=await window.supabase.from('profiles').select('name,country,last_seen').eq('user_id',a.target_id).maybeSingle();
       if(t.data && t.data.last_seen && (Date.now()-new Date(t.data.last_seen).getTime())<120000){
-        await notifyUser(uid,'online',(notifFlagFor(t.data&&t.data.country||'')+' '+(t.data.name||'Someone')).trim()+' is online now 🟢',''+((localStorage.getItem('whisper_lang')||'English')==='French'?'Appuie pour discuter':(localStorage.getItem('whisper_lang')||'English')==='Spanish'?'Toca para chatear':'Tap to chat now')+'',{sender_name:t.data.name,data:{chat_with:a.target_id}});
         await window.supabase.from('online_alerts').delete().eq('id',a.id);
+        await notifyUser(uid,'online',(notifFlagFor(t.data&&t.data.country||'')+' '+(t.data.name||'Someone')).trim()+' is online now 🟢',''+((localStorage.getItem('whisper_lang')||'English')==='French'?'Appuie pour discuter':(localStorage.getItem('whisper_lang')||'English')==='Spanish'?'Toca para chatear':'Tap to chat now')+'',{sender_name:t.data.name,data:{chat_with:a.target_id}});
       }
     }
   }catch(e){}
