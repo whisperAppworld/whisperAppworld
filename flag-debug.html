@@ -3,9 +3,9 @@
 <script src="notifications.js"></script>
 <script>
 try{
-  const mp = JSON.parse(localStorage.getItem('my_profile')||'{}');
-  const rp = JSON.parse(localStorage.getItem('richProfile')||'{}');
-  const c = mp.country||mp.location||'';
+  var mp = JSON.parse(localStorage.getItem('my_profile')||'{}');
+  var rp = JSON.parse(localStorage.getItem('richProfile')||'{}');
+  var c = mp.country||mp.location||'';
   document.getElementById('o').textContent =
     'my_profile country: ['+mp.country+']\n'+
     'my_profile location: ['+mp.location+']\n'+
