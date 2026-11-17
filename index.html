@@ -61,6 +61,21 @@ section.active{display:block}
 <textarea id="p-bio" placeholder="✍️ Bio - about you..." style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8;min-height:70px"></textarea>
 <input id="p-interests" placeholder="❤️ Interests - e.g. Music, Football, Movies" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><div id="p-interest-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 8px"></div><script>try{(function(){var list=["Gym","Wine","Music","Football","Movies","Travel","Food","Reading","Dancing","Gaming"];var w=document.getElementById('p-interest-chips');if(!w)return;w.innerHTML=list.map(function(x){return '<button type="button" onclick="toggleInterest(this)" style="padding:6px 12px;border-radius:20px;border:1px solid #eee;background:#f8f8f8;font-size:13px;cursor:pointer">'+x+'</button>'}).join('');})();}catch(e){} function toggleInterest(btn){var inp=document.getElementById('p-interests');var cur=(inp.value||'').split(',').map(function(s){return s.trim()}).filter(Boolean);var v=btn.textContent.trim();var i=cur.indexOf(v);if(i>=0){cur.splice(i,1);btn.style.background='#f8f8f8';btn.style.color='#222';}else{cur.push(v);btn.style.background='#ff5a8a';btn.style.color='white';}inp.value=cur.join(', ');}</script>
 <input id="p-language" placeholder="🌍 Language - e.g. Spanish, English, French" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8">
+<div id="p-languages-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 8px"></div>
+<label>Goal</label>
+<select id="p-goal" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><option value="">Goal</option><option>Serious Relationship</option><option>Friendship</option><option>Dating</option><option>Marriage</option><option>Travel Buddy</option><option>Fun / Casual</option></select>
+<label>Nationality</label>
+<div style="display:flex;gap:8px"><select id="p-nationality" onchange="document.getElementById('p-flag').textContent=flagFor(this.value)" style="flex:1;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><option value="">Nationality</option><option>Equatorial Guinea</option><option>Spain</option><option>France</option><option>Nigeria</option><option>Cameroon</option><option>Gabon</option><option>Ghana</option><option>USA</option><option>UK</option></select><span id="p-flag" style="font-size:32px">🌍</span></div>
+<label>Best time to chat</label>
+<select id="p-timezone" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><option value="">When are you online?</option><option>Morning</option><option>Afternoon</option><option>Evening</option><option>Night / Late</option><option>Weekends only</option><option>Anytime</option></select>
+<label>Holiday style</label>
+<input id="p-holiday" placeholder="Tap a chip below" readonly style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8">
+<div id="p-holiday-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 8px"></div>
+<label>Work</label>
+<select id="p-work" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><option value="">What do you do?</option><option>Student</option><option>Office / Business</option><option>Health / Nurse / Doctor</option><option>Teacher</option><option>Tech / IT</option><option>Artist / Creator</option><option>Other</option></select>
+<label>Education</label>
+<select id="p-education" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><option value="">Education level</option><option>High School</option><option>University / College</option><option>Bachelor Degree</option><option>Master Degree</option><option>PhD</option><option>Vocational / Trade</option></select>
+
 <button onclick="saveProfile()" style="background:linear-gradient(135deg,#ff5a8a,#ff8a5c);color:white;border:none;padding:14px;width:100%;border-radius:14px;font-weight:800;font-size:16px;margin-top:8px">Save Profile 💖</button>
 </div>
 </div><div id="profile-sub-settings" style="display:none"><h2>⚙️ Settings</h2>
@@ -339,6 +354,7 @@ function renderPfPhotos(){
 document.addEventListener('change', function(e){ if(e.target && e.target.id=='pf-photo'){ var f=e.target.files[0]; if(!f) return; var idx=window._pfPhotoIndex||0; var r=new FileReader(); r.onload=function(ev){ window._myPhotos[idx]=ev.target.result; window._myPhoto=window._myPhotos[0]||''; renderPfPhotos(); }; r.readAsDataURL(f); }});
 document.addEventListener('DOMContentLoaded', renderPfPhotos); setTimeout(renderPfPhotos,500);
 function compressPhoto(dataUrl,cb){ var img=new Image(); img.onload=function(){ var max=600; var w=img.width,h=img.height; var sc=Math.min(1,max/Math.max(w,h)); var c=document.createElement('canvas'); c.width=Math.round(w*sc); c.height=Math.round(h*sc); c.getContext('2d').drawImage(img,0,0,c.width,c.height); try{cb(c.toDataURL('image/jpeg',0.7));}catch(e){cb(dataUrl);} }; img.onerror=function(){cb(dataUrl);}; img.src=dataUrl; }
+<script>function flagFor(c){var m={'Equatorial Guinea':'🇬🇶','Spain':'🇪🇸','France':'🇫🇷','Nigeria':'🇳🇬','Cameroon':'🇨🇲','Gabon':'🇬🇦','Ghana':'🇬🇭','USA':'🇺🇸','UK':'🇬🇧'};return m[c]||'🌍';}</script>
 function saveProfile(){ return saveMyProfile(); }
 async function saveMyProfile(){ alert('Saving...');
   var n=document.getElementById('p-name')||document.getElementById('pf-name');
@@ -810,5 +826,68 @@ setTimeout(finalFix, 1000);
 document.addEventListener('DOMContentLoaded', function(){ setTimeout(finalFix, 1000); });
 </script>
 
+
+<script>
+var LANGS=['Spanish','English','French','Portuguese','Fang','Bubi','Igbo','Yoruba'];
+var HOLIDAYS=['Beach','Mountains','City Break','Adventure','Luxury','Road Trip','Staycation','Culture'];
+function mkChips(boxId,inputId,list){
+  var box=document.getElementById(boxId); if(!box) return;
+  box.innerHTML='';
+  list.forEach(function(t){
+    var s=document.createElement('span'); s.textContent=t;
+    s.style.cssText='padding:6px 12px;border-radius:20px;background:#eee;font-size:13px;cursor:pointer';
+    s.onclick=function(){
+      var cur=document.getElementById(inputId).value||'';
+      var arr=cur?cur.split(',').map(function(x){return x.trim()}):[];
+      if(arr.indexOf(t)>-1){arr=arr.filter(function(x){return x!==t}); s.style.background='#eee';}
+      else{arr.push(t); s.style.background='#ff4d6d'; s.style.color='#fff';}
+      document.getElementById(inputId).value=arr.join(', ');
+    };
+    box.appendChild(s);
+  });
+}
+function initRich(){
+  mkChips('p-languages-chips','p-language',LANGS);
+  mkChips('p-holiday-chips','p-holiday',HOLIDAYS);
+  try{var r=JSON.parse(localStorage.getItem('richProfile')||'{}'); ['p-goal','p-nationality','p-timezone','p-holiday','p-work','p-education','p-language'].forEach(function(id){var el=document.getElementById(id); if(el&&r[id]){el.value=r[id]; if(id==='p-nationality') document.getElementById('p-flag').textContent=flagFor(r[id]);}});}catch(e){}
+  var old=window.saveProfile;
+  window.saveProfile=function(){
+    try{var r={}; ['p-goal','p-nationality','p-timezone','p-holiday','p-work','p-education','p-language'].forEach(function(id){var el=document.getElementById(id); if(el) r[id]=el.value;}); localStorage.setItem('richProfile',JSON.stringify(r));}catch(e){}
+    if(old) return old.apply(this,arguments);
+  };
+}
+document.addEventListener('DOMContentLoaded',initRich);
+setTimeout(initRich,800);
+</script>
+
+<script>
+function renderRichDisplay(){
+  try{
+    var r=JSON.parse(localStorage.getItem('richProfile')||'{}');
+    var bio=document.getElementById('p-bio'); if(!bio) return;
+    var old=document.getElementById('rich-display');
+    if(old) old.remove();
+    var d=document.createElement('div'); d.id='rich-display';
+    d.style.cssText='margin-top:10px;display:flex;gap:6px;flex-wrap:wrap';
+    var items=[];
+    if(r['p-goal']) items.push('🎯 '+r['p-goal']);
+    if(r['p-nationality']) items.push('🌍 '+r['p-nationality']);
+    if(r['p-timezone']) items.push('🕐 '+r['p-timezone']);
+    if(r['p-holiday']) items.push('🏖️ '+r['p-holiday']);
+    if(r['p-work']) items.push('💼 '+r['p-work']);
+    if(r['p-education']) items.push('🎓 '+r['p-education']);
+    if(r['p-language']) items.push('🗣️ '+r['p-language']);
+    items.forEach(function(t){
+      var s=document.createElement('span'); s.textContent=t;
+      s.style.cssText='background:#ffeef2;padding:6px 10px;border-radius:20px;font-size:12px';
+      d.appendChild(s);
+    });
+    bio.parentNode.insertBefore(d,bio.nextSibling);
+  }catch(e){}
+}
+document.addEventListener('DOMContentLoaded',function(){setTimeout(renderRichDisplay,1000);});
+var _oldSave=window.saveProfile;
+window.saveProfile=function(){var res; if(_oldSave) res=_oldSave.apply(this,arguments); setTimeout(renderRichDisplay,300); return res;};
+</script>
 </body>
 </html>
