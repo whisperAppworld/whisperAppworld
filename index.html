@@ -26,6 +26,7 @@ section.active{display:block}
 #tab-discover h2{margin:6px 0 8px}
 #tab-discover #map-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:none;flex-direction:column;padding:12px}#map-modal.open{display:flex}#map-modal #map{flex:1;width:100%;height:auto !important;min-height:0}.swipe-card{background:#222;border-radius:20px;overflow:hidden;margin:12px 0;box-shadow:0 10px 30px rgba(0,0,0,.4)}.swipe-card .photo img{width:100%;height:100%;object-fit:cover;display:block}.swipe-card .photo{height:360px;background:linear-gradient(135deg,#ff5a8a,#ff8a5c);display:flex;align-items:center;justify-content:center;font-size:110px}.swipe-card .info{padding:16px}.swipe-card .info h3{margin:0;font-size:26px}.swipe-card .info p{margin:6px 0;color:#bbb}.swipe-actions{display:flex;gap:12px;padding:0 16px 16px}.swipe-actions button{flex:1;padding:16px;font-size:18px;border-radius:50px}.btn-pass{background:#333 !important}.btn-like{background:#ff5a8a !important}.counter{margin-bottom:8px}
 .counter{background:#ff5a8a;padding:10px;border-radius:10px;text-align:center;font-weight:bold}
+#verification-panel h3, .v-panel h3{color:#111827 !important} #verification-panel, .v-panel{color:#111827 !important} #verification-panel .sub, .v-panel .sub{color:#4b5563 !important}
 </style><link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'>
 </head>
 <body>
@@ -532,7 +533,7 @@ setTimeout(syncProfileHeader,500); setTimeout(syncProfileHeader,1500); setInterv
       </div>
       <div class="v-card" style="opacity:.65">
         <div class="v-icon">🪪</div>
-        <div style="flex:1"><b>📍 Location Verification</b><small>We check your GPS matches your profile location. No ID, no passport, ever.</small><div style="margin-top:8px"><button class="v-btn" id="v-location-btn" onclick="verifyMyLocation()">Verify My Location</button></div><div id="v-location-city" style="font-size:12px;color:#555;margin-top:6px"></div></div>
+        <div style="flex:1"><b><svg width="18" height="18" viewBox="0 0 24 24" style="vertical-align:-3px"><path d="M12 2C7 2 3 6 3 11c0 5.5 9 11 9 11s9-5.5 9-11c0-5-4-9-9-9z" fill="#e11d48"/><circle cx="12" cy="11" r="3.5" fill="white"/></svg> Location Verification</b><small>We check your GPS matches your profile country. Re-verify every 3 months to keep your badge. Your exact GPS is never shown to others.</small><div style="margin-top:8px"><button class="v-btn" id="v-location-btn" onclick="verifyMyLocation()">Verify My Location</button></div><div id="v-location-city" style="font-size:12px;color:#555;margin-top:6px"></div></div>
         <span class="v-status unverified" id="v-location-status">NOT VERIFIED</span>
       </div>`;
     var ab=document.getElementById('account-bar');
@@ -627,6 +628,7 @@ async function refreshVerification(){
     }catch(e){}
     if(localStorage.getItem('verification_photo_pending')==='1' && !photoVerified) photoPending=true;
     try{ var _lp=JSON.parse(localStorage.getItem('my_profile')||'{}'); var _ls=document.getElementById('v-location-status'); if(_ls&&_lp.location_verified){ _ls.textContent='VERIFIED'; _ls.className='v-status verified'; } var _lc=document.getElementById('v-location-city'); if(_lc&&_lp.location_verified) _lc.textContent='📍 Verified in '+(_lp.location_city||''); var _lb=document.getElementById('v-location-btn'); if(_lb&&_lp.location_verified) _lb.textContent='Verified ✓'; }catch(e){}
+  try{ if(window.supabase){ var _lu=(await window.supabase.auth.getUser()).data.user; if(_lu){ var _lq=await window.supabase.from('profiles').select('location_verified,location_city,location_country').eq('user_id',_lu.id).maybeSingle(); if(_lq.data&&_lq.data.location_verified){ var _mp2=JSON.parse(localStorage.getItem('my_profile')||'{}'); _mp2.location_verified=true; _mp2.location_city=_lq.data.location_city||_mp2.location_city||''; _mp2.location_country=_lq.data.location_country||''; localStorage.setItem('my_profile', JSON.stringify(_mp2)); } } } }catch(e){}
   var es=document.getElementById('v-email-status'); if(es){ es.textContent=emailVerified?'VERIFIED':'NOT VERIFIED'; es.className='v-status '+(emailVerified?'verified':'unverified'); }
     var ec=document.getElementById('v-card-email'); if(ec) ec.classList.toggle('done', emailVerified);
     var ps=document.getElementById('v-photo-status'); if(ps){ ps.textContent=photoVerified?'VERIFIED':(photoPending?'PENDING REVIEW':'NOT VERIFIED'); ps.className='v-status '+(photoVerified?'verified':(photoPending?'pending':'unverified')); }
@@ -724,7 +726,7 @@ async function loadMyProfileFromCloud(){
     var prof={name:r.name,age:r.age!=null?String(r.age):'',gender:r.gender||'',country:r.country||'',bio:r.bio||'',interests:r.interests||'',language:r.language||'',looking:r.looking||'',relationship:r.relationship||'',photo:r.photo||photos[0]||'',photos:photos,time:Date.now(),email_verified:!!user.email_confirmed_at,photo_verified:false};
     if(!prof.name){ clearLocalProfileAndForm(); try{ localStorage.setItem('_last_uid', user.id); }catch(e){} return; }
     // Keep local photo_verified flag if present
-    try{ var old=JSON.parse(localStorage.getItem('my_profile')||'{}'); if(old&&old.name===prof.name) prof.photo_verified=!!old.photo_verified; }catch(e){}
+    try{ var old=JSON.parse(localStorage.getItem('my_profile')||'{}'); if(old&&old.name===prof.name){ prof.photo_verified=!!old.photo_verified; prof.location_verified=!!old.location_verified; prof.location_city=old.location_city||''; prof.location_country=old.location_country||''; } }catch(e){}
     localStorage.setItem('my_profile', JSON.stringify(prof));
     var all=[]; try{all=JSON.parse(localStorage.getItem('all_profiles')||'[]');}catch(e){}
     all=all.filter(function(x){return x&&x.name!==prof.name}); all.unshift(prof);
