@@ -25,7 +25,7 @@ async function checkPhotoIsOnlyYou(file, referenceDescriptor){
   if(!referenceDescriptor) return {ok:true, descriptor:desc, match:100};
   const sim = faceSimilarity(desc, referenceDescriptor);
   const match = Math.round(sim*100);
-  if(match < 70) return {ok:false, match, msg:'This photo does not match your main photo ('+match+'% match). All photos must be only you.'};
+  if(match < 85) return {ok:false, match, msg:'This photo does not match your main photo ('+match+'% match). All photos must be only you.'};
   return {ok:true, descriptor:desc, match};
 }
 window.checkPhotoIsOnlyYou = checkPhotoIsOnlyYou;
