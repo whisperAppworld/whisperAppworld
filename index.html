@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>WhisperApp</title>
+<title>WhisperChat</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f0f0f">
 <style>
@@ -30,20 +30,33 @@ section.active{display:block}
 </style><link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'>
 </head>
 <body>
-<h1>WhisperApp</h1>
+<h1>WhisperChat</h1>
 
 <section id="tab-profile"><div style="display:flex;gap:8px;margin:10px 0">
 <button type="button" onclick="showProfileSub('login')" id="psub-login-btn" style="flex:1;padding:10px;border-radius:10px;border:none;background:#ff5a8a;color:white;font-weight:bold">Login</button>
 <button type="button" onclick="showProfileSub('my')" id="psub-my-btn" style="flex:1;padding:10px;border-radius:10px;border:none;background:#333;color:white;font-weight:bold">My Profile</button>
 <button type="button" onclick="showProfileSub('settings')" id="psub-settings-btn" style="flex:1;padding:10px;border-radius:10px;border:none;background:#333;color:white;font-weight:bold">Settings</button>
-</div><div id="profile-sub-login"><div id="login-box" style="background:#222;padding:15px;border-radius:12px;margin:10px 0">
-<h3>Login / Sign Up</h3>
-<input id="auth-email" type="email" placeholder="Email">
-<input id="auth-pass" type="password" placeholder="Password">
-<button onclick="loginUser()" style="width:100%;margin:5px 0">Login</button>
-<button onclick="signupUser()" style="width:100%;background:#333;margin:5px 0">Sign Up</button>
-<p id="auth-status" style="color:#0f0"></p>
+</div><div id="profile-sub-login"><div id="login-box" style="background:#fff;padding:22px;border-radius:20px;margin:10px 0;color:#222;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.15)">
+<div style="font-size:48px">💬</div>
+<h2 style="margin:8px 0 4px;color:#222">Welcome to WhisperChat</h2>
+<p style="color:#888;font-size:14px;margin:0 0 16px">Meet new people near you</p>
+<button onclick="loginWithGoogle()" style="width:100%;background:#fff;color:#222;border:1.5px solid #ddd;padding:13px;border-radius:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px"><span style="font-size:20px;font-weight:900;background:conic-gradient(from 0deg,#4285F4 0 25%,#34A853 0 50%,#FBBC05 0 75%,#EA4335 0);-webkit-background-clip:text;background-clip:text;color:transparent">G</span> Continue with Google</button>
+<div style="display:flex;align-items:center;gap:10px;margin:16px 0;color:#aaa;font-size:12px"><span style="flex:1;height:1px;background:#eee"></span>OR<span style="flex:1;height:1px;background:#eee"></span></div>
+<input id="auth-email" type="email" placeholder="Email" style="background:#f8f8f8;border:1px solid #eee;color:#222">
+<input id="auth-pass" type="password" placeholder="Password" style="background:#f8f8f8;border:1px solid #eee;color:#222">
+<button onclick="loginUser()" style="width:100%;margin:5px 0;background:linear-gradient(135deg,#ff5a8a,#ff8a5c);padding:14px;border-radius:12px">Login</button>
+<button onclick="signupUser()" style="width:100%;background:#222;margin:5px 0;padding:14px;border-radius:12px">Create Account</button>
+<p id="auth-status" style="color:#0a0;font-size:13px"></p>
+<p style="font-size:11px;color:#aaa;margin-top:10px">By continuing you agree to our Terms & Privacy</p>
 </div>
+<!-- WhisperChat Welcome Card -->
+<div id="wc-welcome" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99999;align-items:center;justify-content:center;padding:20px">
+<div style="background:#fff;border-radius:24px;padding:28px 22px;text-align:center;color:#222;max-width:360px;width:100%">
+<div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#ff5a8a,#a855f7);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto">💖</div>
+<h2 style="margin:16px 0 6px">Welcome to WhisperChat</h2>
+<p style="color:#666;font-size:15px;line-height:1.5;margin:0">Your profile is live! 🎉<br>Start exploring, like people near you and say hi.</p>
+<button onclick="closeWelcomeCard()" style="width:100%;margin-top:20px;background:linear-gradient(135deg,#ff5a8a,#a855f7);padding:14px;border-radius:50px;font-size:16px">Start Exploring ✨</button>
+</div></div>
 </div><div id="profile-sub-my" style="display:none"><div id="account-bar" style="display:none;background:#222;padding:12px 15px;border-radius:12px;margin:10px 0;color:white">Logged in as <b id="account-email"></b> <button onclick="logoutUser()" type="button" style="float:right;background:#333;color:white;border:none;padding:8px 14px;border-radius:8px;font-weight:bold">Logout</button><div style="clear:both"></div></div><div style="background:linear-gradient(135deg,#ff5a8a,#ff8a5c);border-radius:20px;padding:20px;color:white;margin-bottom:16px">
 <div style="display:flex;align-items:center;gap:14px">
 <div id="p-avatar-preview" style="width:84px;height:84px;border-radius:50%;background:white;color:#ff5a8a;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;overflow:hidden;flex-shrink:0;border:3px solid white">😊</div>
@@ -258,18 +271,50 @@ function showTab(name){ document.body.dataset.currentTab = name;
  document.getElementById('btn-'+name).classList.add('active'); if(name=='discover'){ setTimeout(function(){initMap(); if(window._map) window._map.invalidateSize(); },400); } if(name==='people') renderPeople(); if(name==='discover') renderSwipe();
 }
 
+
+async function loginWithGoogle(){
+  try{
+    const {error} = await supabase.auth.signInWithOAuth({provider:'google', options:{redirectTo: window.location.href}});
+    if(error) document.getElementById('auth-status').textContent = error.message;
+  }catch(e){ document.getElementById('auth-status').textContent = e.message; }
+}
+function showWelcomeCard(){
+  var w=document.getElementById('wc-welcome'); if(w){ w.style.display='flex'; }
+  // Save welcome chat message from Whisper Team
+  try{
+    var chats=JSON.parse(localStorage.getItem('whisperchat_chats')||'[]');
+    if(!chats.find(c=>c.from==='Whisper Team')){
+      chats.unshift({from:'Whisper Team', avatar:'💬', text:'Welcome to WhisperChat! 💖 Your profile is live. Complete your profile, add a nice photo, and start chatting. Need help? Reply here.', time:new Date().toISOString(), unread:1});
+      localStorage.setItem('whisperchat_chats', JSON.stringify(chats));
+    }
+    localStorage.setItem('whisperchat_welcomed','1');
+    if(window.Notification && Notification.permission==='default'){ Notification.requestPermission(); }
+    if(window.showToast) showToast('Welcome to WhisperChat! 💖');
+  }catch(e){}
+  // Try to trigger in-app notification if your notifications.js has it
+  try{ if(typeof addNotification==='function') addNotification('Welcome to WhisperChat! 💖 Your profile is live.','welcome'); }catch(e){}
+}
+function closeWelcomeCard(){
+  var w=document.getElementById('wc-welcome'); if(w) w.style.display='none';
+  if(typeof showTab==='function') showTab('discover');
+}
+function maybeShowWelcome(isNew){
+  if(isNew && !localStorage.getItem('whisperchat_welcomed')){ setTimeout(showWelcomeCard, 600); }
+  else if(isNew){ setTimeout(showWelcomeCard, 600); }
+}
+
 async function signupUser(){
   let email=document.getElementById('auth-email').value;
   let pass=document.getElementById('auth-pass').value;
   let {data,error}=await supabase.auth.signUp({email:email,password:pass});
-  document.getElementById('auth-status').textContent=error?error.message:'Check your email to confirm, then Login!';
+  document.getElementById('auth-status').textContent=error?error.message:'Check your email to confirm, then Login!'; if(!error) maybeShowWelcome(true);
 }
 async function loginUser(){
   let email=document.getElementById('auth-email').value;
   let pass=document.getElementById('auth-pass').value;
   let {data,error}=await supabase.auth.signInWithPassword({email:email,password:pass});
   document.getElementById('auth-status').textContent=error?error.message:'Logged in as '+email;
-  if(!error){ document.getElementById('login-box').style.display='none'; var ab=document.getElementById('account-bar'); if(ab) ab.style.display='block'; var ae=document.getElementById('account-email'); if(ae) ae.textContent=email; if(typeof loadMyProfileFromCloud==='function') loadMyProfileFromCloud(); if(typeof showProfileSub==='function') showProfileSub('my'); }
+  if(!error){ document.getElementById('login-box').style.display='none'; var ab=document.getElementById('account-bar'); if(ab) ab.style.display='block'; var ae=document.getElementById('account-email'); if(ae) ae.textContent=email; if(typeof loadMyProfileFromCloud==='function') loadMyProfileFromCloud(); maybeShowWelcome(true); if(typeof showProfileSub==='function') showProfileSub('my'); }
 }
 renderCircles(); renderSwipe();
 </script>
@@ -323,7 +368,7 @@ async function refreshAuthUI(){
       var ae=document.getElementById('account-email'); if(ae) ae.textContent=email;
       var st=document.getElementById('auth-status'); if(st) st.textContent='Logged in as '+email;
       // cloud-only: do not paint stale local
-      if(typeof loadMyProfileFromCloud==='function') loadMyProfileFromCloud();
+      if(typeof loadMyProfileFromCloud==='function') loadMyProfileFromCloud(); maybeShowWelcome(true);
       if(typeof showProfileSub==='function') showProfileSub('my');
     }
   }catch(e){}

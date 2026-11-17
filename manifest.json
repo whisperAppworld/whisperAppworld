@@ -1,11 +1,11 @@
 {
-  "name": "WhisperApp",
+  "name": "WhisperChat",
   "short_name": "Whisper",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0f0f0f",
   "theme_color": "#0f0f0f",
-  "description": "WhisperApp - Connect and chat",
+  "description": "WhisperChat - Connect and chat",
   "icons": [
     {
       "src": "images/icon-192.png",
