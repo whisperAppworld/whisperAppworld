@@ -59,7 +59,7 @@ section.active{display:block}
 <input id="p-location" placeholder="📍 Country - City e.g. Equatorial Guinea - Malabo" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8">
 <select id="p-looking" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><option value="">Looking for</option><option>Female</option><option>Male</option><option>Anyone</option></select><select id="p-relationship" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><option value="">💍 Relationship status</option><option>Single</option><option>In a relationship</option><option>Engaged</option><option>Married</option><option>It's complicated</option><option>Prefer not to say</option></select>
 <textarea id="p-bio" placeholder="✍️ Bio - about you..." style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8;min-height:70px"></textarea>
-<input id="p-interests" placeholder="❤️ Interests - e.g. Music, Football, Movies" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><div id="p-interest-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 8px"></div><script>try{(function(){var list=["Gym","Wine","Music","Football","Movies","Travel","Food","Reading","Dancing","Gaming"];var w=document.getElementById('p-interest-chips');if(!w)return;w.innerHTML=list.map(function(x){return '<button type="button" onclick="toggleInterest(this)" style="padding:6px 12px;border-radius:20px;border:1px solid #eee;background:#f8f8f8;font-size:13px;cursor:pointer">'+x+'</button>'}).join('');})();}catch(e){} function toggleInterest(btn){var inp=document.getElementById('p-interests');var cur=(inp.value||'').split(',').map(function(s){return s.trim()}).filter(Boolean);var v=btn.textContent.trim();var i=cur.indexOf(v);if(i>=0){cur.splice(i,1);btn.style.background='#f8f8f8';btn.style.color='#222';}else{cur.push(v);btn.style.background='#ff5a8a';btn.style.color='white';}inp.value=cur.join(', ');}</script>
+<input id="p-interests" placeholder="❤️ Interests - e.g. Music, Football, Movies" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><div id="p-interest-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 8px"></div><script>try{(function(){var list=["💪 Gym","🍷 Wine","🎵 Music","⚽ Football","🎬 Movies","✈️ Travel","🍔 Food","📚 Reading","💃 Dancing","🎮 Gaming"];var w=document.getElementById('p-interest-chips');if(!w)return;w.innerHTML=list.map(function(x){return '<button type="button" onclick="toggleInterest(this)" style="padding:6px 12px;border-radius:20px;border:1px solid #eee;background:#f8f8f8;font-size:13px;cursor:pointer">'+x+'</button>'}).join('');})();}catch(e){} function toggleInterest(btn){var inp=document.getElementById('p-interests');var cur=(inp.value||'').split(',').map(function(s){return s.trim()}).filter(Boolean);var v=btn.textContent.trim();var i=cur.indexOf(v);if(i>=0){cur.splice(i,1);btn.style.background='#f8f8f8';btn.style.color='#222';}else{cur.push(v);btn.style.background='#ff5a8a';btn.style.color='white';}inp.value=cur.join(', ');}</script>
 <input id="p-language" placeholder="🌍 Language - e.g. Spanish, English, French" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8">
 <div id="p-languages-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 8px"></div>
 <label>Goal</label>
@@ -338,7 +338,7 @@ window._myPhoto=''; window._myPhotos=['','','','',''];
 function renderPfPhotos(){
   var wrap=document.getElementById('pf-photos'); var prev=document.getElementById('pf-previews'); if(!wrap) return;
   wrap.innerHTML=''; prev.innerHTML='';
-  for(var i=0;i<5;i++){
+  for(var i=0;i<6;i++){
     (function(i){
       var b=document.createElement('button'); b.type='button'; b.textContent=(window._myPhotos[i]?'Change Photo '+(i+1):'Add Photo '+(i+1)); b.style.cssText='padding:8px 10px;border-radius:8px;border:1px dashed #ff5a8a;background:#333;color:white;cursor:pointer';
       b.onclick=function(){ window._pfPhotoIndex=i; document.getElementById('pf-photo').click(); };
@@ -364,8 +364,8 @@ async function saveMyProfile(){ alert('Saving...');
   var genEl=document.getElementById('p-gender'); var gender=genEl?genEl.value:'';
   var locEl=document.getElementById('p-location'); var country=locEl&&locEl.value.trim()?locEl.value.trim():'Equatorial Guinea'; var bioEl=document.getElementById('p-bio'); var intEl=document.getElementById('p-interests'); var langEl=document.getElementById('p-language'); var lookEl=document.getElementById('p-looking'); var relEl=document.getElementById('p-relationship'); var c={value:country};
   if(!n || !n.value.trim()){ alert('Please enter your name'); return; }
-  var urlPhotos=[]; for(var i=0;i<5;i++){ var u=document.getElementById('p-img-'+i); if(u&&u.value.trim()) urlPhotos[i]=u.value.trim(); }
-  var finalPhotos=[]; for(var i=0;i<5;i++){ finalPhotos[i]=window._myPhotos[i]||urlPhotos[i]||''; }
+  var urlPhotos=[]; for(var i=0;i<6;i++){ var u=document.getElementById('p-img-'+i); if(u&&u.value.trim()) urlPhotos[i]=u.value.trim(); }
+  var finalPhotos=[]; for(var i=0;i<6;i++){ finalPhotos[i]=window._myPhotos[i]||urlPhotos[i]||''; }
   window._myPhotos=finalPhotos; window._myPhoto=finalPhotos[0]||'';
   var _toCompress=finalPhotos.map(function(u){return new Promise(function(res){ if(!u){res('');return;} compressPhoto(u,function(c){res(c);}); });}); Promise.all(_toCompress).then(function(comp){ window._myPhotos=comp; return saveMyProfileCompressed(comp); }); }
   async function saveMyProfileCompressed(finalPhotos){ window._myPhotos=finalPhotos;
@@ -395,7 +395,7 @@ async function saveMyProfile(){ alert('Saving...');
   if(typeof initMap==='function'){ try{initMap();}catch(e){} }
 }
 document.addEventListener('click', function(e){ if(e.target && e.target.id=='pf-save-btn'){ saveMyProfile(); }});
-window.saveMyProfile=saveMyProfile; try{ var s=JSON.parse(localStorage.getItem('my_profile')||'{}'); if(s.photos&&s.photos.length){ window._myPhotos=s.photos.slice(0,5); while(window._myPhotos.length<5) window._myPhotos.push(''); window._myPhoto=window._myPhotos[0]||s.photo||''; } else if(s.photo){ window._myPhotos=[s.photo,'','','','']; window._myPhoto=s.photo; } if(s.name){ var pn=document.getElementById('p-name'); if(pn) pn.value=s.name; var pa=document.getElementById('p-age'); if(pa&&s.age) pa.value=s.age; } }catch(e){} if(typeof syncProfileHeader==='function') syncProfileHeader();
+window.saveMyProfile=saveMyProfile; try{ var s=JSON.parse(localStorage.getItem('my_profile')||'{}'); if(s.photos&&s.photos.length){ window._myPhotos=s.photos.slice(0,6); while(window._myPhotos.length<6) window._myPhotos.push(''); window._myPhoto=window._myPhotos[0]||s.photo||''; } else if(s.photo){ window._myPhotos=[s.photo,'','','','','']; window._myPhoto=s.photo; } if(s.name){ var pn=document.getElementById('p-name'); if(pn) pn.value=s.name; var pa=document.getElementById('p-age'); if(pa&&s.age) pa.value=s.age; } }catch(e){} if(typeof syncProfileHeader==='function') syncProfileHeader();
 </script>
 
 
@@ -694,7 +694,7 @@ async function loadMyProfileFromCloud(){
     var r=q.data; var photos=r.photos;
     try{ if(typeof photos==='string') photos=JSON.parse(photos); }catch(e){ photos=[]; }
     if(!Array.isArray(photos)) photos=[];
-    while(photos.length<5) photos.push('');
+    while(photos.length<6) photos.push('');
     var prof={name:r.name,age:r.age!=null?String(r.age):'',gender:r.gender||'',country:r.country||'',bio:r.bio||'',interests:r.interests||'',language:r.language||'',looking:r.looking||'',relationship:r.relationship||'',photo:r.photo||photos[0]||'',photos:photos,time:Date.now(),email_verified:!!user.email_confirmed_at,photo_verified:false};
     if(!prof.name){ clearLocalProfileAndForm(); try{ localStorage.setItem('_last_uid', user.id); }catch(e){} return; }
     // Keep local photo_verified flag if present
@@ -703,7 +703,7 @@ async function loadMyProfileFromCloud(){
     var all=[]; try{all=JSON.parse(localStorage.getItem('all_profiles')||'[]');}catch(e){}
     all=all.filter(function(x){return x&&x.name!==prof.name}); all.unshift(prof);
     localStorage.setItem('all_profiles', JSON.stringify(all));
-    window._myPhotos=photos.slice(0,5); window._myPhoto=prof.photo||'';
+    window._myPhotos=photos.slice(0,6); window._myPhoto=prof.photo||'';
     if(typeof renderPfPhotos==='function') renderPfPhotos();
     if(typeof updateAvatar==='function') updateAvatar();
     if(typeof initPhotoBlocks==='function') initPhotoBlocks();
@@ -890,5 +890,17 @@ document.addEventListener('DOMContentLoaded',function(){setTimeout(renderRichDis
 var _oldSave=window.saveProfile;
 window.saveProfile=function(){var res; if(_oldSave) res=_oldSave.apply(this,arguments); setTimeout(renderRichDisplay,300); return res;};
 </script>
+
+<script>
+window.__COUNTRIES = ['Equatorial Guinea', 'Spain', 'France', 'Nigeria', 'Cameroon', 'Gabon', 'Ghana', 'USA', 'UK', 'South Africa', 'Kenya', 'Morocco', 'Egypt', 'Ethiopia', 'Angola', 'Senegal', 'Ivory Coast', 'DR Congo', 'Congo', 'Chad', 'Mali', 'Niger', 'Togo', 'Benin', 'Liberia', 'Sierra Leone', 'Guinea', 'Burkina Faso', 'Algeria', 'Tunisia', 'Libya', 'Sudan', 'Uganda', 'Tanzania', 'Zambia', 'Zimbabwe', 'Mozambique', 'Botswana', 'Namibia', 'Rwanda', 'Burundi', 'Malawi', 'Madagascar', 'Mauritius', 'Seychelles', 'Cape Verde', 'Sao Tome and Principe', 'Portugal', 'Italy', 'Germany', 'Netherlands', 'Belgium', 'Switzerland', 'Austria', 'Greece', 'Turkey', 'Poland', 'Sweden', 'Norway', 'Denmark', 'Finland', 'Ireland', 'Iceland', 'Luxembourg', 'Monaco', 'Andorra', 'Malta', 'Cyprus', 'Russia', 'Ukraine', 'Romania', 'Bulgaria', 'Hungary', 'Czech Republic', 'Slovakia', 'Croatia', 'Serbia', 'Bosnia', 'Albania', 'Brazil', 'Mexico', 'Argentina', 'Chile', 'Colombia', 'Peru', 'Venezuela', 'Ecuador', 'Bolivia', 'Paraguay', 'Uruguay', 'Canada', 'Cuba', 'Jamaica', 'Haiti', 'Dominican Republic', 'Puerto Rico', 'Trinidad and Tobago', 'China', 'Japan', 'South Korea', 'India', 'Pakistan', 'Bangladesh', 'Thailand', 'Vietnam', 'Indonesia', 'Malaysia', 'Singapore', 'Philippines', 'Nepal', 'Sri Lanka', 'Mongolia', 'Kazakhstan', 'Uzbekistan', 'Iran', 'Iraq', 'Saudi Arabia', 'UAE', 'Qatar', 'Kuwait', 'Jordan', 'Lebanon', 'Israel', 'Yemen', 'Oman', 'Bahrain', 'Australia', 'New Zealand', 'Fiji', 'Papua New Guinea'];
+window.__LOCAL_LANGS = { 'Equatorial Guinea':['Fang','Bubi','Annobonese','Ndowe'], 'Nigeria':['Hausa','Igbo','Yoruba'], 'Cameroon':['Duala','Ewondo','Fulfulde','Bassa'], 'Ghana':['Twi','Ga','Ewe'], 'Gabon':['Fang','Myene','Nzebi'], 'Spain':['Catalan','Galician','Basque'], 'France':['Breton','Occitan','Corsican'], 'South Africa':['Zulu','Xhosa','Afrikaans'], 'Kenya':['Swahili','Kikuyu','Luo'], 'Morocco':['Berber','Darija'], 'Egypt':['Egyptian Arabic'], 'India':['Hindi','Bengali','Tamil','Telugu'], 'China':['Mandarin','Cantonese'], 'Brazil':['Portuguese'], 'Mexico':['Nahuatl','Maya'], 'USA':['Spanish'], 'UK':['Welsh','Scots Gaelic'] };
+window.__INTL_LANGS = ['English','Spanish','French','Portuguese','German','Italian','Arabic','Chinese','Russian','Hindi','Japanese','Korean','Dutch','Swedish','Turkish','Swahili'];
+function populateCountries(){ var s=document.getElementById('p-location'); if(!s||s.tagName!=='SELECT') return; var cur=s.value; s.innerHTML=window.__COUNTRIES.map(function(c){return '<option value="'+c+'">'+c+'</option>'}).join(''); if(cur) s.value=cur; }
+function renderLocalLangs(){ var c=document.getElementById('p-location'); var w=document.getElementById('p-local-langs'); if(!w) return; var country=c?c.value:''; var list=window.__LOCAL_LANGS[country]||[]; if(!list.length){ w.innerHTML=''; return; } w.innerHTML='<div style="font-size:12px;color:#888;margin:6px 0 4px">Local languages in '+country+':</div>'+list.map(function(x){return '<button type="button" onclick="toggleLocalLang(this)" style="padding:6px 12px;border-radius:20px;border:1px solid #eee;background:#f8f8f8;font-size:13px;cursor:pointer;margin:2px">'+x+'</button>'}).join(''); }
+function toggleLocalLang(btn){ var inp=document.getElementById('p-language'); if(!inp) return; var cur=(inp.value||'').split(',').map(function(s){return s.trim()}).filter(Boolean); var v=btn.textContent.trim(); var i=cur.indexOf(v); if(i>=0){cur.splice(i,1);btn.style.background='#f8f8f8';btn.style.color='#222';}else{cur.push(v);btn.style.background='#ff5a8a';btn.style.color='white';} inp.value=cur.join(', '); }
+document.addEventListener('DOMContentLoaded', function(){ populateCountries(); renderLocalLangs(); var s=document.getElementById('p-location'); if(s) s.addEventListener('change', renderLocalLangs); });
+</script>
 </body>
 </html>
+
+<!-- TODO: add <input id="p-img-5"> manually near other p-img inputs -->
