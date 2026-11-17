@@ -278,7 +278,7 @@ renderCircles(); renderSwipe();
 <script>
 function clearLocalProfileAndForm(){
   try{ localStorage.removeItem('my_profile'); localStorage.removeItem('all_profiles'); localStorage.removeItem('_last_uid'); }catch(e){}
-  window._myPhotos=['','','','','']; window._myPhoto='';
+  window._myPhotos=['','','','','','']; window._myPhoto='';
   ['p-name','p-age','pf-name'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
   var hn=document.getElementById('p-header-name'); if(hn) hn.textContent='';
   if(typeof initPhotoBlocks==='function') initPhotoBlocks();
@@ -334,13 +334,13 @@ if(window.supabase) window.supabase.auth.onAuthStateChange(function(e){ if(e==='
 
 
 <script>
-window._myPhoto=''; window._myPhotos=['','','','',''];
+window._myPhoto=''; window._myPhotos=['','','','','',''];
 function renderPfPhotos(){
-  var wrap=document.getElementById('pf-photos'); var prev=document.getElementById('pf-previews'); if(!wrap) return;
+  var wrap=document.getElementById('pf-photos'); if(wrap){ wrap.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;background:#f8f8f8;padding:10px;border-radius:14px'; } var prev=document.getElementById('pf-previews'); if(!wrap) return;
   wrap.innerHTML=''; prev.innerHTML='';
   for(var i=0;i<6;i++){
     (function(i){
-      var b=document.createElement('button'); b.type='button'; b.textContent=(window._myPhotos[i]?'Change Photo '+(i+1):'Add Photo '+(i+1)); b.style.cssText='padding:8px 10px;border-radius:8px;border:1px dashed #ff5a8a;background:#333;color:white;cursor:pointer';
+      var b=document.createElement('button'); b.type='button'; b.textContent=(window._myPhotos[i]?'Change Photo '+(i+1):'Add Photo '+(i+1)); b.style.cssText='padding:12px 10px;border-radius:12px;border:1.5px dashed #ff8fab;background:#fff0f4;color:#333;cursor:pointer;font-weight:600;width:100%';
       b.onclick=function(){ window._pfPhotoIndex=i; document.getElementById('pf-photo').click(); };
       wrap.appendChild(b);
       if(window._myPhotos[i]){
@@ -404,7 +404,7 @@ window.saveMyProfile=saveMyProfile; try{ var s=JSON.parse(localStorage.getItem('
 
 
 <script>
-window._myPhotos = window._myPhotos || ["","","","",""];
+window._myPhotos = window._myPhotos || ["","","","","",""];
 function updateAvatar(){
   var av = document.getElementById("p-avatar-preview"); if(!av) return;
   var first = (window._myPhotos||[]).find(function(x){return x});
@@ -688,7 +688,7 @@ async function loadMyProfileFromCloud(){
   try{
     if(!window.supabase) return;
     var u=await window.supabase.auth.getUser(); var user=u&&u.data&&u.data.user; if(!user) return;
-    try{ var _last=localStorage.getItem('_last_uid'); if(_last && _last!==user.id){ localStorage.removeItem('my_profile'); localStorage.removeItem('all_profiles'); window._myPhotos=['','','','','']; } localStorage.setItem('_last_uid', user.id); }catch(e){}
+    try{ var _last=localStorage.getItem('_last_uid'); if(_last && _last!==user.id){ localStorage.removeItem('my_profile'); localStorage.removeItem('all_profiles'); window._myPhotos=['','','','','','']; } localStorage.setItem('_last_uid', user.id); }catch(e){}
     var q=await window.supabase.from('profiles').select('*').eq('user_id',user.id).maybeSingle();
     if(q.error||!q.data) { console.log('No cloud profile yet - clearing stale local'); clearLocalProfileAndForm(); try{ localStorage.setItem('_last_uid', user.id); }catch(e){} return; }
     var r=q.data; var photos=r.photos;
@@ -836,12 +836,12 @@ function mkChips(boxId,inputId,list){
   box.innerHTML='';
   list.forEach(function(t){
     var s=document.createElement('span'); s.textContent=t;
-    s.style.cssText='padding:6px 12px;border-radius:20px;background:#eee;font-size:13px;cursor:pointer';
+    s.style.cssText='padding:8px 14px;border-radius:20px;background:#ffeef3;border:1.5px solid #ff8fab;color:#222;font-size:13px;cursor:pointer;font-weight:600';
     s.onclick=function(){
       var cur=document.getElementById(inputId).value||'';
       var arr=cur?cur.split(',').map(function(x){return x.trim()}):[];
-      if(arr.indexOf(t)>-1){arr=arr.filter(function(x){return x!==t}); s.style.background='#eee';}
-      else{arr.push(t); s.style.background='#ff4d6d'; s.style.color='#fff';}
+      if(arr.indexOf(t)>-1){arr=arr.filter(function(x){return x!==t}); s.style.background='#ffeef3'; s.style.color='#222'; s.style.borderColor='#ff8fab';}
+      else{arr.push(t); s.style.background='#ff4d6d'; s.style.color='#fff'; s.style.borderColor='#ff4d6d';}
       document.getElementById(inputId).value=arr.join(', ');
     };
     box.appendChild(s);
@@ -903,4 +903,4 @@ document.addEventListener('DOMContentLoaded', function(){ populateCountries(); r
 </body>
 </html>
 
-<!-- TODO: add <input id="p-img-5"> manually near other p-img inputs -->
+
