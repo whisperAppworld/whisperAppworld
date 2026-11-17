@@ -599,7 +599,7 @@ setTimeout(syncProfileHeader,500); setTimeout(syncProfileHeader,1500); setInterv
       prof.location_verified=true; prof.location_city=city; prof.location_country=country; prof.location_verified_at=new Date().toISOString();
       localStorage.setItem('my_profile', JSON.stringify(prof));
       try{ var al=JSON.parse(localStorage.getItem('all_profiles')||'[]'); var f=al.find(function(x){return x&&x.name===prof.name;}); if(f){ f.location_verified=true; f.location_city=city; localStorage.setItem('all_profiles', JSON.stringify(al)); } }catch(e){}
-      try{ if(window.supabase){ var u=(await window.supabase.auth.getUser()).data.user; if(u) await window.supabase.from('profiles').update({location_verified:true, location_city:city}).eq('user_id', u.id); } }catch(e){ console.warn('location save to Supabase skipped', e); }
+      try{ if(window.supabase){ var u=(await window.supabase.auth.getUser()).data.user; if(u) var _up=await window.supabase.from('profiles').update({location_verified:true, location_city:city, location_country:country, location_lat:lat, location_lng:lon, location_verified_at:new Date().toISOString()}).eq('user_id', u.id); if(_up.error) throw new Error('Supabase save failed: '+_up.error.message); } }catch(e){ console.warn('location save to Supabase skipped', e); }
       var st=document.getElementById('v-location-status'); if(st){ st.textContent='VERIFIED'; st.className='v-status verified'; }
       var ct=document.getElementById('v-location-city'); if(ct) ct.textContent='📍 Verified in '+city+', '+country;
       if(btn) btn.textContent='Verified ✓';
