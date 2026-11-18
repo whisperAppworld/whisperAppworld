@@ -132,21 +132,6 @@ function listenForCalls(){
 document.addEventListener('DOMContentLoaded', ()=>{ setTimeout(listenForCalls, 1500); });
 if(document.readyState!=='loading') setTimeout(listenForCalls, 1500);
 
-// --- Mobile debug pill ---
-(function(){
-  function showDebug(){
-    let el=document.getElementById('call-debug');
-    if(!el){ el=document.createElement('div'); el.id='call-debug';
-      el.style.cssText='position:fixed;bottom:8px;left:8px;z-index:99999;background:#000;color:#0f0;font-size:11px;padding:6px 8px;border-radius:8px;opacity:0.85;max-width:90vw;word-break:break-all';
-      document.body.appendChild(el);
-    }
-    el.textContent='myName=' + myName() + ' | polling...';
-    el.onclick=()=>{ alert('myName='+myName()); };
-  }
-  setTimeout(showDebug, 2000);
-  setInterval(showDebug, 5000);
-})();
-document.addEventListener('click', async ()=>{ try{ let s=await navigator.mediaDevices.getUserMedia({audio:true,video:true}); s.getTracks().forEach(t=>t.stop()); }catch(e){} }, {once:true});
 let _pendingOffer=null;
 function showIncomingCall(p){
 let old=document.getElementById('incoming-call'); if(old) old.remove();
