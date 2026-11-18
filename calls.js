@@ -7,8 +7,8 @@ function ensureCallUI(){
   d.id='call-overlay';
   d.style.cssText='display:none;position:fixed;inset:0;background:#111;z-index:10000;flex-direction:column;align-items:center;justify-content:center;color:white;padding:16px';
   d.innerHTML=`<h3 id="call-status" style="margin:8px">Calling...</h3>
-  <video id="remote-video" autoplay playsinline style="width:100%;max-width:480px;background:#000;border-radius:16px;display:none"></video>
-  <video id="local-video" autoplay muted playsinline style="width:120px;height:160px;object-fit:cover;border-radius:12px;margin-top:10px;display:none"></video>
+  <video id="remote-video" autoplay playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000;border-radius:16px;display:none"></video>
+  <video id="local-video" autoplay muted playsinline style="position:absolute;top:16px;right:16px;width:110px;height:150px;object-fit:cover;border-radius:12px;border:2px solid white;z-index:2;display:none"></video>
   <audio id="remote-audio" autoplay playsinline></audio>
   <div style="display:flex;gap:12px;margin-top:18px">
     <button onclick="toggleMute()" id="btn-mute" style="padding:12px 16px;border-radius:999px;border:none;background:#333;color:white;font-size:18px">🎤</button>
