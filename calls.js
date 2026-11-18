@@ -26,6 +26,16 @@ function getSupabase(){ return window.supabaseClient||window.supabase||window._s
 
 async function startCall(type){
   _callType=type;
+  let t2=otherName();
+  if(t2===''||t2==='Chat'){ alert('Open a chat first, then call.'); return; }
+  _callWith=t2;
+  if(_callChannel===null){ let sb=getSupabase(); if(sb){ _callChannel=sb.channel('whisper-calls-global'); _callChannel.subscribe(); } }
+  showCallUI('Sending call request to '+t2+'...');
+  sendSignal({type:'call-request', from:myName(), to:t2, callType:type});
+  return;
+}
+async function startCallAfterAccepted(type){
+  _callType=type;
   let target=otherName();
   if(!target||target==='Chat'){ alert('Open a chat first, then call.'); return; }
   _callWith=target;
@@ -55,7 +65,7 @@ async function createPeer(isCaller, target){
   // Supabase Realtime signaling
   let sb=getSupabase();
   if(sb){
-    _callChannel=sb.channel('whisper-calls-'+myName());
+    _callChannel=sb.channel('whisper-calls-global');
     _callChannel.on('broadcast',{event:'call-signal'},({payload})=>{
       if(payload.to!==myName()) return;
       handleSignal(payload, target);
@@ -68,6 +78,7 @@ async function createPeer(isCaller, target){
 }
 function sendSignal(msg){
   let sb=getSupabase();
+  if(sb && _callChannel===null){ _callChannel=sb.channel('whisper-calls-global'); _callChannel.subscribe(); }
   if(sb && _callChannel){ _callChannel.send({type:'broadcast', event:'call-signal', payload:msg}); }
   else { localStorage.setItem('whisper_call_signal', JSON.stringify({...msg, ts:Date.now()})); }
 }
@@ -100,10 +111,10 @@ function listenForCalls(){
   ensureCallUI();
   let sb=getSupabase();
   if(sb){
-    let ch=sb.channel('whisper-calls-'+myName());
+    let ch=sb.channel('whisper-calls-global');
     ch.on('broadcast',{event:'call-signal'}, async ({payload})=>{
-      if(payload.to!==myName() || payload.type!=='offer') return;
-      let accept=confirm('📞 Incoming '+(payload.callType==='video'?'video':'voice')+' call from '+payload.from+'. Accept?');
+      if(payload.to!==myName()) return; if(payload.type==='call-request'){ let ok=confirm('Call request from '+payload.from+' ('+(payload.callType==='video'?'video':'voice')+'). Accept?'); if(ok===false){ sendSignal({type:'call-declined', from:myName(), to:payload.from}); return; } sendSignal({type:'call-accepted', from:myName(), to:payload.from, callType:payload.callType}); return; } if(payload.type==='call-accepted'){ alert(payload.from+' accepted the call request'); _callType=payload.callType; startCallAfterAccepted(payload.callType); return; } if(payload.type==='call-declined'){ alert(payload.from+' declined the call request'); return; } if(payload.type!=='offer') return;
+      let accept=true; alert('📞 Ringing... Incoming '+(payload.callType==='video'?'video':'voice')+' call from '+payload.from);
       if(!accept){ return; }
       _callWith=payload.from; _callType=payload.callType||'voice';
       showCallUI('Connecting with '+payload.from+'...');

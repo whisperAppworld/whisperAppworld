@@ -161,7 +161,7 @@ function showProfileSub(n){
 </section>
 <section id="tab-messages">
 <h2>💬 Messages</h2>
-<div id="chat-view"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><h3 id="chat-title" style="margin:0">Chat</h3><div style="display:flex;gap:8px"><button onclick="startVoiceCall()" style="background:#22c55e;color:white;border:none;padding:8px 12px;border-radius:999px;font-weight:800;cursor:pointer">📞 Voice</button><button onclick="startVideoCall()" style="background:#3b82f6;color:white;border:none;padding:8px 12px;border-radius:999px;font-weight:800;cursor:pointer">📹 Video</button></div></div><div id="messages-list"><p>No messages yet.</p></div>
+<div id="chat-view"><div style="display:flex;align-items:center;justify-content:flex-start;gap:6px;position:sticky;top:0;background:white;z-index:10;padding:6px 0"><h3 id="chat-title" style="margin:0">Chat</h3><div style="display:flex;gap:8px"><button onclick="startVoiceCall()" style="background:#22c55e;color:white;border:none;padding:6px 10px;border-radius:999px;font-weight:700;font-size:13px;cursor:pointer">📞 Voice</button><button onclick="startVideoCall()" style="background:#3b82f6;color:white;border:none;padding:6px 10px;border-radius:999px;font-weight:700;font-size:13px;cursor:pointer">📹 Video</button></div></div><div id="messages-list"><p>No messages yet.</p></div>
 <input id="msg-input" placeholder="Type a message..."><button onclick="sendMsg()">Send</button></div>
 </section>
 <div id="top-bell" style="position:fixed;top:10px;right:12px;z-index:9999">
