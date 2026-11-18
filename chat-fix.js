@@ -138,7 +138,7 @@ async function loadChat(silent){
   await fixLoadProfiles();
   var pr=await window.supabase.from('profiles').select('*').eq('name', window.currentChatWith).maybeSingle();
   if(myToken!==_fixLoadToken) return;
-  _fixOtherProfile=(pr&&pr.data)?pr.data:null; _fixOtherId=_fixOtherProfile?_fixOtherProfile.user_id:null;
+  _fixOtherProfile=(pr&&pr.data)?pr.data:null; _fixOtherId=_fixOtherProfile?_fixOtherProfile.user_id:null; window._fixOtherId=_fixOtherId;
   if(!_fixOtherId){ list.innerHTML='<div style="padding:12px">Cannot find '+window.currentChatWith+'</div>'; return; }
   localStorage.setItem('read_'+_fixOtherId, Date.now().toString()); fixMarkRead();
   var tt=document.getElementById('chat-title');
