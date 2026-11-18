@@ -51,7 +51,7 @@ async function sendSignal(msg){
   console.log('[call] SEND', msg.type, 'to', msg.to, 'from', msg.from);
   let sb=getSupabase();
   if(!sb) return;
-  let {error} = await sb.from('call_signals').insert([{from_name:msg.from, to_name:msg.to, type:msg.type, sdp:msg.sdp||null, candidate:msg.candidate||null, call_type:msg.callType||_callType||null}]);
+  let {error} = await sb.from('call_signals').insert([{from_name:msg.from, to_name:msg.to, type:msg.type, sdp:msg.sdp ? (typeof msg.sdp==='string' ? msg.sdp : JSON.stringify(msg.sdp)) : null, candidate:msg.candidate||null, call_type:msg.callType||_callType||null}]);
   if(error) console.error('[call] insert failed', error); let pe=document.getElementById('call-debug'); if(pe) pe.textContent='SEND '+(error?'FAILED: '+error.message : 'OK to '+msg.to);
 }
 async function startCall(type){
@@ -90,6 +90,7 @@ function endCall(sendEnd){
   let ra=document.getElementById('remote-audio'); if(ra) ra.srcObject=null;
   hideCallUI();
 }
+function parseSdp(s){ if(!s) return null; if(typeof s==='string'){ try{ let j=JSON.parse(s); return j; }catch(e){ return {type:'offer', sdp:s}; } } return s; }
 async function handleSignal(payload){
   if(!payload || norm(payload.to_name)!==norm(myName())) return;
   console.log('[call] GOT', payload.type, 'from', payload.from_name);
@@ -104,14 +105,14 @@ async function handleSignal(payload){
       _localStream=await navigator.mediaDevices.getUserMedia({audio:true, video:_callType==='video'});
       if(_callType==='video') document.getElementById('local-video').srcObject=_localStream;
       makePeer(payload.from_name);
-      await _pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+      await _pc.setRemoteDescription(new RTCSessionDescription(parseSdp(payload.sdp)));
       await flushIce();
       let ans=await _pc.createAnswer(); await _pc.setLocalDescription(ans);
       await sendSignal({type:'answer', sdp:ans, from:myName(), to:payload.from_name});
     }catch(e){ alert('Mic/camera needed: '+e.message); endCall(false); }
   } else if(payload.type==='answer'){
     if(!_pc) return;
-    await _pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+    await _pc.setRemoteDescription(new RTCSessionDescription(parseSdp(payload.sdp)));
     await flushIce();
   } else if(payload.type==='ice'){
     if(!_pc || !_pc.remoteDescription){ _pendingIce.push(payload.candidate); return; }
