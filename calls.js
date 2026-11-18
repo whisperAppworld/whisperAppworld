@@ -52,7 +52,7 @@ async function sendSignal(msg){
   let sb=getSupabase();
   if(!sb) return;
   let {error} = await sb.from('call_signals').insert([{from_name:msg.from, to_name:msg.to, type:msg.type, sdp:msg.sdp||null, candidate:msg.candidate||null, call_type:msg.callType||_callType||null}]);
-  if(error) console.error('[call] insert failed', error);
+  if(error) console.error('[call] insert failed', error); let pe=document.getElementById('call-debug'); if(pe) pe.textContent='SEND '+(error?'FAILED: '+error.message : 'OK to '+msg.to);
 }
 async function startCall(type){
   _callType=type;
