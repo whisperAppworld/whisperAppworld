@@ -485,54 +485,8 @@ document.addEventListener("DOMContentLoaded",fixSetup); fixSetup();
   setInterval(function(){ killWhisper(); killCall(); }, 1000);
 })();
 
-// VOICE_NOTE_V1 - lightweight voice note next to Send
-(function(){
-  var rec=null, chunks=[], isRec=false, micBtn=null;
-  function findSend(){
-    return document.querySelector("button[type=submit], button.send-btn, #send-btn, [id*=send]");
-  }
-  function makeBtn(){
-    if(micBtn && document.body.contains(micBtn)) return;
-    var send=findSend();
-    if(!send || !send.parentNode) return;
-    micBtn=document.createElement("button");
-    micBtn.textContent="🎤";
-    micBtn.title="Voice note";
-    micBtn.style.cssText="width:44px;height:44px;border-radius:50%;border:none;background:#ff5a8a;color:#fff;font-size:20px;cursor:pointer;flex-shrink:0;margin-left:6px";
-    micBtn.onclick=function(){
-      if(!isRec){
-        navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
-          rec=new MediaRecorder(stream); chunks=[];
-          rec.ondataavailable=function(e){ if(e.data.size) chunks.push(e.data); };
-          rec.onstop=function(){
-            var blob=new Blob(chunks,{type:"audio/webm"});
-            var url=URL.createObjectURL(blob);
-            var audio=document.createElement("audio");
-            audio.controls=true; audio.src=url; audio.style.maxWidth="220px";
-            var input=document.querySelector("input[type=text], textarea");
-            if(input){ input.value=""; }
-            // Insert into chat list as a bubble - your send logic will pick it up if you wire it, for now show preview
-            alert("Voice note recorded ("+Math.round(blob.size/1024)+"KB). Tap Send to share - preview below");
-            var box=document.getElementById("messages-list")||document.body;
-            var div=document.createElement("div");
-            div.style.cssText="background:#ffe4ec;padding:8px;border-radius:12px;margin:8px;max-width:260px;margin-left:auto";
-            div.appendChild(audio);
-            box.appendChild(div);
-            stream.getTracks().forEach(function(tr){ tr.stop(); });
-          };
-          rec.start(); isRec=true; micBtn.textContent="⏹️"; micBtn.style.background="#ff0000";
-        }).catch(function(){ alert("Allow microphone to record voice note"); });
-      } else {
-        try{ rec.stop(); }catch(e){}
-        isRec=false; micBtn.textContent="🎤"; micBtn.style.background="#ff5a8a";
-      }
-    };
-    send.parentNode.insertBefore(micBtn, send.nextSibling);
-  }
-  setInterval(makeBtn, 1000);
-})();
-
-// VOICE_NOTE_V2 - real mic icon, finds typing bar directly, always visible
+// VOICE_NOTE_REMOVED - was breaking profile
+ - real mic icon, finds typing bar directly, always visible
 (function(){
   var rec=null, chunks=[], isRec=false, micBtn=null;
   var MIC_SVG = '<svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm7-3a7 7 0 0 1-14 0H3a9 9 0 0 0 18 0h-2zM12 19v3h-1v-3h1z"/></svg>';
@@ -540,7 +494,7 @@ document.addEventListener("DOMContentLoaded",fixSetup); fixSetup();
   function makeMic(){
     if(micBtn) return micBtn;
     var b=document.createElement("button");
-    b.id="whisper-mic-btn";
+    b.id="whisper-mic-btn-removed";
     b.innerHTML=MIC_SVG;
     b.style.cssText="width:46px;height:46px;min-width:46px;border-radius:50%;border:none;background:#ff5a8a;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,0.25)";
     b.onclick=function(){ toggleRec(b); };
@@ -600,4 +554,14 @@ document.addEventListener("DOMContentLoaded",fixSetup); fixSetup();
     }
   }
   setInterval(placeMic, 800);
+})();
+
+// RESTORE_PROFILE_V1 - guard: do NOT run chat fixes on profile/discover pages
+(function(){
+  // If we are on profile/edit page, remove any floating mic left over
+  var mic=document.getElementById("whisper-mic-btn");
+  if(mic) mic.remove();
+  document.querySelectorAll("button").forEach(function(b){
+    if(b.id && b.id.indexOf("whisper-mic")>=0) b.remove();
+  });
 })();
