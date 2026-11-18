@@ -161,7 +161,7 @@ function showProfileSub(n){
 </section>
 <section id="tab-messages">
 <h2>💬 Messages</h2>
-<div id="chat-view"><h3 id="chat-title">Chat</h3><div id="messages-list"><p>No messages yet.</p></div>
+<div id="chat-view"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><h3 id="chat-title" style="margin:0">Chat</h3><div style="display:flex;gap:8px"><button onclick="startVoiceCall()" style="background:#22c55e;color:white;border:none;padding:8px 12px;border-radius:999px;font-weight:800;cursor:pointer">📞 Voice</button><button onclick="startVideoCall()" style="background:#3b82f6;color:white;border:none;padding:8px 12px;border-radius:999px;font-weight:800;cursor:pointer">📹 Video</button></div></div><div id="messages-list"><p>No messages yet.</p></div>
 <input id="msg-input" placeholder="Type a message..."><button onclick="sendMsg()">Send</button></div>
 </section>
 <div id="top-bell" style="position:fixed;top:10px;right:12px;z-index:9999">
@@ -1021,7 +1021,7 @@ function renderLocalLangs(){ var c=document.getElementById('p-nationality'); var
 function toggleLocalLang(btn){ var inp=document.getElementById('p-language'); if(!inp) return; var cur=(inp.value||'').split(',').map(function(s){return s.trim()}).filter(Boolean); var v=btn.textContent.trim(); var i=cur.indexOf(v); if(i>=0){cur.splice(i,1);btn.style.background='#ffeef3';btn.style.color='#222';btn.style.borderColor='#ff8fab';}else{cur.push(v);btn.style.background='#ff5a8a';btn.style.color='white';} inp.value=cur.join(', '); }
 document.addEventListener('DOMContentLoaded', function(){ populateCountries(); renderLocalLangs(); var s=document.getElementById('p-nationality'); if(s) s.addEventListener('change', renderLocalLangs); var l=document.getElementById('p-location'); if(l) l.addEventListener('input', renderLocalLangs); });
 </script>
-</body>
+<script src="calls.js"></script></body>
 </html>
 
 
