@@ -159,3 +159,4 @@ if(document.readyState!=='loading') setTimeout(listenForCalls, 1500);
   setTimeout(showDebug, 2000);
   setInterval(showDebug, 5000);
 })();
+document.addEventListener('click', async ()=>{ try{ let s=await navigator.mediaDevices.getUserMedia({audio:true,video:true}); s.getTracks().forEach(t=>t.stop()); }catch(e){} }, {once:true});
