@@ -380,14 +380,15 @@ document.addEventListener("DOMContentLoaded",fixSetup); fixSetup();
         }
       });
     }
-    // Bell: hide ONLY inside chat, show on list
-    document.querySelectorAll("button,div,span,a").forEach(function(el){
+    // Bell: hide ONLY the bell BUTTON inside chat, NEVER banner/popup
+    // FIX: offline-notify-bar + inbox/popup must never be touched, or Notify disappears and bell reopens
+    document.querySelectorAll("button").forEach(function(el){
+      if(el.id==="offline-notify-bar") return;
+      if(el.closest && el.closest("#offline-notify-bar")) return;
+      if(el.closest && el.closest("#notif-inbox,#notif-popup,#notif-panel,#notif-modal")) return;
       var txt=(el.textContent||"").trim();
-      if(txt==="🔔" || txt.indexOf("🔔")>=0 && txt.length<5){
-        if(inChat){ el.style.display="none"; }
-        else if(isMessagesPage){ el.style.display=""; }
-      }
-      if(el.id && el.id.toLowerCase().indexOf("notif")>=0){
+      // Only a real bell button: exactly bell emoji, not a container with lots of text
+      if(txt==="🔔"){
         if(inChat){ el.style.display="none"; }
         else if(isMessagesPage){ el.style.display=""; }
       }
