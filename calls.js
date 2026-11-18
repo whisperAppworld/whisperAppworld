@@ -18,7 +18,12 @@ function ensureCallUI(){
   document.body.appendChild(d);
 }
 function norm(s){ return (s||'').toString().trim().toLowerCase(); }
-function myName(){ return (localStorage.getItem('whisper_name')||localStorage.getItem('whisper_username')||localStorage.getItem('whisper_display_name')||'Me').trim(); }
+function myName(){
+  try{ if(typeof getMyName==='function'){ var n=getMyName(); if(n && n!=='Me') return String(n).trim(); } }catch(e){}
+  try{ var s=document.getElementById('send-as'); if(s && s.value) return s.value.trim(); }catch(e){}
+  try{ var pr=JSON.parse(localStorage.getItem('my_profile')||'{}'); if(pr && pr.name) return String(pr.name).trim(); }catch(e){}
+  return 'Me';
+}
 function otherName(){ try{ if(window.currentChatWith) return window.currentChatWith; let el=document.getElementById('chat-title'); if(el) return el.textContent.replace('Chat with ','').replace('Chat','').trim(); return _callWith||'Friend'; }catch(e){ return _callWith||'Friend'; } }
 function showCallUI(txt){ ensureCallUI(); let o=document.getElementById('call-overlay'); o.style.display='flex'; document.getElementById('call-status').textContent=txt; }
 function hideCallUI(){ let o=document.getElementById('call-overlay'); if(o) o.style.display='none'; }

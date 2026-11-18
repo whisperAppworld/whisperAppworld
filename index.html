@@ -1021,7 +1021,7 @@ function renderLocalLangs(){ var c=document.getElementById('p-nationality'); var
 function toggleLocalLang(btn){ var inp=document.getElementById('p-language'); if(!inp) return; var cur=(inp.value||'').split(',').map(function(s){return s.trim()}).filter(Boolean); var v=btn.textContent.trim(); var i=cur.indexOf(v); if(i>=0){cur.splice(i,1);btn.style.background='#ffeef3';btn.style.color='#222';btn.style.borderColor='#ff8fab';}else{cur.push(v);btn.style.background='#ff5a8a';btn.style.color='white';} inp.value=cur.join(', '); }
 document.addEventListener('DOMContentLoaded', function(){ populateCountries(); renderLocalLangs(); var s=document.getElementById('p-nationality'); if(s) s.addEventListener('change', renderLocalLangs); var l=document.getElementById('p-location'); if(l) l.addEventListener('input', renderLocalLangs); });
 </script>
-<script src="calls.js?v=5"></script></body>
+<script src="calls.js?v=6"></script></body>
 </html>
 
 
