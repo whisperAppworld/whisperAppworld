@@ -96,20 +96,7 @@ async function handleSignal(payload){
   console.log('[call] GOT', payload.type, 'from', payload.from_name);
   if(payload.type==='offer'){
     if(_inCall) return;
-    let accept=confirm('📞 Incoming '+(payload.call_type==='video'?'video':'voice')+' call from '+payload.from_name+'. Accept?');
-    if(!accept){ await sendSignal({type:'declined', from:myName(), to:payload.from_name}); return; }
-    _callWith=payload.from_name; _callType=payload.call_type||'voice'; _inCall=true; _pendingIce=[];
-    showCallUI('Connecting with '+payload.from_name+'...');
-    if(_callType==='video') document.getElementById('local-video').style.display='block';
-    try{
-      _localStream=await navigator.mediaDevices.getUserMedia({audio:true, video:_callType==='video'});
-      if(_callType==='video') document.getElementById('local-video').srcObject=_localStream;
-      makePeer(payload.from_name);
-      await _pc.setRemoteDescription(new RTCSessionDescription(parseSdp(payload.sdp)));
-      await flushIce();
-      let ans=await _pc.createAnswer(); await _pc.setLocalDescription(ans);
-      await sendSignal({type:'answer', sdp:ans, from:myName(), to:payload.from_name});
-    }catch(e){ alert('Mic/camera needed: '+e.message); endCall(false); }
+    _pendingOffer=payload; showIncomingCall(payload); return;
   } else if(payload.type==='answer'){
     if(!_pc) return;
     await _pc.setRemoteDescription(new RTCSessionDescription(parseSdp(payload.sdp)));
@@ -160,3 +147,29 @@ if(document.readyState!=='loading') setTimeout(listenForCalls, 1500);
   setInterval(showDebug, 5000);
 })();
 document.addEventListener('click', async ()=>{ try{ let s=await navigator.mediaDevices.getUserMedia({audio:true,video:true}); s.getTracks().forEach(t=>t.stop()); }catch(e){} }, {once:true});
+let _pendingOffer=null;
+function showIncomingCall(p){
+let old=document.getElementById('incoming-call'); if(old) old.remove();
+let d=document.createElement('div'); d.id='incoming-call';
+d.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.85);display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;gap:16px';
+d.innerHTML='<div style="font-size:64px">CALL</div><div style="font-size:22px">'+p.from_name+'</div><div>'+p.call_type+'</div><button id="btn-accept-call" style="padding:14px 36px;font-size:18px;background:#25D366;border:none;border-radius:30px;color:white">Accept</button><button id="btn-decline-call" style="padding:12px 28px;font-size:16px;background:#ff3b30;border:none;border-radius:30px;color:white">Decline</button>';
+document.body.appendChild(d);
+document.getElementById('btn-accept-call').onclick=acceptPendingOffer;
+document.getElementById('btn-decline-call').onclick=async()=>{ d.remove(); await sendSignal({type:'declined',from:myName(),to:p.from_name}); };
+}
+async function acceptPendingOffer(){
+let payload=_pendingOffer; if(!payload) return;
+let el=document.getElementById('incoming-call'); if(el) el.remove();
+_callWith=payload.from_name; _callType=payload.call_type||'voice'; _inCall=true; _pendingIce=[];
+showCallUI('Connecting with '+payload.from_name+'...');
+if(_callType==='video') document.getElementById('local-video').style.display='block';
+try{
+_localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:_callType==='video'});
+if(_callType==='video') document.getElementById('local-video').srcObject=_localStream;
+makePeer(payload.from_name);
+await _pc.setRemoteDescription(new RTCSessionDescription(parseSdp(payload.sdp)));
+await flushIce();
+let ans=await _pc.createAnswer(); await _pc.setLocalDescription(ans);
+await sendSignal({type:'answer',sdp:ans,from:myName(),to:payload.from_name});
+}catch(e){ alert('Mic/camera needed: '+e.message); endCall(false); }
+}
