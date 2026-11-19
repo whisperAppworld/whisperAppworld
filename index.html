@@ -1240,6 +1240,47 @@ document.addEventListener('DOMContentLoaded',()=>{
   loadWhispers();
 });
 </script>
+
+<script>
+async function loadWhispers(){
+  var list=document.getElementById('whisper-list');
+  if(!list) return;
+  if(!window.supabase){ list.innerHTML='<p style="color:white">Supabase not loaded</p>'; return; }
+  var r=await window.supabase.from('whispers').select('*').order('created_at',{ascending:false}).limit(50);
+  if(r.error){ list.innerHTML='<p style="color:white">Error: '+r.error.message+'</p>'; return; }
+  var data=r.data||[];
+  if(!data.length){ list.innerHTML='<p style="color:#aaa;text-align:center;padding:20px;">No whispers yet. Be the first!</p>'; return; }
+  list.innerHTML=data.map(function(w){
+    var nm=(w.name||'').trim()||'Anonymous';
+    var letter=nm.charAt(0).toUpperCase();
+    var time=new Date(w.created_at).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+    return '<div style="background:#1e1e1e;border:1px solid #2d2d2d;border-radius:16px;padding:16px;margin:12px 0;"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;"><div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#ec4899);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;">'+letter+'</div><div><div style="color:white;font-weight:600;font-size:14px;">'+nm+'</div><div style="color:#888;font-size:12px;">'+time+' • Anonymous Whisper</div></div></div><div style="color:#f1f1f1;font-size:16px;line-height:1.5;">'+(w.message||'')+'</div></div>';
+  }).join('');
+}
+async function sendWhisper(){
+  var nameEl=document.getElementById('name');
+  var textEl=document.getElementById('text');
+  var name=nameEl?nameEl.value.trim():'';
+  var message=textEl?textEl.value.trim():'';
+  if(!message){ alert('Please write a whisper first'); return; }
+  if(!window.supabase){ alert('Supabase not loaded - refresh page'); return; }
+  var r=await window.supabase.from('whispers').insert([{name:name||'Anonymous',message:message}]);
+  if(r.error){ alert('Error: '+r.error.message); return; }
+  if(textEl) textEl.value='';
+  alert('Whisper sent! ✅');
+  loadWhispers();
+}
+document.addEventListener('DOMContentLoaded',function(){
+  if(!document.getElementById('whisper-list')){
+    var btn=document.querySelector('button[onclick="sendWhisper()"]');
+    var div=document.createElement('div');
+    div.id='whisper-list';
+    div.style.padding='0 16px';
+    if(btn && btn.parentNode) btn.parentNode.insertBefore(div, btn.nextSibling);
+  }
+  loadWhispers();
+});
+</script>
 </body>
 </html>
 
