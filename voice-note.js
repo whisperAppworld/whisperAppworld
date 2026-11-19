@@ -5,4 +5,24 @@ setInterval(vnBtn,1000);
 
 
 // Render VOICE: list=preview text, chat=small player
+function vnRender(){
+  var chatInput = document.querySelector("input[placeholder*='Ecris'],input[placeholder*='message'],input[placeholder*='Message']");
+  var inChat = (chatInput == null) ? false : true;
+  document.querySelectorAll('div').forEach(function(d){
+    if(d.dataset.vnDone) return;
+    if(d.querySelector('div')) return;
+    var t = d.textContent || '';
+    if(t.indexOf('VOICE:data:audio') > -1 && t.length > 200){
+      var j = t.indexOf('VOICE:');
+      var url = t.slice(j+6).trim();
+      d.dataset.vnDone = '1';
+      if(inChat == false){
+        d.textContent = '🎤 Voice message';
+      } else {
+        d.innerHTML = '<audio controls src="'+url+'" style="width:170px;max-width:170px;height:32px;display:block"></audio>';
+        d.style.cssText += ';padding:6px 8px;max-width:190px';
+      }
+    }
+  });
+}
 setInterval(vnRender,800);
