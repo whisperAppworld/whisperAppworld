@@ -1200,7 +1200,7 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 </script>
 
 <script>
-async function loadWhispers(){
+async function document.getElementById('whisperForm').style.display='none';document.getElementById('whisperFab').style.display='block';loadWhispers(){
   const list=document.getElementById('whisper-list');
   if(!list) return;
   const {data,error}=await supabaseClient.from('whispers').select('*').order('created_at',{ascending:false}).limit(50);
@@ -1226,7 +1226,7 @@ async function sendWhisper(){
   const {error}=await supabaseClient.from('whispers').insert([{name:name||'Anonymous',message:message,text:message}]);
   if(error){ alert('Error: '+error.message); return; }
   if(msgInput) msgInput.value='';
-  loadWhispers();
+  document.getElementById('whisperForm').style.display='none';document.getElementById('whisperFab').style.display='block';loadWhispers();
 }
 document.addEventListener('DOMContentLoaded',()=>{
   const btn=[...document.querySelectorAll('button')].find(b=>b.textContent.includes('Send Whisper'));
@@ -1237,12 +1237,12 @@ document.addEventListener('DOMContentLoaded',()=>{
     div.style.padding='0 16px';
     if(btn) btn.parentNode.insertBefore(div, btn.nextSibling);
   }
-  loadWhispers();
+  document.getElementById('whisperForm').style.display='none';document.getElementById('whisperFab').style.display='block';loadWhispers();
 });
 </script>
 
 <script>
-async function loadWhispers(){
+async function document.getElementById('whisperForm').style.display='none';document.getElementById('whisperFab').style.display='block';loadWhispers(){
   var list=document.getElementById('whisper-list');
   if(!list) return;
   if(!window.supabase){ list.innerHTML='<p style="color:white">Supabase not loaded</p>'; return; }
@@ -1268,7 +1268,7 @@ async function sendWhisper(){
   if(r.error){ alert('Error: '+r.error.message); return; }
   if(textEl) textEl.value='';
   alert('Whisper sent! ✅');
-  loadWhispers();
+  document.getElementById('whisperForm').style.display='none';document.getElementById('whisperFab').style.display='block';loadWhispers();
 }
 document.addEventListener('DOMContentLoaded',function(){
   if(!document.getElementById('whisper-list')){
@@ -1278,9 +1278,11 @@ document.addEventListener('DOMContentLoaded',function(){
     div.style.padding='0 16px';
     if(btn && btn.parentNode) btn.parentNode.insertBefore(div, btn.nextSibling);
   }
-  loadWhispers();
+  document.getElementById('whisperForm').style.display='none';document.getElementById('whisperFab').style.display='block';loadWhispers();
 });
 </script>
+
+<button id="whisperFab" onclick="document.getElementById('whisperForm').style.display='block';document.getElementById('whisperFab').style.display='none'" style="position:fixed;bottom:90px;right:18px;width:60px;height:60px;border-radius:50%;background:#ff2e63;color:white;font-size:32px;border:none;z-index:999;box-shadow:0 4px 15px rgba(0,0,0,0.4)">+</button>
 </body>
 </html>
 
