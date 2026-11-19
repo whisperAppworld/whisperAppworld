@@ -26,3 +26,20 @@ function vnRender(){
   });
 }
 setInterval(vnRender,800);
+
+// Hide top Messages header + bell when inside a chat
+function fixTopHeader(){
+  var chatInput = document.querySelector("input[placeholder*='Ecris'],input[placeholder*='message'],input[placeholder*='Message']");
+  var inChat = (chatInput == null) ? false : true;
+  document.querySelectorAll('div,header').forEach(function(el){
+    var t = (el.textContent || '').trim();
+    var isTopBar = (t.indexOf('Messages') == 0 && t.length < 30);
+    if(isTopBar){
+      el.style.display = (inChat == true) ? 'none' : '';
+    }
+    if(el.textContent == '🔔' || el.textContent == '🔕'){
+      el.style.display = (inChat == true) ? 'none' : '';
+    }
+  });
+}
+setInterval(fixTopHeader,800);
