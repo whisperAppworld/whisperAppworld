@@ -25,6 +25,12 @@ section.active{display:block}
 #tab-discover{padding-bottom:10px}
 #tab-discover h2{margin:6px 0 8px}
 #tab-discover #map-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:none;flex-direction:column;padding:12px}#map-modal.open{display:flex}#map-modal #map{flex:1;width:100%;height:auto !important;min-height:0}.swipe-card{background:#1a1a1a;border-radius:22px;overflow:hidden;margin:12px 0;box-shadow:0 12px 35px rgba(0,0,0,.55);border:1px solid #2a2a2a}.swipe-card .photo img{width:100%;height:100%;object-fit:cover;display:block}.swipe-card .photo{height:440px;background:linear-gradient(135deg,#ff5a8a,#ff8a5c);display:flex;align-items:center;justify-content:center;font-size:110px}.swipe-card .info{padding:16px}.swipe-card .info h3{margin:0;font-size:26px}.swipe-card .info p{margin:6px 0;color:#bbb}.swipe-actions{display:flex;gap:12px;padding:0 16px 16px}.swipe-actions button{flex:1;padding:16px;font-size:18px;border-radius:50px;font-weight:800}.swipe-actions{align-items:center}.btn-pass{background:#333 !important}.btn-like{background:linear-gradient(135deg,#ff5a8a,#ff8a5c) !important;box-shadow:0 6px 20px rgba(255,90,138,.5);transform:scale(1.08)}.counter{margin-bottom:8px}
+.likes-circle{width:52px;height:52px;border-radius:50%;border:3px solid #ff5a8a;background:#1a1a1a;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;flex-shrink:0}
+.likes-circle b{font-size:18px;color:#fff}.likes-circle span{font-size:8px;color:#ffb0c5;font-weight:800}
+.coins-pill{background:#2a1a12;border:1px solid #f59e0b;color:#fbbf24;padding:6px 10px;border-radius:999px;font-size:13px;font-weight:800}
+.btn-super{background:#7c3aed !important;color:#fff !important}
+.btn-msg-locked{position:relative}
+
 .counter{background:#ff5a8a;padding:10px;border-radius:10px;text-align:center;font-weight:bold}
 #verification-panel h3, .v-panel h3{color:#111827 !important} #verification-panel, .v-panel{color:#111827 !important} #verification-panel .sub, .v-panel .sub{color:#4b5563 !important}
 </style><link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'>
@@ -150,7 +156,7 @@ function showProfileSub(n){
 
 
 <section id="tab-discover" class="active">
-<div style="display:flex;align-items:center;justify-content:space-between"><h2 style="margin:0">🔥 Discover</h2><button onclick="openMap()" style="font-size:26px;background:#222;padding:10px 14px;border-radius:50%">🌎</button></div>
+<div style="display:flex;align-items:center;justify-content:space-between"><h2 style="margin:0">🔥 Discover</h2><div style="display:flex;gap:8px;align-items:center"><span class="coins-pill" id="coins-pill" onclick="showCoinsInfo()">🪙 <span id="coins-count">0</span></span><div class="likes-circle" onclick="showLikesInfo()"><b id="likes-left-num">30</b><span>LIKES</span></div><button onclick="openMap()" style="font-size:26px;background:#222;padding:10px 14px;border-radius:50%">🌎</button></div>
 <div class="counter" id="daily-counter">❤️ 30 Likes left today</div>
 <select id="country-filter" onchange="swipeIdx=0;renderSwipe()" style="margin-top:8px"><option value="ALL">🌍 All Countries</option></select><div id="discover-loading" style="display:none;text-align:center;padding:30px;color:#aaa">⏳ Loading people...<br><span style="font-size:13px">Fetching from cloud</span></div><div id="swipe-card"></div><div id="map-modal"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">🌎 People Near You</h3><button onclick="closeMap()" style="background:#333">✖️ Close</button></div><div id="map"></div></div>
 <p style="font-size:13px;color:#aaa">Tap a circle to Like. Each Like uses 1 of your 30 daily. Resets tomorrow.</p>
@@ -245,7 +251,7 @@ function renderSwipe(){
   if(swipeIdx>=list.length){ if(window._discoverLoading){ el.innerHTML='<div style="text-align:center;padding:30px;color:#aaa">⏳ Loading people...</div>'; return; } el.innerHTML='<div class="card" style="text-align:center;padding:30px"><h3>🎉 No more people in this country</h3><p>Try All Countries or come back tomorrow.</p></div>'; return; }
   let idx=list[swipeIdx], d=deck[idx], n=d.name, c=d.country, age=d.age;
   var _ph=d.photos; if(typeof _ph==='string'){ try{_ph=JSON.parse(_ph);}catch(e){_ph=_ph?_ph.split(','):[];} } if(!Array.isArray(_ph)) _ph=[]; var _allPhotos=_ph.filter(function(x){return x;}); if(!_allPhotos.length && d.photo) _allPhotos=[d.photo]; if(window._swipePhotoFor!==n){window._swipePhotoFor=n; window._swipePhotoIdx=0;} if(window._swipePhotoIdx>=_allPhotos.length) window._swipePhotoIdx=0; window._swipePhotos=_allPhotos; let photo=_allPhotos[window._swipePhotoIdx]||''; let _dots=_allPhotos.map(function(_,i){return '<span style="font-size:18px;color:'+(i===window._swipePhotoIdx?'#fff':'rgba(255,255,255,.4)')+'">●</span>';}).join(' ');
-  el.innerHTML = `<div class="swipe-card"><div class="photo" onclick="nextSwipePhoto()" style="position:relative;cursor:pointer"><div style="font-size:110px">${n.charAt(0)}</div><img src="${photo}" onerror="this.remove()" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" /><div style="position:absolute;bottom:8px;left:0;right:0;text-align:center">${_dots}</div><div style="position:absolute;top:8px;right:10px;background:rgba(0,0,0,.55);padding:4px 10px;border-radius:999px;font-size:12px">👆 ${((localStorage.getItem('whisper_lang')||'English')==='French'?'Touche la photo pour suivant':(localStorage.getItem('whisper_lang')||'English')==='Spanish'?'Toca la foto para siguiente':'Tap photo for next')}</div></div><div class="info"><h3>${n}${(getVerifiedFor(n)&&(getVerifiedFor(n).email||getVerifiedFor(n).photo))?'<svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:-4px;margin-left:2px;margin-right:0;display:inline-block"><circle cx="12" cy="12" r="10.5" fill="#0095F6"/><path d="M17.2 7.8L10.6 14.4L7 10.8" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>':''} - ${age}</h3><p><svg width="13" height="13" viewBox="0 0 24 24" style="vertical-align:-2px"><path d="M12 2C7 2 3 6 3 11c0 5.5 9 11 9 11s9-5.5 9-11c0-5-4-9-9-9z" fill="#e11d48"/><circle cx="12" cy="11" r="3.5" fill="white"/></svg> ${countryFlag(c)} ${c}${d.location_city?`, `+d.location_city:''}</p>${d.location_verified?`<span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:800">Location verified</span>`:`<span style="background:#f3f4f6;color:#6b7280;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:800">Location not verified</span>`}${d.relationship?`<p>💍 ${d.relationship}</p>`:''}${d.interests?`<p>❤️ ${d.interests}</p>`:''}${d.bio?`<p>${d.bio}</p>`:''}${d.looking?`<p>Looking for: ${d.looking}</p>`:''}${badgesHtmlFor(n)}</div><div class="swipe-actions"><button class="btn-pass" onclick="passPerson()">Pass</button><button class="btn-like" onclick="likePerson('${n}')">Like</button><button onclick="openChat('${n}')" style="background:#333 !important">💬 Message</button></div></div>`;
+  el.innerHTML = `<div class="swipe-card"><div class="photo" onclick="nextSwipePhoto()" style="position:relative;cursor:pointer"><div style="font-size:110px">${n.charAt(0)}</div><img src="${photo}" onerror="this.remove()" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" /><div style="position:absolute;bottom:8px;left:0;right:0;text-align:center">${_dots}</div><div style="position:absolute;top:8px;right:10px;background:rgba(0,0,0,.55);padding:4px 10px;border-radius:999px;font-size:12px">👆 ${((localStorage.getItem('whisper_lang')||'English')==='French'?'Touche la photo pour suivant':(localStorage.getItem('whisper_lang')||'English')==='Spanish'?'Toca la foto para siguiente':'Tap photo for next')}</div></div><div class="info"><h3>${n}${(getVerifiedFor(n)&&(getVerifiedFor(n).email||getVerifiedFor(n).photo))?'<svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:-4px;margin-left:2px;margin-right:0;display:inline-block"><circle cx="12" cy="12" r="10.5" fill="#0095F6"/><path d="M17.2 7.8L10.6 14.4L7 10.8" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>':''} - ${age}</h3><p><svg width="13" height="13" viewBox="0 0 24 24" style="vertical-align:-2px"><path d="M12 2C7 2 3 6 3 11c0 5.5 9 11 9 11s9-5.5 9-11c0-5-4-9-9-9z" fill="#e11d48"/><circle cx="12" cy="11" r="3.5" fill="white"/></svg> ${countryFlag(c)} ${c}${d.location_city?`, `+d.location_city:''}</p>${d.location_verified?`<span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:800">Location verified</span>`:`<span style="background:#f3f4f6;color:#6b7280;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:800">Location not verified</span>`}${d.relationship?`<p>💍 ${d.relationship}</p>`:''}${d.interests?`<p>❤️ ${d.interests}</p>`:''}${d.bio?`<p>${d.bio}</p>`:''}${d.looking?`<p>Looking for: ${d.looking}</p>`:''}${badgesHtmlFor(n)}</div><div class="swipe-actions"><button class="btn-pass" onclick="passPerson()">✖️ Pass</button><button class="btn-super" onclick="superLikePerson('${n}')">⭐ Super</button><button class="btn-like" onclick="likePerson('${n}')">❤️ Like</button><button onclick="tryMessage('${n}')" style="background:#333 !important">💬 Message 🔒</button></div></div>`;
 }
 
 function countryFlag(c){var m={'france':'🇫🇷','spain':'🇪🇸','equatorial guinea':'🇬🇶','gq':'🇬🇶','nigeria':'🇳🇬','cameroon':'🇨🇲','gabon':'🇬🇦','ghana':'🇬🇭','usa':'🇺🇸','uk':'🇬🇧'};return m[String(c||'').trim().toLowerCase()]||'🌍';}
@@ -255,7 +261,68 @@ function badgesHtmlFor(name){ var v=getVerifiedFor(name); if(!v||(!v.email&&!v.p
 window._swipePhotoIdx=0; window._swipePhotoFor=null; function nextSwipePhoto(){ var photos=window._swipePhotos||[]; if(!photos.length) return; window._swipePhotoIdx=((window._swipePhotoIdx||0)+1)%photos.length; var img=document.querySelector('#swipe-card .photo img'); if(img){ img.src=photos[window._swipePhotoIdx]; } var dots=document.querySelectorAll('#swipe-card .photo div span'); dots.forEach(function(s,i){ s.style.color=(i===window._swipePhotoIdx?'#fff':'rgba(255,255,255,.4)'); }); } function passPerson(){window._swipePhotoIdx=0; swipeIdx++;renderSwipe();}
 function openMap(){document.getElementById('map-modal').classList.add('open');setTimeout(function(){initMap();if(window._map)window._map.invalidateSize();},100);}
 function closeMap(){document.getElementById('map-modal').classList.remove('open');}
+
+// --- WHISPER MONETIZATION v1: Likes / Coins / Gates ---
+function whisperToday(){return new Date().toISOString().slice(0,10)}
+function getPlan(){return localStorage.getItem('whisper_plan')||'free'}
+function isPaid(){var p=getPlan();return p==='gold'||p==='premium'||p==='vip'}
+function getLikesLeft(){
+  if(isPaid()) return 999;
+  var k='whisper_likes_'+whisperToday();
+  var used=parseInt(localStorage.getItem(k)||'0',10);
+  return Math.max(0,30-used);
+}
+function useOneLike(){
+  if(isPaid()) return true;
+  var left=getLikesLeft();
+  if(left>0){
+    var k='whisper_likes_'+whisperToday();
+    localStorage.setItem(k, String(30-left+1));
+    updateLikesUI(); return true;
+  }
+  // out of likes -> offer coins
+  var coins=getCoins();
+  if(coins>=5 && confirm('Out of likes! Use 5 coins for 1 more Like? You have '+coins+' coins.')){
+    spendCoins(5); return true;
+  }
+  if(confirm('Out of likes for today! Go Gold for Unlimited Likes?')){
+    alert('Gold coming soon: 3,500 FCFA / month - Unlimited Likes');
+  }
+  return false;
+}
+function getCoins(){return parseInt(localStorage.getItem('whisper_coins')||'0',10)}
+function addCoins(n){localStorage.setItem('whisper_coins', String(getCoins()+n)); updateLikesUI()}
+function spendCoins(n){if(getCoins()<n) return false; localStorage.setItem('whisper_coins', String(getCoins()-n)); updateLikesUI(); return true}
+function giveDailyCoins(){
+  var k='whisper_daily_coins_'+whisperToday();
+  if(!localStorage.getItem(k)){ localStorage.setItem(k,'1'); addCoins(10); setTimeout(function(){alert('🎁 Daily Bonus: +10 Free Coins!')},800); }
+}
+function updateLikesUI(){
+  var el=document.getElementById('likes-left-num'); if(el) el.textContent=isPaid()?'∞':getLikesLeft();
+  var c=document.getElementById('coins-count'); if(c) c.textContent=getCoins();
+}
+function showLikesInfo(){ alert('Likes left today: '+getLikesLeft()+'\nFree: 30/day\nGold / VIP: Unlimited\nOut of likes? 5 coins = 1 extra Like'); }
+function showCoinsInfo(){ alert('🪙 Your Coins: '+getCoins()+'\n+10 free every day you login\n5 coins = 1 extra Like\n20 coins = Super Like\n50 coins = Boost'); }
+function superLikePerson(name){
+  if(!isPaid()){
+    if(!spendCoins(20)){ alert('Super Like needs 20 coins. You have '+getCoins()+'. Login daily for +10 free coins!'); return; }
+  }
+  alert('⭐ SUPER LIKE sent to '+name+'! They will see you first.');
+  if(!useOneLike()) return;
+  // reuse normal like flow without double-counting: call original via liked push is inside likePerson, so we just advance
+  swipeIdx++; renderSwipe(); updateLikesUI();
+}
+function tryMessage(name){
+  if(isPaid()){ openChat(name); return; }
+  // Free: must Like first, cannot message directly
+  if(confirm('🔒 Message is for Gold / VIP.\nFree users: Like first, if they Like you back you Match and can chat.\n\nLike '+name+' now?')){
+    likePerson(name);
+  }
+}
+setTimeout(function(){ giveDailyCoins(); updateLikesUI(); }, 1000);
+
 function likePerson(name){
+  if(!useOneLike()) return;
   let liked=getLiked();
   if(liked.includes(name)){ alert(name+' already liked today'); return; }
   if(liked.length>=30){ alert('Daily limit reached! 30/30'); return; }
