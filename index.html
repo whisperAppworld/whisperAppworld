@@ -261,13 +261,13 @@ window._swipePhotoIdx=0; window._swipePhotoFor=null; function nextSwipePhoto(){ 
 function openMap(){document.getElementById('map-modal').classList.add('open');setTimeout(function(){initMap();if(window._map)window._map.invalidateSize();},100);}
 function closeMap(){document.getElementById('map-modal').classList.remove('open');}
 
-function updateHeaderCounts(){ try{ var liked2=getLiked(); var left2=30-liked2.length; var lEl=document.getElementById('likes-count'); if(lEl) lEl.textContent=left2; var cEl=document.getElementById('coins-count'); if(cEl) cEl.textContent=localStorage.getItem('whisper_coins')||'10'; }catch(e){} }
+function updateHeaderCounts(){ try{ var liked2=getLiked(); var extra2=parseInt(localStorage.getItem('whisper_extraLikes')||'0'); var left2=30+extra2-liked2.length; var lEl=document.getElementById('likes-count'); if(lEl) lEl.textContent=left2; var cEl=document.getElementById('coins-count'); if(cEl) cEl.textContent=localStorage.getItem('whisper_coins')||'10'; }catch(e){} }
 function openChatLocked(name){ try{ var liked=getLiked(); var idx=names.indexOf(name); var isMatch=(idx>=0 && idx%3===0 && liked.includes(name)); if(!isMatch){ alert('🔒 Like '+name+' first and get a Match to chat.'); return; } }catch(e){} openChat(name); }
-function superLikePerson(name){ try{ var coins=parseInt(localStorage.getItem('whisper_coins')||'10'); if(coins<5){ alert('🪙 Not enough coins for Super Like. Need 5 coins.'); return; } localStorage.setItem('whisper_coins', String(coins-5)); updateHeaderCounts(); }catch(e){} likePerson(name); alert('⭐ SUPER LIKE sent to '+name+'!'); }
+function superLikePerson(name){ try{ var coins=parseInt(localStorage.getItem('whisper_coins')||'10'); if(coins<5){ openBuyCoins(); return; } localStorage.setItem('whisper_coins', String(coins-5)); updateHeaderCounts(); }catch(e){} likePerson(name); alert('⭐ SUPER LIKE sent to '+name+'!'); }
 function likePerson(name){
   let liked=getLiked();
   if(liked.includes(name)){ alert(name+' already liked today'); return; }
-  if(liked.length>=30){ alert('Daily limit reached! 30/30'); return; }
+  var _extra=parseInt(localStorage.getItem('whisper_extraLikes')||'0'); if(liked.length>=30+_extra){ openBuyLikes(); return; }
   liked.push(name); localStorage.setItem(todayKey(), JSON.stringify(liked));;let _idx=names.indexOf(name);if(_idx>=0&&_idx%3===0){let ml=document.getElementById('matches-list');if(ml){if(ml.innerHTML.includes('No matches yet'))ml.innerHTML='';ml.innerHTML+='<div class=card><b>💖 '+name+' • '+getAges()[_idx]+'</b><br><svg width="13" height="13" viewBox="0 0 24 24" style="vertical-align:-2px"><path d="M12 2C7 2 3 6 3 11c0 5.5 9 11 9 11s9-5.5 9-11c0-5-4-9-9-9z" fill="#e11d48"/><circle cx="12" cy="11" r="3.5" fill="white"/></svg> '+countries[_idx]+'<br><button onclick="showTab(\'messages\')">💬 Chat Now</button></div>';}alert('💖 MATCH! '+name+' liked you back!');}swipeIdx++;renderSwipe();
   renderCircles(); initMap();
   updateHeaderCounts();
@@ -1020,6 +1020,35 @@ function updateBumpyRing(){
   }catch(e){}
 }
 window.updateBumpyRing = updateBumpyRing;
+</script>
+
+<!-- BUY COINS MODAL -->
+<div id="buy-coins-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:10000;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#1a1a1a;border-radius:20px;padding:22px;width:100%;max-width:340px;text-align:center;border:1px solid #FFD700">
+    <h3 style="margin:0">🪙 Buy Coins</h3><p style="color:#aaa;font-size:13px">Super Like costs 5 coins</p>
+    <button onclick="buyCoins(50)" style="width:100%;margin:6px 0;background:#222">🪙 50 Coins - $0.99</button>
+    <button onclick="buyCoins(200)" style="width:100%;margin:6px 0;background:#222">🪙 200 Coins - $2.99 ⭐ Best</button>
+    <button onclick="buyCoins(1000)" style="width:100%;margin:6px 0;background:#222">🪙 1000 Coins - $9.99</button>
+    <button onclick="closeBuyCoins()" style="width:100%;margin-top:10px;background:#333">Close</button>
+  </div>
+</div>
+<!-- BUY LIKES MODAL -->
+<div id="buy-likes-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:10000;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#1a1a1a;border-radius:20px;padding:22px;width:100%;max-width:340px;text-align:center;border:1px solid #FF2E88">
+    <h3 style="margin:0">❤️ Out of Likes!</h3><p style="color:#aaa;font-size:13px">Get more Likes to keep swiping</p>
+    <button onclick="buyLikes(30)" style="width:100%;margin:6px 0;background:#222">❤️ +30 Likes - $0.99</button>
+    <button onclick="buyLikes(100)" style="width:100%;margin:6px 0;background:#222">❤️ +100 Likes - $2.99 ⭐ Best</button>
+    <button onclick="buyLikes(9999)" style="width:100%;margin:6px 0;background:#222">❤️ Unlimited Today - $4.99</button>
+    <button onclick="closeBuyLikes()" style="width:100%;margin-top:10px;background:#333">Close</button>
+  </div>
+</div>
+<script>
+function openBuyCoins(){ var m=document.getElementById('buy-coins-modal'); if(m) m.style.display='flex'; }
+function closeBuyCoins(){ var m=document.getElementById('buy-coins-modal'); if(m) m.style.display='none'; }
+function buyCoins(n){ try{ var c=parseInt(localStorage.getItem('whisper_coins')||'10'); localStorage.setItem('whisper_coins', String(c+n)); updateHeaderCounts(); }catch(e){} closeBuyCoins(); alert('✅ +'+n+' Coins added!'); }
+function openBuyLikes(){ var m=document.getElementById('buy-likes-modal'); if(m) m.style.display='flex'; }
+function closeBuyLikes(){ var m=document.getElementById('buy-likes-modal'); if(m) m.style.display='none'; }
+function buyLikes(n){ try{ var e=parseInt(localStorage.getItem('whisper_extraLikes')||'0'); localStorage.setItem('whisper_extraLikes', String(e+n)); updateHeaderCounts(); }catch(e){} closeBuyLikes(); alert('✅ +'+n+' Likes added!'); }
 </script>
 </body>
 </html>
