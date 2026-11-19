@@ -151,9 +151,7 @@ function showProfileSub(n){
 
 <section id="tab-discover" class="active">
 <div style="display:flex;align-items:center;justify-content:space-between"><h2 style="margin:0">🔥 Discover</h2><button onclick="openMap()" style="font-size:26px;background:#222;padding:10px 14px;border-radius:50%">🌎</button></div>
-<div class="counter" id="daily-counter">❤️ 30 Likes left today</div>
-<select id="country-filter" onchange="swipeIdx=0;renderSwipe()" style="margin-top:8px"><option value="ALL">🌍 All Countries</option></select><div id="discover-loading" style="display:none;text-align:center;padding:30px;color:#aaa">⏳ Loading people...<br><span style="font-size:13px">Fetching from cloud</span></div><div id="swipe-card"></div><div id="map-modal"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">🌎 People Near You</h3><button onclick="closeMap()" style="background:#333">✖️ Close</button></div><div id="map"></div></div>
-<p style="font-size:13px;color:#aaa">Tap a circle to Like. Each Like uses 1 of your 30 daily. Resets tomorrow.</p>
+<div id="discover-loading" style="display:none;text-align:center;padding:30px;color:#aaa">⏳ Loading people...<br><span style="font-size:13px">Fetching from cloud</span></div><div id="swipe-card"></div><div id="map-modal"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">🌎 People Near You</h3><button onclick="closeMap()" style="background:#333">✖️ Close</button></div><div id="map"></div></div>
 <div class="circles" id="circles" style="display:none"></div>
 </p>
 <div id="discover-list"></div>
@@ -167,9 +165,6 @@ function showProfileSub(n){
 <div id="chat-view"><div><h3 id="chat-title" style="margin:0">Chat</h3></div><div id="messages-list"><p>No messages yet.</p></div>
 <input id="msg-input" placeholder="Type a message..."><button onclick="sendMsg()">Send</button></div>
 </section>
-<div id="top-bell" style="position:fixed;top:10px;right:12px;z-index:9999">
-<button onclick="openNotifInbox()" style="position:relative;background:#1a1a1a;border:1px solid #333;color:#fff;font-size:22px;width:44px;height:44px;border-radius:50%;cursor:pointer">🔔<span id="bell-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#ff5a8a;color:#fff;font-size:11px;min-width:18px;height:18px;line-height:18px;border-radius:999px;text-align:center;padding:0 4px;font-weight:800">0</span></button>
-</div>
 <nav>
 <button id="btn-discover" class="active" onclick="showTab('discover')">🔥 Discover</button>
 <button id="btn-people" onclick="showTab('people')">🌍 People</button>
