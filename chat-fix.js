@@ -490,10 +490,15 @@ document.addEventListener("DOMContentLoaded",fixSetup); fixSetup();
 // HEADER_BELL_FIX_V2 - hide Messages h2 + top-bell ONLY inside a chat
 (function(){
   setInterval(function(){
-    var inChat = !!(window.currentChatWith);
+    var cv = document.getElementById("chat-view");
+    var chatVisible = cv && cv.style.display !== "none" && cv.offsetParent !== null;
+    var inChat = !!(window.currentChatWith) && chatVisible;
     var bell = document.getElementById("top-bell");
     if(bell) bell.style.display = inChat ? "none" : "";
-    var h2 = document.querySelector("#tab-messages > h2");
-    if(h2) h2.style.display = inChat ? "none" : "";
+    document.querySelectorAll("h2").forEach(function(h){
+      if((h.textContent||"").trim().indexOf("Messages") >= 0){
+        h.style.display = inChat ? "none" : "";
+      }
+    });
   }, 500);
 })();
