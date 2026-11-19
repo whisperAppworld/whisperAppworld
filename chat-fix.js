@@ -87,6 +87,7 @@ function fixAddVerifiedBadges(){
   }catch(e){}
 }
 async function showChatList(){
+  window.currentChatWith = null;
   fixSetup();
   var lv=document.getElementById('chat-list-view'); var cv=document.getElementById('chat-view');
   if(lv) lv.style.display='block'; if(cv) cv.style.display='none';
@@ -388,7 +389,7 @@ document.addEventListener("DOMContentLoaded",fixSetup); fixSetup();
       if(el.closest && el.closest("#notif-inbox,#notif-popup,#notif-panel,#notif-modal")) return;
       var txt=(el.textContent||"").trim();
       // Only a real bell button: exactly bell emoji, not a container with lots of text
-      if(txt==="🔔"){
+      if(false){ // DISABLED - handled by HEADER_BELL_FIX_V2
         if(inChat){ el.style.display="none"; }
         else if(isMessagesPage){ el.style.display=""; }
       }
