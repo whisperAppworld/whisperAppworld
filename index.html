@@ -1430,6 +1430,76 @@ document.addEventListener('click', function(e){
   }
 });
 </script>
+
+<style>
+#whisperFab{ z-index:10000 !important; }
+.btn-pass.pass-flash{ background:#ffffff !important; color:#000 !important; transform:scale(0.95) !important; }
+</style>
+<script>
+// FINAL FIX - use !important, no class fight
+window.whisperOpen=false;
+function wFields(){
+  var nick=document.querySelector('input[placeholder*="Nickname"]');
+  var all=document.querySelectorAll('textarea, input');
+  var msg=null;
+  all.forEach(function(e){ if(e.placeholder && e.placeholder.includes('Write a whisper')) msg=e; });
+  if(!msg){
+    all.forEach(function(e){ if(e.placeholder && e.placeholder.toLowerCase().includes('whisper') && e!==nick) msg=e; });
+  }
+  var send=null;
+  document.querySelectorAll('button').forEach(function(b){ if(b.textContent.includes('Send Whisper')) send=b; });
+  return {nick:nick, msg:msg, send:send};
+}
+function wIsOnWhisper(){
+  var list=document.getElementById('whisper-list');
+  if(!list) return false;
+  var el=list;
+  while(el && el!==document.body){
+    if(window.getComputedStyle(el).display==='none') return false;
+    el=el.parentElement;
+  }
+  return true;
+}
+function wApply(){
+  var f=wFields();
+  var fab=document.getElementById('whisperFab');
+  var on=wIsOnWhisper();
+  if(window.whisperOpen && on){
+    [f.nick,f.msg,f.send].forEach(function(e){ if(e) e.style.setProperty('display','', ''); if(e && e.tagName==='BUTTON') e.style.setProperty('display','block','important'); });
+    if(f.nick) f.nick.style.setProperty('display','block','important');
+    if(f.msg) f.msg.style.setProperty('display','block','important');
+    if(fab) fab.style.setProperty('display','none','important');
+  } else {
+    if(f.nick) f.nick.style.setProperty('display','none','important');
+    if(f.msg) f.msg.style.setProperty('display','none','important');
+    if(f.send) f.send.style.setProperty('display','none','important');
+    if(fab) fab.style.setProperty('display', on ? 'block' : 'none', 'important');
+  }
+}
+function toggleWhisperForm(show){
+  window.whisperOpen=!!show;
+  wApply();
+}
+setInterval(wApply, 300);
+setTimeout(wApply, 300);
+// FAB click via listener, not just onclick - more reliable
+setTimeout(function(){
+  var fab=document.getElementById('whisperFab');
+  if(fab){
+    fab.addEventListener('click', function(){ window.whisperOpen=true; wApply(); var n=document.querySelector('input[placeholder*="Nickname"]'); if(n) n.focus(); });
+  }
+}, 500);
+document.addEventListener('click', function(e){
+  if(e.target && e.target.textContent && e.target.textContent.includes('Send Whisper')){
+    setTimeout(function(){ window.whisperOpen=false; wApply(); if(typeof safeLoadWhispers==='function') safeLoadWhispers(); }, 1200);
+  }
+  // PASS HIGHLIGHT - white flash
+  if(e.target && e.target.textContent && e.target.textContent.trim()==='Pass'){
+    e.target.classList.add('pass-flash');
+    setTimeout(function(){ e.target.classList.remove('pass-flash'); }, 350);
+  }
+});
+</script>
 </body>
 </html>
 
