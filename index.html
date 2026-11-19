@@ -1278,6 +1278,7 @@ setTimeout(safeLoadWhispers, 1000);
 
 
 
+
 <script>
 async function sendWhisper(){
   var nameEl=document.querySelector('#tab-whisper #name');
@@ -1286,15 +1287,11 @@ async function sendWhisper(){
   var message=msgEl ? msgEl.value.trim() : '';
   if(!message){ alert('Please write a whisper first'); return; }
   if(!name) name='Anonymous';
-  var btn=document.querySelector('#tab-whisper button');
   try{
-    var res=await fetch('https://jztfakvawduanyovbbkt.supabase.co/rest/v1/whispers', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','apikey':'','Authorization':'Bearer ','Prefer':'return=minimal'},
-      body: JSON.stringify({name:name, message:message, text:message})
-    });
-    if(!res.ok){ var txt=await res.text(); throw new Error(res.status+' '+txt); }
-  }catch(e){ alert('Could not send: '+e.message); return; }
+    if(!window.supabase) throw new Error('Supabase not ready');
+    var r=await window.supabase.from('whispers').insert([{name:name,message:message,text:message}]);
+    if(r.error) throw r.error;
+  }catch(e){ alert('Could not send: '+(e.message||e)); return; }
   if(msgEl) msgEl.value='';
   var form=document.getElementById('whisperForm');
   var fab=document.getElementById('whisperFab');
@@ -1303,6 +1300,7 @@ async function sendWhisper(){
   if(typeof safeLoadWhispers==='function') safeLoadWhispers();
 }
 </script>
+
 
 </body>
 </html>
