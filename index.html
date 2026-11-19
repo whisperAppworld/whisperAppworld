@@ -1056,6 +1056,27 @@ function buyLikes(n){ try{ var e=parseInt(localStorage.getItem('whisper_extraLik
   <div style="background:#141414;border-radius:22px;padding:20px;width:100%;max-width:360px;border:1px solid #FF2E88;margin-top:20px">
     <div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">💎 Whisper Premium</h2><button onclick="closeMono()" style="background:#333;padding:6px 12px;border-radius:999px">✕</button></div>
     <p style="color:#aaa;font-size:13px;margin:6px 0 14px">Unlock more matches, more likes, more chats.</p>
+    <div style="background:#1f1f1f;border-radius:12px;padding:10px;margin-bottom:12px">
+      <label style="font-size:12px;color:#aaa">Your Country / Payment Region</label>
+      <select id="pay-country" onchange="updatePayMethods()" style="width:100%;margin-top:6px;background:#2a2a2a;color:#fff;border:1px solid #333;border-radius:10px;padding:10px">
+        <option value="Nigeria">🇳🇬 Nigeria</option>
+        <option value="Ghana">🇬🇭 Ghana</option>
+        <option value="Equatorial Guinea">🇬🇶 Equatorial Guinea</option>
+        <option value="Cameroon">🇨🇲 Cameroon</option>
+        <option value="Gabon">🇬🇦 Gabon</option>
+        <option value="Kenya">🇰🇪 Kenya</option>
+        <option value="South Africa">🇿🇦 South Africa</option>
+        <option value="France">🇫🇷 France</option>
+        <option value="Spain">🇪🇸 Spain</option>
+        <option value="Germany">🇩🇪 Germany</option>
+        <option value="UK">🇬🇧 United Kingdom</option>
+        <option value="USA">🇺🇸 USA</option>
+        <option value="Other">🌍 Other</option>
+      </select>
+      <div id="pay-methods" style="font-size:13px;margin-top:8px;line-height:1.6"></div>
+      <div style="font-size:11px;color:#888;margin-top:4px">You pay with your country's method. No card needed for Mobile Money.</div>
+    </div>
+    <p style="display:none"></p>
 
     <div style="background:#1f1f1f;border-radius:16px;padding:14px;margin-bottom:12px">
       <b>🪙 Coins</b><p style="color:#aaa;font-size:12px;margin:4px 0">For Super Likes (5 coins each)</p>
@@ -1091,6 +1112,42 @@ document.addEventListener('click', function(e){
   if(cEl && (e.target===cEl || cEl.contains(e.target))) openMono();
   if(lEl && (e.target===lEl || lEl.contains(e.target))) openMono();
 });
+</script>
+
+<script>
+var PAY_MAP = {
+  'Nigeria': '💳 Paystack • 🏦 Bank Transfer • 📱 USSD • 💳 Card',
+  'Ghana': '📱 MTN MoMo • 💳 Paystack • 💳 Card',
+  'Equatorial Guinea': '📱 Orange Money • 📱 MTN MoMo • 💳 Card',
+  'Cameroon': '📱 Orange Money • 📱 MTN MoMo • 💳 Card',
+  'Gabon': '📱 Airtel Money • 📱 Orange Money • 💳 Card',
+  'Kenya': '📱 M-Pesa • 💳 Flutterwave • 💳 Card',
+  'South Africa': '💳 PayFast • 💳 Card • 📱 SnapScan',
+  'France': '💳 Stripe • 🅿️ PayPal • 🍎 Apple Pay • 💳 Card',
+  'Spain': '💳 Stripe • 🅿️ PayPal • 🍎 Apple Pay • 💳 Card',
+  'Germany': '💳 Stripe • 🅿️ PayPal • 💳 Klarna • 💳 Card',
+  'UK': '💳 Stripe • 🅿️ PayPal • 🍎 Apple Pay • 💳 Card',
+  'USA': '💳 Stripe • 🅿️ PayPal • 🍎 Apple Pay • 💳 Card',
+  'Other': '🅿️ PayPal • 💳 Card'
+};
+function updatePayMethods(){
+  var sel=document.getElementById('pay-country');
+  var box=document.getElementById('pay-methods');
+  if(!sel||!box) return;
+  var c=sel.value;
+  try{ localStorage.setItem('whisper_country', c); }catch(e){}
+  box.innerHTML = '<b>Pay with:</b><br>' + (PAY_MAP[c]||PAY_MAP['Other']);
+}
+function initPayCountry(){
+  var saved=''; try{ saved=localStorage.getItem('whisper_country')||localStorage.getItem('whisper_user_country')||''; }catch(e){}
+  var sel=document.getElementById('pay-country');
+  if(sel && saved){
+    for(var i=0;i<sel.options.length;i++){ if(sel.options[i].value===saved){ sel.selectedIndex=i; break; } }
+  }
+  updatePayMethods();
+}
+var _oldOpenMono = window.openMono;
+window.openMono = function(){ if(typeof _oldOpenMono==='function') _oldOpenMono(); setTimeout(initPayCountry, 50); };
 </script>
 </body>
 </html>
