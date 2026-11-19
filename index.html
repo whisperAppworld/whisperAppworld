@@ -153,13 +153,14 @@ function showProfileSub(n){
 
 <section id="tab-whisper">
 <h2>Whisper</h2>
+<div id="whisper-list" style="padding:0 16px"></div>
 <div id="whisperForm" style="display:none">
 <input id="name" placeholder="Nickname (optional) - leave empty for Anonymous">
 <textarea id="text" placeholder="Write a whisper..."></textarea>
 <button onclick="sendWhisper()">Send Whisper</button>
 <button onclick="document.getElementById('whisperForm').style.display='none';document.getElementById('whisperFab').style.display='block'" style="background:#333">Cancel</button>
 </div>
-<div id="whisper-list" style="padding:0 16px"></div>
+
 <button id="whisperFab" onclick="document.getElementById('whisperForm').style.display='block';document.getElementById('whisperFab').style.display='none'" style="position:fixed;bottom:90px;right:18px;width:60px;height:60px;border-radius:50%;background:#ff2e63;color:white;font-size:32px;border:none;z-index:999;box-shadow:0 4px 15px rgba(0,0,0,0.4)">+</button>
 </section>
 
@@ -1276,6 +1277,7 @@ setTimeout(safeLoadWhispers, 1000);
 </style>
 
 
+
 <script>
 async function sendWhisper(){
   var nameEl=document.querySelector('#tab-whisper #name');
@@ -1284,15 +1286,15 @@ async function sendWhisper(){
   var message=msgEl ? msgEl.value.trim() : '';
   if(!message){ alert('Please write a whisper first'); return; }
   if(!name) name='Anonymous';
+  var btn=document.querySelector('#tab-whisper button');
   try{
-    if(window.supabaseClient){
-      var r=await supabaseClient.from('whispers').insert([{name:name,message:message,text:message}]);
-      if(r.error) throw r.error;
-    } else {
-      alert('Supabase not ready, try again');
-      return;
-    }
-  }catch(e){ alert('Could not send: '+(e.message||e)); return; }
+    var res=await fetch('https://jztfakvawduanyovbbkt.supabase.co/rest/v1/whispers', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':'','Authorization':'Bearer ','Prefer':'return=minimal'},
+      body: JSON.stringify({name:name, message:message, text:message})
+    });
+    if(!res.ok){ var txt=await res.text(); throw new Error(res.status+' '+txt); }
+  }catch(e){ alert('Could not send: '+e.message); return; }
   if(msgEl) msgEl.value='';
   var form=document.getElementById('whisperForm');
   var fab=document.getElementById('whisperFab');
@@ -1301,6 +1303,7 @@ async function sendWhisper(){
   if(typeof safeLoadWhispers==='function') safeLoadWhispers();
 }
 </script>
+
 </body>
 </html>
 
