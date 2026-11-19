@@ -154,7 +154,7 @@ function showProfileSub(n){
 <h2>Whisper</h2>
 <input id="name" placeholder="Nickname (optional) - leave empty for Anonymous">
 <textarea id="text" placeholder="Write a whisper..."></textarea>
-<button onclick="sendWhisper()">Send Whisper</button>
+<button onclick="sendWhisper()">Send Whisper</button><div id="whisper-list" style="padding:0 16px"></div><button style="display:none"</button>
 <div id="list"></div>
 </section>
 
@@ -1229,7 +1229,7 @@ async function sendWhisper(){
   document.getElementById('whisperForm').style.display='none';document.getElementById('whisperFab').style.display='block';loadWhispers();
 }
 document.addEventListener('DOMContentLoaded',()=>{
-  const btn=[...document.querySelectorAll('button')].find(b=>b.textContent.includes('Send Whisper'));
+  const btn=[...document.querySelectorAll('button')].find(b=>b.textContent.includes('Send Whisper</button><div id="whisper-list" style="padding:0 16px"></div><button style="display:none"'));
   if(btn) btn.onclick=sendWhisper;
   if(!document.getElementById('whisper-list')){
     const div=document.createElement('div');
@@ -1246,6 +1246,60 @@ document.addEventListener('DOMContentLoaded',()=>{
 <button id="whisperFab" style="display:none" onclick="document.getElementById('whisperForm').style.display='block';document.getElementById('whisperFab').style.display='none'" style="position:fixed;bottom:90px;right:18px;width:60px;height:60px;border-radius:50%;background:#ff2e63;color:white;font-size:32px;border:none;z-index:999;box-shadow:0 4px 15px rgba(0,0,0,0.4)">+</button>
 
 
+
+<script>
+// SAFE WHISPER LOADER - independent, will not break Pass button
+async function safeLoadWhispers(){
+  try{
+    var list=document.getElementById('whisper-list');
+    if(!list) return;
+    list.innerHTML='<p style="color:#aaa;text-align:center;">Loading whispers...</p>';
+    var url='https://jztfakvawduanyovbbkt.supabase.co/rest/v1/whispers?select=*&order=created_at.desc&limit=50';
+    var key='sb_publishable_Xgea70sY3vlxZQD0PTWFYQ_ySQN2K4C';
+    var r=await fetch(url,{headers:{'apikey':key,'Authorization':'Bearer '+key}});
+    var data=await r.json();
+    if(!data || !data.length){ list.innerHTML='<p style="color:#aaa;text-align:center;padding:20px;">No whispers yet. Be the first!</p>'; return; }
+    list.innerHTML=data.map(function(w){
+      var nm=(w.name||'').trim()||'Anonymous';
+      var letter=nm.charAt(0).toUpperCase();
+      var time=new Date(w.created_at).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+      return '<div style="background:#1e1e1e;border:1px solid #2d2d2d;border-radius:16px;padding:16px;margin:12px 0;">'
+      +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;"><div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#ec4899);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;">'+letter+'</div>'
+      +'<div><div style="color:white;font-weight:600;font-size:14px;">'+nm+'</div><div style="color:#888;font-size:12px;">'+time+' • Anonymous Whisper</div></div></div>'
+      +'<div style="color:#f1f1f1;font-size:16px;line-height:1.5;">'+(w.message||w.text||'')+'</div></div>';
+    }).join('');
+  }catch(e){ 
+    var l=document.getElementById('whisper-list');
+    if(l) l.innerHTML='<p style="color:red;text-align:center;">Error: '+e.message+'</p>';
+  }
+}
+// Load whispers when Whisper tab is tapped, and on load if on Whisper
+document.addEventListener('click', function(e){
+  if(e.target && e.target.textContent && e.target.textContent.includes('Whisper')){ setTimeout(safeLoadWhispers, 100); }
+});
+setTimeout(safeLoadWhispers, 1000);
+
+// SAFE PASS BUTTON FIX - find Pass button and make it show next profile
+function fixPass(){
+  var btns=[...document.querySelectorAll('button')];
+  var pass=btns.find(b=>b.textContent.trim()==='Pass');
+  if(!pass) return;
+  console.log('Pass found');
+  pass.style.opacity='1';
+  pass.addEventListener('click', function(){
+    pass.style.background='#333';
+    setTimeout(()=>{ pass.style.background=''; }, 200);
+    // Try to call existing next-profile functions if they exist
+    if(window.nextProfile) window.nextProfile();
+    else if(window.showNext) window.showNext();
+    else if(window.nextCard) window.nextCard();
+    else if(window.loadNextProfile) window.loadNextProfile();
+    else { console.log('No next function found - Pass clicked'); }
+  });
+}
+setTimeout(fixPass, 1000);
+document.addEventListener('click', function(){ setTimeout(fixPass, 500); });
+</script>
 </body>
 </html>
 
