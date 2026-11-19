@@ -77,20 +77,15 @@ section.active{display:block}
 <h2 style="margin:16px 0 6px">Welcome to WhisperChat</h2>
 <p style="color:#666;font-size:15px;line-height:1.5;margin:0">Your profile is live! 🎉<br>Start exploring, like people near you and say hi.</p>
 <button onclick="closeWelcomeCard()" style="width:100%;margin-top:20px;background:linear-gradient(135deg,#ff5a8a,#a855f7);padding:14px;border-radius:50px;font-size:16px">Start Exploring ✨</button>
-</div></div>
 </div><div id="profile-sub-my" style="display:none"><div id="account-bar" style="display:none;background:#222;padding:12px 15px;border-radius:12px;margin:10px 0;color:white">Logged in as <b id="account-email"></b> <button onclick="logoutUser()" type="button" style="float:right;background:#333;color:white;border:none;padding:8px 14px;border-radius:8px;font-weight:bold">Logout</button><div style="clear:both"></div></div><div style="background:#fff;border-radius:20px;padding:22px 16px 16px;color:#222;margin-bottom:14px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.08)">
 <div style="position:relative;width:180px;height:180px;margin:0 auto">
-<svg width="180" height="180" viewBox="0 0 180 180" style="transform:rotate(-90deg)"><circle cx="90" cy="90" r="82" fill="none" stroke="#e5e7eb" stroke-width="8"/><circle id="bumpy-ring-fill" cx="90" cy="90" r="82" fill="none" stroke="#2563eb" stroke-width="8" stroke-linecap="round" stroke-dasharray="515.2" stroke-dashoffset="515.2"/></svg>
-<div id="p-avatar-preview" style="position:absolute;inset:14px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:48px;font-weight:900;overflow:hidden">😊</div>
-<div id="bumpy-pct" style="position:absolute;right:2px;bottom:8px;background:#2563eb;color:#fff;font-size:13px;font-weight:800;padding:5px 9px;border-radius:999px;border:3px solid #fff">0%</div>
+<svg width="180" height="180" viewBox="0 0 180 180" style="transform:rotate(-90deg)"><circle cx="90" cy="90" r="82" fill="none" stroke="#e5e7eb" stroke-width="8"/><circle id="bumpy-ring-fill" cx="90" cy="90" r="82" fill="none" stroke="#16a34a" stroke-width="8" stroke-linecap="round" stroke-dasharray="515.2" stroke-dashoffset="515.2"/></svg>
+<div id="p-avatar-preview" style="position:absolute;inset:14px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:48px;font-weight:900;overflow:hidden"></div>
+<div id="bumpy-pct" style="position:absolute;right:2px;bottom:8px;background:#16a34a;color:#fff;font-size:13px;font-weight:800;padding:5px 9px;border-radius:999px;border:3px solid #fff">0%</div>
 </div>
-<div style="margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px"><span id="p-flag" style="font-size:28px">🌍</span><div id="p-header-name" style="font-size:26px;font-weight:900">Your Name</div><div id="p-header-age" style="font-size:22px;font-weight:800">, --</div><span id="bumpy-verified" style="display:none;color:#2563eb;font-size:22px">✓</span></div>
-<div id="bumpy-verif-msg" style="margin-top:6px;font-size:13px;color:#2563eb;font-weight:600">Complete verification to reach 100%</div>
+<div style="margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px"><span id="p-flag" style="font-size:28px;flex-shrink:0;width:34px;text-align:center">🌍</span><div id="p-header-name" style="font-size:26px;font-weight:900;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Your Name</div><div id="p-header-age" style="font-size:22px;font-weight:800">, --</div></div>
+<div id="bumpy-verif-msg" style="margin-top:6px;font-size:13px;color:#16a34a;font-weight:600">Complete verification to reach 100%</div>
 <div id="p-preview-name" style="display:none">Your Name</div>
-<div style="display:flex;align-items:center;gap:14px">
-<div id="p-avatar-preview" style="width:84px;height:84px;border-radius:50%;background:white;color:#ff5a8a;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;overflow:hidden;flex-shrink:0;border:3px solid white">😊</div>
-<div><div id="p-header-name" style="font-size:26px;font-weight:900;line-height:1.1">Your Name</div><div id="p-header-age" style="margin-top:6px;background:white;color:#ff5a8a;display:inline-block;padding:5px 12px;border-radius:20px;font-size:15px;font-weight:800">Age • --</div><div style="opacity:0.9;font-size:13px;margin-top:6px">Make it beautiful, get more matches ✨</div><div id="p-preview-name" style="display:none">Your Name • Age</div></div>
-</div></div>
 <div style="background:white;border-radius:18px;padding:16px;box-shadow:0 4px 20px rgba(0,0,0,0.08);margin-bottom:14px">
 <div style="font-weight:800;font-size:15px;margin-bottom:10px;color:#222">📸 Profile Photos <span style="font-weight:400;color:#888;font-size:12px">- tap a block to add (1st is main)</span></div>
 <div id="p-blocks" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;width:100%"></div><input id="p-img" placeholder="Photo link" style="display:none">
@@ -108,7 +103,7 @@ section.active{display:block}
 <label>Goal</label>
 <select id="p-goal" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><option value="">Goal</option><option>Serious Relationship</option><option>Friendship</option><option>Dating</option><option>Marriage</option><option>Travel Buddy</option><option>Fun / Casual</option></select>
 <label>Nationality</label>
-<div style="display:flex;gap:8px"><select id="p-nationality" onchange="document.getElementById('p-flag').textContent=flagFor(this.value)" style="flex:1;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><option value="">Nationality</option><option>Equatorial Guinea</option><option>Spain</option><option>France</option><option>Nigeria</option><option>Cameroon</option><option>Gabon</option><option>Ghana</option><option>USA</option><option>UK</option></select><span id="p-flag" style="font-size:32px">🌍</span></div>
+<div style="display:flex;gap:8px"><select id="p-nationality" onchange="document.getElementById('p-flag').textContent=flagFor(this.value)" style="flex:1;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><option value="">Nationality</option><option>Equatorial Guinea</option><option>Spain</option><option>France</option><option>Nigeria</option><option>Cameroon</option><option>Gabon</option><option>Ghana</option><option>USA</option><option>UK</option></select><span style="font-size:32px">🌍</span></div>
 <label>Best time to chat</label>
 <select id="p-timezone" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><option value="">When are you online?</option><option>Morning</option><option>Afternoon</option><option>Evening</option><option>Night / Late</option><option>Weekends only</option><option>Anytime</option></select>
 <label>Holiday style</label>
@@ -573,8 +568,8 @@ setTimeout(syncProfileHeader,500); setTimeout(syncProfileHeader,1500); setInterv
 <script>
 (function(){
   var css = `
-  .v-badges{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 0}
-  .v-badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:5px 10px;border-radius:999px;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe}
+  .v-badges{display:flex;flex-direction:column;gap:6px;align-items:center;flex-wrap:wrap;margin:8px 0 0}
+  .v-badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:5px 10px;border-radius:999px;background:#dcfce7;color:#166534;border:1px solid #bbf7d0}
   .v-badge.photo{background:#ecfdf5;color:#047857;border-color:#a7f3d0}
   .v-panel{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:16px;margin:14px 0;box-shadow:0 4px 20px rgba(0,0,0,.05)}
   .v-panel h3{margin:0 0 4px;font-size:17px}
@@ -604,15 +599,16 @@ setTimeout(syncProfileHeader,500); setTimeout(syncProfileHeader,1500); setInterv
     var badges=document.getElementById('v-badges');
     if(!badges){
       badges=document.createElement('div'); badges.id='v-badges'; badges.className='v-badges';
-      var anchor=document.getElementById('p-header-name')||document.getElementById('my-profile-box')||document.getElementById('profile-sub-my');
+      var anchor=document.getElementById('bumpy-verif-msg')||document.getElementById('my-profile-box')||document.getElementById('profile-sub-my');
       if(anchor) anchor.after(badges); else document.body.prepend(badges);
     }
     var html='';
     if(emailVerified) html+='<span class="v-badge">Email Verified</span>';
     if(photoVerified) html+='<span class="v-badge photo">📸 Photo Verified</span>';
-    try{ var _lv=JSON.parse(localStorage.getItem('my_profile')||'{}'); if(_lv.location_verified) html+='<span class="v-badge" style="background:#dcfce7;color:#166534"><svg width="13" height="13" viewBox="0 0 24 24" style="vertical-align:-2px"><path d="M12 2C7 2 3 6 3 11c0 5.5 9 11 9 11s9-5.5 9-11c0-5-4-9-9-9z" fill="#e11d48"/><circle cx="12" cy="11" r="3.5" fill="white"/></svg> Location Verified'+(_lv.location_city?' in '+_lv.location_city:'')+'</span>'; }catch(e){}
+    try{ var _lv=JSON.parse(localStorage.getItem('my_profile')||'{}'); if(_lv.location_verified) html+='<span class="v-badge" style="background:#dcfce7;color:#166534"><svg width="13" height="13" viewBox="0 0 24 24" style="vertical-align:-2px"><path d="M12 2C7 2 3 6 3 11c0 5.5 9 11 9 11s9-5.5 9-11c0-5-4-9-9-9z" fill="#e11d48"/><circle cx="12" cy="11" r="3.5" fill="white"/></svg> Location Verified</span>'; }catch(e){}
     badges.innerHTML=html;
   }
+var _lastLoc=""; setInterval(function(){ try{ var _p=JSON.parse(localStorage.getItem("my_profile")||"{}"); var _k=String(!!_p.location_verified); if(_k!==_lastLoc){ _lastLoc=_k; if(typeof renderBadges==="function") renderBadges(!!_p.email_verified, !!_p.photo_verified); if(typeof updateBumpyRing==="function") updateBumpyRing(); } }catch(e){} },800);
   function buildPanel(){
     var _e=document.getElementById('verification-panel'); if(_e) _e.remove();
     var host=document.getElementById('profile-sub-my'); if(!host) return;
