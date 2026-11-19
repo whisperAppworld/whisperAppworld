@@ -1036,7 +1036,7 @@ function updateBumpyRing(){
   try{
     var v = window._myVerification || {};
     var loc = false;
-    try{ loc = !!localStorage.getItem('location_verified'); }catch(e){}
+    try{ loc = !!localStorage.getItem('location_verified'); if(!loc){ try{ var _mp = JSON.parse(localStorage.getItem('my_profile')||'{}'); if(_mp.location_verified) loc = true; }catch(e){} } }catch(e){}
     if(window._locationVerified) loc = true;
     var pct = 0;
     if(v.email) pct += 30;
