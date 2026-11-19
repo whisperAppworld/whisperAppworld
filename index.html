@@ -80,12 +80,12 @@ section.active{display:block}
 </div></div>
 </div><div id="profile-sub-my" style="display:none"><div id="account-bar" style="display:none;background:#222;padding:12px 15px;border-radius:12px;margin:10px 0;color:white">Logged in as <b id="account-email"></b> <button onclick="logoutUser()" type="button" style="float:right;background:#333;color:white;border:none;padding:8px 14px;border-radius:8px;font-weight:bold">Logout</button><div style="clear:both"></div></div><div style="background:#fff;border-radius:20px;padding:22px 16px 16px;color:#222;margin-bottom:14px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.08)">
 <div style="position:relative;width:180px;height:180px;margin:0 auto">
-<svg width="180" height="180" viewBox="0 0 180 180" style="transform:rotate(-90deg)"><circle cx="90" cy="90" r="82" fill="none" stroke="#e5e7eb" stroke-width="8"/><circle id="bumpy-ring-fill" cx="90" cy="90" r="82" fill="none" stroke="#16a34a" stroke-width="8" stroke-linecap="round" stroke-dasharray="515.2" stroke-dashoffset="515.2"/></svg>
+<svg width="180" height="180" viewBox="0 0 180 180" style="transform:rotate(-90deg)"><circle cx="90" cy="90" r="82" fill="none" stroke="#e5e7eb" stroke-width="8"/><circle id="bumpy-ring-fill" cx="90" cy="90" r="82" fill="none" stroke="#2563eb" stroke-width="8" stroke-linecap="round" stroke-dasharray="515.2" stroke-dashoffset="515.2"/></svg>
 <div id="p-avatar-preview" style="position:absolute;inset:14px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:48px;font-weight:900;overflow:hidden">😊</div>
-<div id="bumpy-pct" style="position:absolute;right:2px;bottom:8px;background:#16a34a;color:#fff;font-size:13px;font-weight:800;padding:5px 9px;border-radius:999px;border:3px solid #fff">0%</div>
+<div id="bumpy-pct" style="position:absolute;right:2px;bottom:8px;background:#2563eb;color:#fff;font-size:13px;font-weight:800;padding:5px 9px;border-radius:999px;border:3px solid #fff">0%</div>
 </div>
-<div style="margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px"><span id="p-flag" style="font-size:28px">🌍</span><div id="p-header-name" style="font-size:26px;font-weight:900">Your Name</div><div id="p-header-age" style="font-size:22px;font-weight:800">, --</div><span id="bumpy-verified" style="display:none;color:#16a34a;font-size:22px">✓</span></div>
-<div id="bumpy-verif-msg" style="margin-top:6px;font-size:13px;color:#16a34a;font-weight:600">Complete verification to reach 100%</div>
+<div style="margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px"><span id="p-flag" style="font-size:28px">🌍</span><div id="p-header-name" style="font-size:26px;font-weight:900">Your Name</div><div id="p-header-age" style="font-size:22px;font-weight:800">, --</div><span id="bumpy-verified" style="display:none;color:#2563eb;font-size:22px">✓</span></div>
+<div id="bumpy-verif-msg" style="margin-top:6px;font-size:13px;color:#2563eb;font-weight:600">Complete verification to reach 100%</div>
 <div id="p-preview-name" style="display:none">Your Name</div>
 <div style="display:flex;align-items:center;gap:14px">
 <div id="p-avatar-preview" style="width:84px;height:84px;border-radius:50%;background:white;color:#ff5a8a;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;overflow:hidden;flex-shrink:0;border:3px solid white">😊</div>
@@ -778,7 +778,7 @@ async function loadAdmin(){
     list.innerHTML = rows.map(function(x){
       return '<div style="border:1px solid #333;border-radius:12px;padding:12px;margin-top:10px">'
         + '<div style="font-size:13px;color:#aaa">'+(x.email||"")+' • '+(x.type||"photo")+' • '+(x.created_at||"").slice(0,10)+'</div>'
-        + (x.selfie_url ? '<img src="'+x.selfie_url+'" onclick="window.open(\''+x.selfie_url+'\',\'_blank\')" style="width:100%;border-radius:10px;margin-top:8px;max-height:600px;object-fit:contain;cursor:zoom-in;background:#000;display:block"><button onclick="window.open(\''+x.selfie_url+'\',\'_blank\')" style="width:100%;margin-top:8px;background:#22c55e;color:#fff;border:0;padding:12px;border-radius:999px;font-weight:bold">🔍 TAP TO OPEN FULL SIZE</button>' : '<p style="color:#888">No selfie URL</p>')
+        + (x.selfie_url ? '<img src="'+x.selfie_url+'" onclick="window.open(\''+x.selfie_url+'\',\'_blank\')" style="width:100%;border-radius:10px;margin-top:8px;max-height:600px;object-fit:contain;cursor:zoom-in;background:#000;display:block"><button onclick="window.open(\''+x.selfie_url+'\',\'_blank\')" style="width:100%;margin-top:8px;background:#3b82f6;color:#fff;border:0;padding:12px;border-radius:999px;font-weight:bold">🔍 TAP TO OPEN FULL SIZE</button>' : '<p style="color:#888">No selfie URL</p>')
         + '<div style="display:flex;gap:8px;margin-top:10px"><button onclick="adminDecision(\''+x.id+'\',\'approved\')" style="flex:1;background:#22c55e;color:#fff;border:0;padding:10px;border-radius:999px">Approve</button><button onclick="adminDecision(\''+x.id+'\',\'rejected\')" style="flex:1;background:#ef4444;color:#fff;border:0;padding:10px;border-radius:999px">Reject</button></div>'
         + '</div>';
     }).join("");
@@ -1036,9 +1036,6 @@ function updateBumpyRing(){
   try{
     var v = window._myVerification || {};
     var loc = false;
-    if(v.location || v.locationVerified || v.location_verified || v.loc) loc = true;
-    try{ if(localStorage.getItem('locationVerified') || localStorage.getItem('location_verified')) loc = true; }catch(e){}
-    try{ if(document.body && document.body.innerText && document.body.innerText.includes('Verified in ')) loc = true; }catch(e){}
     try{ loc = !!localStorage.getItem('location_verified'); }catch(e){}
     if(window._locationVerified) loc = true;
     var pct = 0;
@@ -1062,25 +1059,7 @@ function updateBumpyRing(){
 }
 window.updateBumpyRing = updateBumpyRing;
 </script>
-
-
-
-<script>
-function fixSafe(){
-  try{
-    var flag = '🇬🇶';
-    var bt = document.body.innerText || '';
-    if(bt.includes('Cameroon') || bt.includes('Douala')) flag = '🇨🇲';
-    if(bt.includes('Nigeria') || bt.includes('Lagos')) flag = '🇳🇬';
-    if(bt.includes('Gabon')) flag = '🇬🇦';
-    document.body.innerHTML = document.body.innerHTML.split('🌍').join(flag);
-  }catch(e){}
-}
-setTimeout(fixSafe, 2000);
-</script>
 </body>
-
-
 </html>
 
 
