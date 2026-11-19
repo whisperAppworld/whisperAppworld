@@ -1213,7 +1213,7 @@ async function loadWhispers(){
       +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">'
       +'<div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#ec4899);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:16px;">'+letter+'</div>'
       +'<div><div style="color:white;font-weight:600;font-size:14px;">'+nm+'</div><div style="color:#888;font-size:12px;">'+time+' • Anonymous Whisper</div></div></div>'
-      +'<div style="color:#f1f1f1;font-size:16px;line-height:1.5;">'+(w.message||'')+'</div>'
+      +'<div style="color:#f1f1f1;font-size:16px;line-height:1.5;">'+(w.message||w.text||'')+'</div>'
       +'<div style="display:flex;gap:16px;margin-top:12px;color:#888;font-size:13px;"><span>♡ Like</span><span>↩ Reply</span><span>↗ Share</span></div></div>';
   }).join('') || '<p style="color:#aaa;text-align:center;padding:20px;">No whispers yet. Be the first!</p>';
 }
@@ -1223,7 +1223,7 @@ async function sendWhisper(){
   const name=nameInput?nameInput.value.trim():'Anonymous';
   const message=msgInput?msgInput.value.trim():'';
   if(!message){ alert('Please write a whisper first'); return; }
-  const {error}=await supabaseClient.from('whispers').insert([{name:name||'Anonymous',message:message}]);
+  const {error}=await supabaseClient.from('whispers').insert([{name:name||'Anonymous',message:message,text:message}]);
   if(error){ alert('Error: '+error.message); return; }
   if(msgInput) msgInput.value='';
   loadWhispers();
@@ -1254,7 +1254,7 @@ async function loadWhispers(){
     var nm=(w.name||'').trim()||'Anonymous';
     var letter=nm.charAt(0).toUpperCase();
     var time=new Date(w.created_at).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
-    return '<div style="background:#1e1e1e;border:1px solid #2d2d2d;border-radius:16px;padding:16px;margin:12px 0;"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;"><div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#ec4899);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;">'+letter+'</div><div><div style="color:white;font-weight:600;font-size:14px;">'+nm+'</div><div style="color:#888;font-size:12px;">'+time+' • Anonymous Whisper</div></div></div><div style="color:#f1f1f1;font-size:16px;line-height:1.5;">'+(w.message||'')+'</div></div>';
+    return '<div style="background:#1e1e1e;border:1px solid #2d2d2d;border-radius:16px;padding:16px;margin:12px 0;"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;"><div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#ec4899);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;">'+letter+'</div><div><div style="color:white;font-weight:600;font-size:14px;">'+nm+'</div><div style="color:#888;font-size:12px;">'+time+' • Anonymous Whisper</div></div></div><div style="color:#f1f1f1;font-size:16px;line-height:1.5;">'+(w.message||w.text||'')+'</div></div>';
   }).join('');
 }
 async function sendWhisper(){
@@ -1264,7 +1264,7 @@ async function sendWhisper(){
   var message=textEl?textEl.value.trim():'';
   if(!message){ alert('Please write a whisper first'); return; }
   if(!window.supabase){ alert('Supabase not loaded - refresh page'); return; }
-  var r=await window.supabase.from('whispers').insert([{name:name||'Anonymous',message:message}]);
+  var r=await window.supabase.from('whispers').insert([{name:name||'Anonymous',message:message,text:message}]);
   if(r.error){ alert('Error: '+r.error.message); return; }
   if(textEl) textEl.value='';
   alert('Whisper sent! ✅');
