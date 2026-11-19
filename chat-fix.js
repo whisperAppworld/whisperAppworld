@@ -485,3 +485,14 @@ document.addEventListener("DOMContentLoaded",fixSetup); fixSetup();
   obs.observe(document.body, {childList:true, subtree:true});
   setInterval(function(){ killWhisper(); killCall(); }, 1000);
 })();
+
+// HEADER_BELL_FIX_V2 - hide Messages h2 + top-bell ONLY inside a chat
+(function(){
+  setInterval(function(){
+    var inChat = !!(window.currentChatWith);
+    var bell = document.getElementById("top-bell");
+    if(bell) bell.style.display = inChat ? "none" : "";
+    var h2 = document.querySelector("#tab-messages > h2");
+    if(h2) h2.style.display = inChat ? "none" : "";
+  }, 500);
+})();
