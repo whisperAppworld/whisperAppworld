@@ -78,7 +78,15 @@ section.active{display:block}
 <p style="color:#666;font-size:15px;line-height:1.5;margin:0">Your profile is live! 🎉<br>Start exploring, like people near you and say hi.</p>
 <button onclick="closeWelcomeCard()" style="width:100%;margin-top:20px;background:linear-gradient(135deg,#ff5a8a,#a855f7);padding:14px;border-radius:50px;font-size:16px">Start Exploring ✨</button>
 </div></div>
-</div><div id="profile-sub-my" style="display:none"><div id="account-bar" style="display:none;background:#222;padding:12px 15px;border-radius:12px;margin:10px 0;color:white">Logged in as <b id="account-email"></b> <button onclick="logoutUser()" type="button" style="float:right;background:#333;color:white;border:none;padding:8px 14px;border-radius:8px;font-weight:bold">Logout</button><div style="clear:both"></div></div><div style="background:linear-gradient(135deg,#ff5a8a,#ff8a5c);border-radius:20px;padding:20px;color:white;margin-bottom:16px">
+</div><div id="profile-sub-my" style="display:none"><div id="account-bar" style="display:none;background:#222;padding:12px 15px;border-radius:12px;margin:10px 0;color:white">Logged in as <b id="account-email"></b> <button onclick="logoutUser()" type="button" style="float:right;background:#333;color:white;border:none;padding:8px 14px;border-radius:8px;font-weight:bold">Logout</button><div style="clear:both"></div></div><div style="background:#fff;border-radius:20px;padding:22px 16px 16px;color:#222;margin-bottom:14px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.08)">
+<div style="position:relative;width:180px;height:180px;margin:0 auto">
+<svg width="180" height="180" viewBox="0 0 180 180" style="transform:rotate(-90deg)"><circle cx="90" cy="90" r="82" fill="none" stroke="#e5e7eb" stroke-width="8"/><circle id="bumpy-ring-fill" cx="90" cy="90" r="82" fill="none" stroke="#2563eb" stroke-width="8" stroke-linecap="round" stroke-dasharray="515.2" stroke-dashoffset="515.2"/></svg>
+<div id="p-avatar-preview" style="position:absolute;inset:14px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:48px;font-weight:900;overflow:hidden">😊</div>
+<div id="bumpy-pct" style="position:absolute;right:2px;bottom:8px;background:#2563eb;color:#fff;font-size:13px;font-weight:800;padding:5px 9px;border-radius:999px;border:3px solid #fff">0%</div>
+</div>
+<div style="margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px"><span id="p-flag" style="font-size:28px">🌍</span><div id="p-header-name" style="font-size:26px;font-weight:900">Your Name</div><div id="p-header-age" style="font-size:22px;font-weight:800">, --</div><span id="bumpy-verified" style="display:none;color:#2563eb;font-size:22px">✓</span></div>
+<div id="bumpy-verif-msg" style="margin-top:6px;font-size:13px;color:#2563eb;font-weight:600">Complete verification to reach 100%</div>
+<div id="p-preview-name" style="display:none">Your Name</div>
 <div style="display:flex;align-items:center;gap:14px">
 <div id="p-avatar-preview" style="width:84px;height:84px;border-radius:50%;background:white;color:#ff5a8a;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;overflow:hidden;flex-shrink:0;border:3px solid white">😊</div>
 <div><div id="p-header-name" style="font-size:26px;font-weight:900;line-height:1.1">Your Name</div><div id="p-header-age" style="margin-top:6px;background:white;color:#ff5a8a;display:inline-block;padding:5px 12px;border-radius:20px;font-size:15px;font-weight:800">Age • --</div><div style="opacity:0.9;font-size:13px;margin-top:6px">Make it beautiful, get more matches ✨</div><div id="p-preview-name" style="display:none">Your Name • Age</div></div>
@@ -728,11 +736,11 @@ async function refreshVerification(){
     var pb=document.getElementById('v-photo-btn'); if(pb) pb.textContent=photoVerified?'Verified ✓':(photoPending?'Pending Review…':'Verify My Photo');
     var pct=(emailVerified?50:0)+(photoVerified?50:0);
     var bar=document.getElementById('v-progress-bar'); if(bar) bar.style.width=pct+'%';
-    window._myVerification = {email: !!emailVerified, photo: !!photoVerified}; try{ if(window.supabase && user){ await window.supabase.from('profiles').update({email_verified:!!emailVerified, photo_verified:!!photoVerified}).eq('user_id', user.id); } }catch(e){}
+    window.updateBumpyRing && window.updateBumpyRing(); window._myVerification = {email: !!emailVerified, photo: !!photoVerified}; try{ if(window.supabase && user){ await window.supabase.from('profiles').update({email_verified:!!emailVerified, photo_verified:!!photoVerified}).eq('user_id', user.id); } }catch(e){}
     try{ var _mp = JSON.parse(localStorage.getItem('my_profile')||'{}'); if(_mp && _mp.name){ _mp.email_verified = !!emailVerified; _mp.photo_verified = !!photoVerified; localStorage.setItem('my_profile', JSON.stringify(_mp)); var _al = JSON.parse(localStorage.getItem('all_profiles')||'[]'); var _f = _al.find(function(x){return x && x.name===_mp.name;}); if(_f){ _f.email_verified=!!emailVerified; _f.photo_verified=!!photoVerified; localStorage.setItem('all_profiles', JSON.stringify(_al)); } } }catch(e){}
     renderBadges(emailVerified, photoVerified);
   }
-  window.refreshVerification=refreshVerification;
+  var _oldRefresh = refreshVerification; refreshVerification = async function(){ var r = await _oldRefresh(); window.updateBumpyRing && window.updateBumpyRing(); return r; }; window.refreshVerification=refreshVerification;
   document.addEventListener('DOMContentLoaded',()=>setTimeout(refreshVerification,800));
 })();
 </script>
@@ -1022,7 +1030,36 @@ function renderLocalLangs(){ var c=document.getElementById('p-nationality'); var
 function toggleLocalLang(btn){ var inp=document.getElementById('p-language'); if(!inp) return; var cur=(inp.value||'').split(',').map(function(s){return s.trim()}).filter(Boolean); var v=btn.textContent.trim(); var i=cur.indexOf(v); if(i>=0){cur.splice(i,1);btn.style.background='#ffeef3';btn.style.color='#222';btn.style.borderColor='#ff8fab';}else{cur.push(v);btn.style.background='#ff5a8a';btn.style.color='white';} inp.value=cur.join(', '); }
 document.addEventListener('DOMContentLoaded', function(){ populateCountries(); renderLocalLangs(); var s=document.getElementById('p-nationality'); if(s) s.addEventListener('change', renderLocalLangs); var l=document.getElementById('p-location'); if(l) l.addEventListener('input', renderLocalLangs); });
 </script>
-<script src="calls.js?v=6"></script></body>
+<script src="calls.js?v=6"></script>
+<script>
+function updateBumpyRing(){
+  try{
+    var v = window._myVerification || {};
+    var loc = false;
+    try{ loc = !!localStorage.getItem('location_verified'); }catch(e){}
+    if(window._locationVerified) loc = true;
+    var pct = 0;
+    if(v.email) pct += 30;
+    if(v.photo) pct += 40;
+    if(loc) pct += 30;
+    var fill = document.getElementById('bumpy-ring-fill');
+    var txt = document.getElementById('bumpy-pct');
+    var msg = document.getElementById('bumpy-verif-msg');
+    var tick = document.getElementById('bumpy-verified');
+    if(fill) fill.style.strokeDashoffset = 515.2 * (1 - pct/100);
+    if(txt) txt.textContent = pct + '%';
+    if(tick) tick.style.display = pct===100 ? 'inline' : 'none';
+    if(msg){
+      if(pct===100) msg.textContent = 'Fully verified - 100%';
+      else if(!v.email) msg.textContent = 'Verify your email to reach ' + (pct+30) + '%';
+      else if(!v.photo) msg.textContent = 'Verify your photo to reach ' + (pct+40) + '%';
+      else if(!loc) msg.textContent = 'Verify your location to reach 100%';
+    }
+  }catch(e){}
+}
+window.updateBumpyRing = updateBumpyRing;
+</script>
+</body>
 </html>
 
 
