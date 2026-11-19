@@ -1198,6 +1198,38 @@ const SUPABASE_URL = 'https://jztfakvawduanyovbbkt.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_Xgea70sY3vlxZQD0PTWFYQ_ySQN2K4C';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 </script>
+
+<script>
+async function loadWhispers(){
+  const list=document.getElementById('whisper-list');
+  if(!list) return;
+  const {data,error}=await supabaseClient.from('whispers').select('*').order('created_at',{ascending:false}).limit(50);
+  if(error){ list.innerHTML='<p style="color:white">Error loading: '+error.message+'</p>'; return; }
+  list.innerHTML=(data||[]).map(w=>'<div style="background:#222;color:white;padding:12px;border-radius:12px;margin:10px 0;"><b>'+(w.name||'Anonymous')+'</b><br>'+(w.message||'')+'</div>').join('') || '<p style="color:#aaa">No whispers yet. Be the first!</p>';
+}
+async function sendWhisper(){
+  const nameInput=document.querySelector('input[placeholder*="Your name"]');
+  const msgInput=document.querySelector('textarea[placeholder*="whisper"], input[placeholder*="whisper"]');
+  const name=nameInput?nameInput.value.trim():'Anonymous';
+  const message=msgInput?msgInput.value.trim():'';
+  if(!message){ alert('Please write a whisper first'); return; }
+  const {error}=await supabaseClient.from('whispers').insert([{name:name||'Anonymous',message:message}]);
+  if(error){ alert('Error: '+error.message); return; }
+  if(msgInput) msgInput.value='';
+  loadWhispers();
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const btn=[...document.querySelectorAll('button')].find(b=>b.textContent.includes('Send Whisper'));
+  if(btn) btn.onclick=sendWhisper;
+  if(!document.getElementById('whisper-list')){
+    const div=document.createElement('div');
+    div.id='whisper-list';
+    div.style.padding='0 16px';
+    if(btn) btn.parentNode.insertBefore(div, btn.nextSibling);
+  }
+  loadWhispers();
+});
+</script>
 </body>
 </html>
 
