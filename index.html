@@ -27,6 +27,7 @@ section.active{display:block}
 #tab-discover #map-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:none;flex-direction:column;padding:12px}#map-modal.open{display:flex}#map-modal #map{flex:1;width:100%;height:auto !important;min-height:0}.swipe-card{background:#1a1a1a;border-radius:22px;overflow:hidden;margin:12px 0;box-shadow:0 12px 35px rgba(0,0,0,.55);border:1px solid #2a2a2a}.swipe-card .photo img{width:100%;height:100%;object-fit:cover;display:block}.swipe-card .photo{height:440px;background:linear-gradient(135deg,#ff5a8a,#ff8a5c);display:flex;align-items:center;justify-content:center;font-size:110px}.swipe-card .info{padding:16px}.swipe-card .info h3{margin:0;font-size:26px}.swipe-card .info p{margin:6px 0;color:#bbb}.swipe-actions{display:flex;gap:12px;padding:0 16px 16px}.swipe-actions button{flex:1;padding:16px;font-size:18px;border-radius:50px;font-weight:800}.swipe-actions{align-items:center}.btn-pass{background:#333 !important}.btn-like{background:linear-gradient(135deg,#ff5a8a,#ff8a5c) !important;box-shadow:0 6px 20px rgba(255,90,138,.5);transform:scale(1.08)}.counter{margin-bottom:8px}
 .counter{background:#ff5a8a;padding:10px;border-radius:10px;text-align:center;font-weight:bold}
 #verification-panel h3, .v-panel h3{color:#111827 !important} #verification-panel, .v-panel{color:#111827 !important} #verification-panel .sub, .v-panel .sub{color:#4b5563 !important}
+.btn-pass:active{background:#555 !important;transform:scale(0.95);} .btn-pass{transition:all 0.15s;}
 </style><link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'>
 </head>
 <body>
@@ -257,7 +258,17 @@ function countryFlag(c){var m={'france':'🇫🇷','spain':'🇪🇸','equatoria
 function getVerifiedFor(name){ try{ var deck=null; try{ deck = (typeof getDeck==='function') ? getDeck() : null; }catch(e){} if(deck){ var fd=deck.find(function(x){return x&&x.name===name;}); if(fd && (fd.email_verified||fd.photo_verified)) return {email:!!fd.email_verified, photo:!!fd.photo_verified}; } var all=JSON.parse(localStorage.getItem('all_profiles')||'[]'); var f=all.find(function(x){return x&&x.name===name;}); if(!f) return null; return {email:!!f.email_verified, photo:!!f.photo_verified}; }catch(e){ return null; } }
 function badgesHtmlFor(name){ var v=getVerifiedFor(name); if(!v||(!v.email&&!v.photo)) return ''; var s='<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">'; if(v.email) s+='<span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:800">Email Verified</span>'; if(v.photo) s+='<span style="background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:800">📸 Photo Verified</span>'; return s+'</div>'; }
 
-window._swipePhotoIdx=0; window._swipePhotoFor=null; function nextSwipePhoto(){ var photos=window._swipePhotos||[]; if(!photos.length) return; window._swipePhotoIdx=((window._swipePhotoIdx||0)+1)%photos.length; var img=document.querySelector('#swipe-card .photo img'); if(img){ img.src=photos[window._swipePhotoIdx]; } var dots=document.querySelectorAll('#swipe-card .photo div span'); dots.forEach(function(s,i){ s.style.color=(i===window._swipePhotoIdx?'#fff':'rgba(255,255,255,.4)'); }); } function passPerson(){window._swipePhotoIdx=0; swipeIdx++;renderSwipe();}
+window._swipePhotoIdx=0; window._swipePhotoFor=null; function nextSwipePhoto(){ var photos=window._swipePhotos||[]; if(!photos.length) return; window._swipePhotoIdx=((window._swipePhotoIdx||0)+1)%photos.length; var img=document.querySelector('#swipe-card .photo img'); if(img){ img.src=photos[window._swipePhotoIdx]; } var dots=document.querySelectorAll('#swipe-card .photo div span'); dots.forEach(function(s,i){ s.style.color=(i===window._swipePhotoIdx?'#fff':'rgba(255,255,255,.4)'); }); } function passPerson(){
+  try{
+    var btn=document.querySelector('.btn-pass');
+    if(btn){ btn.style.background='#555 !important'; btn.style.transform='scale(0.95)'; setTimeout(function(){ btn.style.background=''; btn.style.transform=''; },200); }
+    window._swipePhotoIdx=0; swipeIdx++;
+    // If we are past the end, loop back to start so Pass never gets stuck
+    if(window._swipeList && swipeIdx>=window._swipeList.length){ swipeIdx=0; }
+    if(typeof renderSwipe==='function') renderSwipe();
+    else console.log('renderSwipe missing, swipeIdx=', swipeIdx);
+  }catch(e){ console.log('passPerson error', e.message); alert('Pass error: '+e.message); }
+}
 function openMap(){document.getElementById('map-modal').classList.add('open');setTimeout(function(){initMap();if(window._map)window._map.invalidateSize();},100);}
 function closeMap(){document.getElementById('map-modal').classList.remove('open');}
 
@@ -1279,26 +1290,7 @@ document.addEventListener('click', function(e){
 });
 setTimeout(safeLoadWhispers, 1000);
 
-// SAFE PASS BUTTON FIX - find Pass button and make it show next profile
-function fixPass(){
-  var btns=[...document.querySelectorAll('button')];
-  var pass=btns.find(b=>b.textContent.trim()==='Pass');
-  if(!pass) return;
-  console.log('Pass found');
-  pass.style.opacity='1';
-  pass.addEventListener('click', function(){
-    pass.style.background='#333';
-    setTimeout(()=>{ pass.style.background=''; }, 200);
-    // Try to call existing next-profile functions if they exist
-    if(window.nextProfile) window.nextProfile();
-    else if(window.showNext) window.showNext();
-    else if(window.nextCard) window.nextCard();
-    else if(window.loadNextProfile) window.loadNextProfile();
-    else { console.log('No next function found - Pass clicked'); }
-  });
-}
-setTimeout(fixPass, 1000);
-document.addEventListener('click', function(){ setTimeout(fixPass, 500); });
+// Pass uses real passPerson() - fixPass removed
 </script>
 </body>
 </html>
