@@ -1292,6 +1292,78 @@ setTimeout(safeLoadWhispers, 1000);
 
 // Pass uses real passPerson() - fixPass removed
 </script>
+
+<style>
+#whisperFab{position:fixed;bottom:90px;right:18px;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#ec4899);color:white;font-size:30px;border:none;box-shadow:0 8px 20px rgba(0,0,0,0.5);z-index:9999;cursor:pointer;display:none}
+#whisperFormBox{display:none;background:#1a1a1a;border:1px solid #2d2d2d;border-radius:16px;padding:16px;margin:12px 0}
+#whisperFormBox.show{display:block}
+</style>
+<button id="whisperFab" onclick="toggleWhisperForm(true)">+</button>
+<script>
+// PROFESSIONAL WHISPER UI
+function toggleWhisperForm(show){
+  var nick=document.querySelector('input[placeholder*="Nickname"]');
+  var msg=document.querySelector('textarea[placeholder*="whisper"], input[placeholder*="whisper"]');
+  var sendBtn=[...document.querySelectorAll('button')].find(b=>b.textContent.includes('Send Whisper'));
+  var fab=document.getElementById('whisperFab');
+  if(show){
+    if(nick) nick.style.display='block';
+    if(msg) msg.style.display='block';
+    if(sendBtn) sendBtn.style.display='block';
+    if(fab) fab.style.display='none';
+    if(nick) nick.focus();
+  } else {
+    if(nick) nick.style.display='none';
+    if(msg) msg.style.display='none';
+    if(sendBtn) sendBtn.style.display='none';
+    // Only show + when on Whisper tab
+    var whisperTab=document.getElementById('tab-whisper') || document.querySelector('[data-tab="whisper"]');
+    var isWhisperVisible = true;
+    if(whisperTab && whisperTab.style.display==='none') isWhisperVisible=false;
+    if(fab) fab.style.display = isWhisperVisible ? 'block' : 'none';
+  }
+}
+function updateWhisperFab(){
+  var fab=document.getElementById('whisperFab');
+  if(!fab) return;
+  // Show + only if Whisper tab is active (Whisper text in bottom nav is pink/active)
+  var navBtns=[...document.querySelectorAll('button, div')].filter(e=>e.textContent.trim()==='Whisper');
+  var active = navBtns.some(e=>e.style.color.includes('255') || e.className.includes('active') || getComputedStyle(e).color.includes('236'));
+  // Simpler: if whisper-list is visible on screen, show FAB
+  var list=document.getElementById('whisper-list');
+  if(list && list.offsetParent!==null){ fab.style.display='block'; }
+}
+// Init: hide form, show + and list
+setTimeout(function(){
+  toggleWhisperForm(false);
+  updateWhisperFab();
+  if(typeof safeLoadWhispers==='function') safeLoadWhispers();
+}, 800);
+// When any tab is tapped, update FAB
+document.addEventListener('click', function(e){
+  setTimeout(function(){
+    var list=document.getElementById('whisper-list');
+    var fab=document.getElementById('whisperFab');
+    if(!fab || !list) return;
+    // If whisper-list is visible, show +, else hide +
+    if(list.offsetParent!==null){ 
+      // Check if form is open - if open, hide FAB
+      var nick=document.querySelector('input[placeholder*="Nickname"]');
+      if(nick && nick.style.display==='block'){ fab.style.display='none'; }
+      else { fab.style.display='block'; }
+    } else { fab.style.display='none'; }
+  }, 300);
+});
+// After sending, hide form again - hook into Send button
+setTimeout(function(){
+  var sendBtn=[...document.querySelectorAll('button')].find(b=>b.textContent.includes('Send Whisper'));
+  if(sendBtn){
+    sendBtn.addEventListener('click', function(){
+      setTimeout(function(){ toggleWhisperForm(false); if(typeof safeLoadWhispers==='function') safeLoadWhispers(); }, 1000);
+    });
+  }
+}, 1000);
+</script>
 </body>
 </html>
 
