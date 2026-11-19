@@ -1282,7 +1282,33 @@ document.addEventListener('DOMContentLoaded',function(){
 });
 </script>
 
-<button id="whisperFab" onclick="document.getElementById('whisperForm').style.display='block';document.getElementById('whisperFab').style.display='none'" style="position:fixed;bottom:90px;right:18px;width:60px;height:60px;border-radius:50%;background:#ff2e63;color:white;font-size:32px;border:none;z-index:999;box-shadow:0 4px 15px rgba(0,0,0,0.4)">+</button>
+<button id="whisperFab" style="display:none" onclick="document.getElementById('whisperForm').style.display='block';document.getElementById('whisperFab').style.display='none'" style="position:fixed;bottom:90px;right:18px;width:60px;height:60px;border-radius:50%;background:#ff2e63;color:white;font-size:32px;border:none;z-index:999;box-shadow:0 4px 15px rgba(0,0,0,0.4)">+</button>
+
+<script>
+function updateFab(){
+  var fab=document.getElementById('whisperFab');
+  var form=document.getElementById('whisperForm');
+  if(!fab) return;
+  // Check if Whisper tab / section is visible
+  var whisperVisible = document.body.innerHTML.includes('Whisper') && (
+    document.querySelector('[data-tab="whisper"]')?.classList.contains('active') ||
+    document.getElementById('whisperTab')?.style.display !== 'none' ||
+    document.getElementById('whisperSection')?.style.display !== 'none'
+  );
+  // Simpler: check URL hash or active button text
+  var activeBtn = document.querySelector('.active');
+  var isWhisper = activeBtn && activeBtn.textContent.includes('Whisper');
+  if(isWhisper){
+    if(form && form.style.display!=='block') fab.style.display='block';
+  } else {
+    fab.style.display='none';
+    if(form) form.style.display='none';
+  }
+}
+// Run on every click on bottom nav
+document.addEventListener('click', function(){ setTimeout(updateFab, 50); });
+setTimeout(updateFab, 500);
+</script>
 </body>
 </html>
 
