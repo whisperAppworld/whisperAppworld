@@ -1063,40 +1063,23 @@ function updateBumpyRing(){
 window.updateBumpyRing = updateBumpyRing;
 </script>
 
+
+
 <script>
-function fixProfileExtras(){
+function fixSafe(){
   try{
-    var bodyText = document.body.innerText || '';
-    // 1. Flag: replace globe with country flag
     var flag = '🇬🇶';
-    if(bodyText.includes('Cameroon') || bodyText.includes('Douala') || bodyText.includes('Yaounde')) flag = '🇨🇲';
-    if(bodyText.includes('Nigeria') || bodyText.includes('Lagos') || bodyText.includes('Abuja')) flag = '🇳🇬';
-    if(bodyText.includes('Gabon') || bodyText.includes('Libreville')) flag = '🇬🇦';
-    if(bodyText.includes('Malabo') || bodyText.includes('Equatorial Guinea') || bodyText.includes('Guinea Ecuatorial')) flag = '🇬🇶';
-    document.querySelectorAll('*').forEach(function(el){
-      if(el.childNodes.length===1 && el.textContent.trim()==='🌍'){ el.textContent = flag; }
-      if(el.textContent && el.textContent.includes('🌍') && el.textContent.includes('Michael')){ el.innerHTML = el.innerHTML.replace('🌍', flag); }
-    });
-    // 2. Hide placeholder if real name exists
-    var hasRealName = bodyText.includes('Michael Darlington') || !bodyText.includes('Ton nom');
-    if(hasRealName){
-      document.querySelectorAll('*').forEach(function(el){
-        var txt = (el.textContent||'').trim();
-        if(txt==='Ton nom' || txt==='Age \u2022 --' || txt.includes('Make it beautiful')){
-          if(el.children.length===0) el.style.display='none';
-        }
-      });
-    }
-    // 3. Email badge green
-    document.querySelectorAll('*').forEach(function(el){
-      if((el.textContent||'').trim()==='EMAIL VERIFIED'){ el.style.background='#16a34a'; el.style.color='#fff'; el.style.borderColor='#16a34a'; }
-    });
+    var bt = document.body.innerText || '';
+    if(bt.includes('Cameroon') || bt.includes('Douala')) flag = '🇨🇲';
+    if(bt.includes('Nigeria') || bt.includes('Lagos')) flag = '🇳🇬';
+    if(bt.includes('Gabon')) flag = '🇬🇦';
+    document.body.innerHTML = document.body.innerHTML.split('🌍').join(flag);
   }catch(e){}
 }
-setInterval(fixProfileExtras, 1000);
-window.addEventListener('load', fixProfileExtras);
+setTimeout(fixSafe, 2000);
 </script>
 </body>
+
 
 </html>
 
