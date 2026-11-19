@@ -1364,6 +1364,72 @@ setTimeout(function(){
   }
 }, 1000);
 </script>
+
+<style>
+.whisper-field-hidden{display:none !important}
+</style>
+<script>
+// FIX WHISPER FAB - enforce every 400ms, no flashing
+window.whisperFormOpen=false;
+function isOnWhisperTab(){
+  var list=document.getElementById('whisper-list');
+  if(!list) return false;
+  // Walk up parents - if any parent is display:none, we are NOT on Whisper
+  var el=list;
+  while(el && el!==document.body){
+    if(el.style && el.style.display==='none') return false;
+    if(window.getComputedStyle(el).display==='none') return false;
+    el=el.parentElement;
+  }
+  return true;
+}
+function markWhisperFields(){
+  var nick=document.querySelector('input[placeholder*="Nickname"]');
+  var msg=document.querySelector('textarea, input[placeholder*="Write"], input[placeholder*="whisper"], input[placeholder*="Whisper"]');
+  // Find msg box more broadly: the textarea/input right after nickname
+  if(nick && !msg){
+    var all=document.querySelectorAll('input, textarea');
+    for(var i=0;i<all.length;i++){ if(all[i]===nick && all[i+1]){ msg=all[i+1]; break; } }
+  }
+  var sendBtn=[...document.querySelectorAll('button')].find(b=>b.textContent.includes('Send Whisper'));
+  [nick,msg,sendBtn].forEach(function(e){ if(e) e.classList.add('whisper-field'); });
+  return {nick:nick, msg:msg, sendBtn:sendBtn};
+}
+function applyWhisperUI(){
+  var fab=document.getElementById('whisperFab');
+  if(fab){
+    // Remove duplicates - keep only first FAB
+    document.querySelectorAll('#whisperFab').forEach(function(f,i){ if(i>0) f.remove(); });
+  }
+  var f=markWhisperFields();
+  var onWhisper=isOnWhisperTab();
+  var fields=[f.nick,f.msg,f.sendBtn];
+  if(window.whisperFormOpen && onWhisper){
+    fields.forEach(function(e){ if(e) e.classList.remove('whisper-field-hidden'); });
+    if(fab) fab.style.display='none';
+  } else {
+    fields.forEach(function(e){ if(e) e.classList.add('whisper-field-hidden'); });
+    if(fab) fab.style.display = onWhisper ? 'block' : 'none';
+  }
+}
+function toggleWhisperForm(show){
+  window.whisperFormOpen=!!show;
+  applyWhisperUI();
+  if(show){
+    var nick=document.querySelector('input[placeholder*="Nickname"]');
+    if(nick) setTimeout(function(){ nick.focus(); },100);
+  }
+}
+// Enforce constantly so it cannot flash
+setInterval(applyWhisperUI, 400);
+setTimeout(applyWhisperUI, 500);
+// When Send is tapped, close form
+document.addEventListener('click', function(e){
+  if(e.target && e.target.textContent && e.target.textContent.includes('Send Whisper')){
+    setTimeout(function(){ window.whisperFormOpen=false; applyWhisperUI(); if(typeof safeLoadWhispers==='function') safeLoadWhispers(); }, 1000);
+  }
+});
+</script>
 </body>
 </html>
 
