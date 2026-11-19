@@ -92,7 +92,7 @@ section.active{display:block}
 </div>
 <div style="background:white;border-radius:18px;padding:16px;box-shadow:0 4px 20px rgba(0,0,0,0.08);margin-bottom:14px">
 <div style="font-weight:800;font-size:15px;margin-bottom:10px;color:#222">👤 About You</div>
-<input oninput="syncProfileHeader()" id="p-name" placeholder="Your name" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8;font-size:15px">
+<input oninput="syncProfileHeader()" id="p-name" placeholder="Nickname (optional) - leave empty for Anonymous" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8;font-size:15px">
 <div style="display:flex;gap:8px"><input oninput="syncProfileHeader()" id="p-age" type="number" placeholder="Age" style="flex:1;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><select id="p-gender" style="flex:1;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><option value="">Gender</option><option>Female</option><option>Male</option><option>Other</option></select></div>
 <input id="p-location" placeholder="Country - City e.g. Equatorial Guinea - Malabo" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8">
 <select id="p-looking" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><option value="">Looking for</option><option>Female</option><option>Male</option><option>Anyone</option></select><select id="p-relationship" style="width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #eee;background:#f8f8f8"><option value="">💍 Relationship status</option><option>Single</option><option>In a relationship</option><option>Engaged</option><option>Married</option><option>It's complicated</option><option>Prefer not to say</option></select>
@@ -152,7 +152,7 @@ function showProfileSub(n){
 
 <section id="tab-whisper">
 <h2>Whisper</h2>
-<input id="name" placeholder="Your name">
+<input id="name" placeholder="Nickname (optional) - leave empty for Anonymous">
 <textarea id="text" placeholder="Write a whisper..."></textarea>
 <button onclick="sendWhisper()">Send Whisper</button>
 <div id="list"></div>
@@ -1205,10 +1205,20 @@ async function loadWhispers(){
   if(!list) return;
   const {data,error}=await supabaseClient.from('whispers').select('*').order('created_at',{ascending:false}).limit(50);
   if(error){ list.innerHTML='<p style="color:white">Error loading: '+error.message+'</p>'; return; }
-  list.innerHTML=(data||[]).map(w=>'<div style="background:#222;color:white;padding:12px;border-radius:12px;margin:10px 0;"><b>'+(w.name||'Anonymous')+'</b><br>'+(w.message||'')+'</div>').join('') || '<p style="color:#aaa">No whispers yet. Be the first!</p>';
+  list.innerHTML=(data||[]).map(w=>{
+    const nm=(w.name||'').trim()||'Anonymous';
+    const letter=nm.charAt(0).toUpperCase();
+    const time=new Date(w.created_at).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+    return '<div style="background:#1e1e1e;border:1px solid #2d2d2d;border-radius:16px;padding:16px;margin:12px 0;box-shadow:0 4px 12px rgba(0,0,0,0.3);">'
+      +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">'
+      +'<div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#ec4899);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:16px;">'+letter+'</div>'
+      +'<div><div style="color:white;font-weight:600;font-size:14px;">'+nm+'</div><div style="color:#888;font-size:12px;">'+time+' • Anonymous Whisper</div></div></div>'
+      +'<div style="color:#f1f1f1;font-size:16px;line-height:1.5;">'+(w.message||'')+'</div>'
+      +'<div style="display:flex;gap:16px;margin-top:12px;color:#888;font-size:13px;"><span>♡ Like</span><span>↩ Reply</span><span>↗ Share</span></div></div>';
+  }).join('') || '<p style="color:#aaa;text-align:center;padding:20px;">No whispers yet. Be the first!</p>';
 }
 async function sendWhisper(){
-  const nameInput=document.querySelector('input[placeholder*="Your name"]');
+  const nameInput=document.querySelector('input[placeholder*="Nickname (optional) - leave empty for Anonymous"]');
   const msgInput=document.querySelector('textarea[placeholder*="whisper"], input[placeholder*="whisper"]');
   const name=nameInput?nameInput.value.trim():'Anonymous';
   const message=msgInput?msgInput.value.trim():'';
