@@ -1050,6 +1050,48 @@ function openBuyLikes(){ var m=document.getElementById('buy-likes-modal'); if(m)
 function closeBuyLikes(){ var m=document.getElementById('buy-likes-modal'); if(m) m.style.display='none'; }
 function buyLikes(n){ try{ var e=parseInt(localStorage.getItem('whisper_extraLikes')||'0'); localStorage.setItem('whisper_extraLikes', String(e+n)); updateHeaderCounts(); }catch(e){} closeBuyLikes(); alert('✅ +'+n+' Likes added!'); }
 </script>
+
+<!-- MONETIZATION CARD -->
+<div id="mono-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:10001;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto">
+  <div style="background:#141414;border-radius:22px;padding:20px;width:100%;max-width:360px;border:1px solid #FF2E88;margin-top:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">💎 Whisper Premium</h2><button onclick="closeMono()" style="background:#333;padding:6px 12px;border-radius:999px">✕</button></div>
+    <p style="color:#aaa;font-size:13px;margin:6px 0 14px">Unlock more matches, more likes, more chats.</p>
+
+    <div style="background:#1f1f1f;border-radius:16px;padding:14px;margin-bottom:12px">
+      <b>🪙 Coins</b><p style="color:#aaa;font-size:12px;margin:4px 0">For Super Likes (5 coins each)</p>
+      <button onclick="buyCoins(50)" style="width:100%;margin:4px 0;background:#2a2a2a">🪙 50 Coins - $0.99</button>
+      <button onclick="buyCoins(200)" style="width:100%;margin:4px 0;background:#3a2f00;border:1px solid #FFD700">🪙 200 Coins - $2.99 ⭐ Best</button>
+      <button onclick="buyCoins(1000)" style="width:100%;margin:4px 0;background:#2a2a2a">🪙 1000 Coins - $9.99</button>
+    </div>
+
+    <div style="background:#1f1f1f;border-radius:16px;padding:14px;margin-bottom:12px">
+      <b>❤️ Likes</b><p style="color:#aaa;font-size:12px;margin:4px 0">Keep swiping when you run out</p>
+      <button onclick="buyLikes(30)" style="width:100%;margin:4px 0;background:#2a2a2a">❤️ +30 Likes - $0.99</button>
+      <button onclick="buyLikes(100)" style="width:100%;margin:4px 0;background:#3a1a2a;border:1px solid #FF2E88">❤️ +100 Likes - $2.99 ⭐ Best</button>
+      <button onclick="buyLikes(9999)" style="width:100%;margin:4px 0;background:#2a2a2a">❤️ Unlimited Today - $4.99</button>
+    </div>
+
+    <div style="background:linear-gradient(135deg,#FFD700,#FF2E88);border-radius:16px;padding:16px;text-align:center;color:#000">
+      <b style="font-size:17px">👑 VIP - $9.99 / month</b><p style="font-size:13px;margin:6px 0">Unlimited Likes • 200 Coins / month<br>See who liked you • Priority matches</p>
+      <button onclick="buyVIP()" style="width:100%;background:#000;color:#FFD700;font-weight:900">👑 Go VIP</button>
+      <div id="vip-status" style="font-size:12px;margin-top:6px"></div>
+    </div>
+  </div>
+</div>
+<script>
+function openMono(){ var m=document.getElementById('mono-modal'); if(m){ m.style.display='flex'; var s=document.getElementById('vip-status'); if(s) s.textContent = localStorage.getItem('whisper_vip')==='1' ? '✅ You are VIP!' : ''; } }
+function closeMono(){ var m=document.getElementById('mono-modal'); if(m) m.style.display='none'; }
+function buyVIP(){ localStorage.setItem('whisper_vip','1'); try{ var e=parseInt(localStorage.getItem('whisper_extraLikes')||'0'); localStorage.setItem('whisper_extraLikes', String(e+9999)); var c=parseInt(localStorage.getItem('whisper_coins')||'10'); localStorage.setItem('whisper_coins', String(c+200)); updateHeaderCounts(); }catch(e){} alert('👑 Welcome to VIP! Unlimited Likes + 200 Coins added.'); openMono(); }
+</script>
+
+<script>
+document.addEventListener('click', function(e){
+  var cEl=document.getElementById('coins-count');
+  var lEl=document.getElementById('likes-count');
+  if(cEl && (e.target===cEl || cEl.contains(e.target))) openMono();
+  if(lEl && (e.target===lEl || lEl.contains(e.target))) openMono();
+});
+</script>
 </body>
 </html>
 
