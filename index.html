@@ -1275,6 +1275,32 @@ setTimeout(safeLoadWhispers, 1000);
 .btn-pass.pass-flash{ background:#ffffff !important; color:#000 !important; transform:scale(0.95) !important; }
 </style>
 
+
+<script>
+async function sendWhisper(){
+  var nameEl=document.querySelector('#tab-whisper #name');
+  var msgEl=document.querySelector('#tab-whisper #text');
+  var name=nameEl ? nameEl.value.trim() : '';
+  var message=msgEl ? msgEl.value.trim() : '';
+  if(!message){ alert('Please write a whisper first'); return; }
+  if(!name) name='Anonymous';
+  try{
+    if(window.supabaseClient){
+      var r=await supabaseClient.from('whispers').insert([{name:name,message:message,text:message}]);
+      if(r.error) throw r.error;
+    } else {
+      alert('Supabase not ready, try again');
+      return;
+    }
+  }catch(e){ alert('Could not send: '+(e.message||e)); return; }
+  if(msgEl) msgEl.value='';
+  var form=document.getElementById('whisperForm');
+  var fab=document.getElementById('whisperFab');
+  if(form) form.style.display='none';
+  if(fab) fab.style.display='block';
+  if(typeof safeLoadWhispers==='function') safeLoadWhispers();
+}
+</script>
 </body>
 </html>
 
