@@ -166,6 +166,21 @@ window.fixBlock=fixBlock;
 async function sendMsg(){
   var inp=document.getElementById('msg-input'); var text=inp.value.trim();
   if(!text) return; if(!window.currentChatWith) return;
+  // BLOCK RESTRICTED USERS
+  try{
+    var _me='';
+    try{ _me=JSON.parse(localStorage.getItem('my_profile')||'{}').name||''; }catch(e){}
+    if(!_me && typeof whisperCurrentName==='function') _me=whisperCurrentName();
+    var _r=JSON.parse(localStorage.getItem('whisper_restricted')||'[]');
+    if(_me && _r.includes(_me)){ alert('Your account is restricted. Please re-verify to send messages.'); return; }
+    if(window.supabase){
+      var _u=(await window.supabase.auth.getUser()).data.user;
+      if(_u){
+        var _q=await window.supabase.from('profiles').select('is_restricted').eq('user_id',_u.id).maybeSingle();
+        if(_q && _q.data && _q.data.is_restricted){ alert('Your account is restricted. Please re-verify to send messages.'); return; }
+      }
+    }
+  }catch(e){}
   var meId=await fixGetUid(); if(!meId){ alert('Please login first'); return; }
   if(!_fixOtherId){ await loadChat(); if(!_fixOtherId) return; }
   var err=(await window.supabase.from('chat_messages').insert([{sender_id:meId, receiver_id:_fixOtherId, content:text}])).error;
