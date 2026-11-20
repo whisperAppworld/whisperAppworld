@@ -437,7 +437,7 @@ async function refreshAuthUI(){
   }catch(e){}
 }
 document.addEventListener('DOMContentLoaded', function(){ setTimeout(refreshAuthUI, 500); });
-if(window.supabase) window.supabase.auth.onAuthStateChange(function(e){ if(e==='SIGNED_OUT'){ clearLocalProfileAndForm(); refreshAuthUI(); return; } refreshAuthUI(); if(e==='SIGNED_IN'||e==='INITIAL_SESSION') loadMyProfileFromCloud(); });
+if(window.supabase) window.supabase.auth.onAuthStateChange(async function(e){ if(e==='SIGNED_OUT'){ clearLocalProfileAndForm(); refreshAuthUI(); return; } refreshAuthUI(); if(e==='SIGNED_IN'||e==='INITIAL_SESSION'){ try{ await loadMyProfileFromCloud(); }catch(err){} try{ await getRestriction(); }catch(err){} try{ await refreshVerification(); }catch(err){} } });
 </script>
 <script src="app.js?v=104"></script>
 <script src="chat-fix.js?v=21"></script>
@@ -766,7 +766,7 @@ async function refreshVerification(){
     renderBadges(emailVerified, photoVerified);
   }
   var _oldRefresh = refreshVerification; refreshVerification = async function(){ var r = await _oldRefresh(); window.updateBumpyRing && window.updateBumpyRing(); return r; }; window.refreshVerification=refreshVerification;
-  document.addEventListener('DOMContentLoaded',async ()=>{ try{ await window.supabase.auth.getSession(); }catch(e){} await getRestriction(); refreshVerification(); });
+  document.addEventListener('DOMContentLoaded',async ()=>{ try{ await window.supabase.auth.getSession(); }catch(e){} await getRestriction(); refreshVerification(); setTimeout(function(){ try{ var _es=document.getElementById('v-email-status'); if(_es && /CHECKING/i.test(_es.textContent||'')) refreshVerification(); }catch(e){} }, 3000); });
 })();
 </script>
 
