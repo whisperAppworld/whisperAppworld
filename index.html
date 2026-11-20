@@ -1333,7 +1333,7 @@ async function getRestriction(force){
           var q=await window.supabase.from('profiles').select('is_restricted,restriction_reason,restriction_note').eq('user_id',u.id).maybeSingle();
           if(q && q.data && q.data.is_restricted){
             window.__isRestricted=true; window.__restrictionNote=q.data.restriction_note||''; window.__restrictionReason=q.data.restriction_reason||'';
-            try{ if(me && !r.includes(me)){ r.push(me); localStorage.setItem('whisper_restricted',JSON.stringify(r)); } }catch(e){}
+            /* do not write to local restricted list */
             return true;
           }
         }
@@ -1405,7 +1405,7 @@ try{
 }catch(e){}
 
 async function checkRestrictionNotice(){ try{ let me=whisperCurrentName(); let r=JSON.parse(localStorage.getItem('whisper_restricted')||'[]'); let isLocal=false; // localStorage ignored - Supabase only let supa=null; try{ if(window.supabase){ let u=(await window.supabase.auth.getUser()).data.user; if(u){ let q=await window.supabase.from('profiles').select('is_restricted,restriction_reason,restriction_note').eq('user_id',u.id).maybeSingle(); if(q&&q.data&&q.data.is_restricted) supa=q.data; } } }catch(e){} if(!isLocal && !supa) return; if(document.getElementById('restrictionBanner')) return; let msg=(supa?(supa.restriction_note||'Your account has been restricted by our team. Please re-verify your account to continue.'):'Your account has been restricted by our team. Please re-verify your account to continue.').replace(/by Admin/g,'by our team'); let reasonTxt=''; let b=document.createElement('div'); b.id='restrictionBanner'; b.innerHTML='<div style="position:fixed;top:0;left:0;right:0;z-index:99998;background:#7f1d1d;color:#fff;padding:12px 14px;font-size:13px;font-weight:700;text-align:center">⛔ '+msg+reasonTxt+'<div style="margin-top:8px"><button onclick="if(window.openPhotoVerification) openPhotoVerification(); else if(window.startVerification) startVerification(); else alert(\'Please go to Profile > Verify Photo to re-verify.\')" style="background:#fff;color:#7f1d1d;border:0;padding:8px 16px;border-radius:999px;font-weight:800">📸 Re-verify Now</button></div></div>'; document.body.prepend(b);
-  try{ let _me2=whisperCurrentName(); let _r2=JSON.parse(localStorage.getItem('whisper_restricted')||'[]'); if(_me2 && !_r2.includes(_me2)){ _r2.push(_me2); localStorage.setItem('whisper_restricted',JSON.stringify(_r2)); } }catch(e){}
+  /* never self-poison restricted list */
   try{ var _ps=document.getElementById('v-photo-status'); if(_ps){ _ps.textContent='RE-VERIFY REQUIRED'; _ps.className='v-status unverified'; } var _pb=document.getElementById('v-photo-btn'); if(_pb){ _pb.textContent='Re-verify My Photo'; _pb.style.background='#7f1d1d'; _pb.style.color='#fff'; } }catch(e){} }catch(e){} }
 (async function(){ await getRestriction(); if(window.__isRestricted===true){ applyRestrictionUI(); } if(typeof checkRestrictionNotice==='function') checkRestrictionNotice(); })();
 function dismissReport(i){ let all=JSON.parse(localStorage.getItem('whisper_reports')||'[]'); all.splice(i,1); localStorage.setItem('whisper_reports',JSON.stringify(all)); renderAdminReports(); }
