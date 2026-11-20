@@ -775,7 +775,7 @@ async function refreshVerification(){
   <div style="max-width:520px;margin:20px auto;background:#111;border:1px solid #333;border-radius:16px;padding:16px;color:#fff">
     <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">Admin - Photo Verification</h3><button onclick="closeAdmin()" style="background:#333;color:#fff;border:0;padding:6px 12px;border-radius:999px">Close</button></div>
     <p id="adminMsg" style="font-size:13px;color:#aaa"></p>
-    <div id="adminList"></div>
+    <div id="adminList"></div><h3 style="margin-top:20px">🚨 User Reports</h3><div id="reportsList"></div>
     <button onclick="loadAdmin()" style="margin-top:12px;background:#fff;color:#000;border:0;padding:10px 16px;border-radius:999px;width:100%">Refresh</button>
   </div>
 </div>
@@ -785,7 +785,7 @@ async function openAdmin(){
   var code = prompt("Enter admin code:");
   if(code !== ADMIN_CODE){ alert("Wrong code"); return; }
   document.getElementById("adminPanel").style.display = "block";
-  loadAdmin();
+  loadAdmin(); renderAdminReports();
 }
 function closeAdmin(){ document.getElementById("adminPanel").style.display = "none"; }
 async function loadAdmin(){
@@ -1312,18 +1312,8 @@ function renderAdminReports(){ let el=document.getElementById('reportsList'); if
 function dismissReport(i){ let all=JSON.parse(localStorage.getItem('whisper_reports')||'[]'); all.splice(i,1); localStorage.setItem('whisper_reports',JSON.stringify(all)); renderAdminReports(); }
 </script>
 
-<div id="adminReports" style="display:none;padding:16px">
-<h2>🚨 Reports - Admin</h2>
-<div id="reportsList"></div>
-<button onclick="document.getElementById('adminReports').style.display='none'" style="padding:10px 16px;border-radius:10px;background:#333;color:#fff;border:none;margin-top:10px">Close</button>
-</div>
 
-<script id="adminOpenJS">
-function openAdminReports(){ document.getElementById('adminReports').style.display='block'; renderAdminReports(); window.scrollTo(0,0); }
-// Hide blocked people from Discover - filter in card list
-(function(){ let old=window.renderDiscover; })();
-</script>
-<button id="btnAdminReports" onclick="openAdminReports()" style="position:fixed;bottom:90px;right:12px;z-index:9999;background:#ff3b30;color:#fff;border:none;padding:10px 14px;border-radius:999px;font-weight:800;box-shadow:0 4px 16px rgba(0,0,0,0.4)">🚨 Reports</button>
+
 </body>
 </html>
 
