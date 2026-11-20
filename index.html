@@ -738,7 +738,7 @@ async function refreshVerification(){
     try{
       if(window.supabase){
         var s=await window.supabase.auth.getUser();
-        var user=s.data && s.data.user;
+        var user=s.data && s.data.user; if(!user){ await new Promise(function(r){setTimeout(r,1200);}); try{ var s2=await window.supabase.auth.getUser(); user=s2.data && s2.data.user; }catch(e){} }
         if(user){
           emailVerified=!!user.email_confirmed_at;
           var q=await window.supabase.from('verification_requests').select('status').eq('user_id',user.id).eq('type','photo').order('created_at',{ascending:false}).limit(1);
@@ -751,13 +751,14 @@ async function refreshVerification(){
     }catch(e){}
     if(localStorage.getItem('verification_photo_pending')==='1' && !photoVerified) photoPending=true;
     try{ var _lp=JSON.parse(localStorage.getItem('my_profile')||'{}'); var _ls=document.getElementById('v-location-status'); if(_ls&&_lp.location_verified){ _ls.textContent='VERIFIED'; _ls.className='v-status verified'; } var _lc=document.getElementById('v-location-city'); if(_lc&&_lp.location_verified) _lc.textContent='Verified in '+(_lp.location_city||''); var _lb=document.getElementById('v-location-btn'); if(_lb&&_lp.location_verified) _lb.textContent='Verified ✓'; var _lc2=document.getElementById('v-location-status'); if(_lc2&&_lc2.parentElement&&_lp.location_verified){_lc2.parentElement.style.opacity='1';_lc2.parentElement.style.background='#dcfce7';} else if(_lc2&&_lc2.parentElement){_lc2.parentElement.style.background='';} }catch(e){}
-  try{ if(window.supabase){ var _lu=(await window.supabase.auth.getUser()).data.user; if(_lu){ var _lq=await window.supabase.from('profiles').select('location_verified,location_city,location_country').eq('user_id',_lu.id).maybeSingle(); if(_lq.data&&_lq.data.location_verified){ var _mp2=JSON.parse(localStorage.getItem('my_profile')||'{}'); _mp2.location_verified=true; _mp2.location_city=_lq.data.location_city||_mp2.location_city||''; _mp2.location_country=_lq.data.location_country||''; localStorage.setItem('my_profile', JSON.stringify(_mp2)); } } } }catch(e){}
+  try{ if(window.supabase){ var _lu=(await window.supabase.auth.getUser()).data.user; if(_lu){ var _lq=await window.supabase.from('profiles').select('location_verified,location_city,location_country').eq('user_id',_lu.id).maybeSingle(); if(_lq.data&&_lq.data.location_verified){ var _mp2=JSON.parse(localStorage.getItem('my_profile')||'{}'); _mp2.location_verified=true; _mp2.location_city=_lq.data.location_city||_mp2.location_city||''; _mp2.location_country=_lq.data.location_country||''; localStorage.setItem('my_profile', JSON.stringify(_mp2));
+  try{ var _ls2=document.getElementById('v-location-status'); if(_ls2){ _ls2.textContent='VERIFIED'; _ls2.className='v-status verified'; } var _lc3=document.getElementById('v-location-city'); if(_lc3) _lc3.textContent='Verified in '+(_lq.data.location_city||_mp2.location_city||''); var _lb2=document.getElementById('v-location-btn'); if(_lb2) _lb2.textContent='Verified ✓'; if(_ls2&&_ls2.parentElement){ _ls2.parentElement.style.opacity='1'; _ls2.parentElement.style.background='#dcfce7'; } }catch(e){} } } } }catch(e){}
   var es=document.getElementById('v-email-status'); if(es){ es.textContent=emailVerified?'VERIFIED':'NOT VERIFIED'; es.className='v-status '+(emailVerified?'verified':'unverified'); }
     var ec=document.getElementById('v-card-email'); if(ec) ec.classList.toggle('done', emailVerified);
     var ps=document.getElementById('v-photo-status'); if(ps){ ps.textContent=photoVerified?'VERIFIED':(photoPending?'PENDING REVIEW':'NOT VERIFIED'); ps.className='v-status '+(photoVerified?'verified':(photoPending?'pending':'unverified')); }
     var pc=document.getElementById('v-card-photo'); if(pc) pc.classList.toggle('done', photoVerified);
     var pb=document.getElementById('v-photo-btn'); if(pb) pb.textContent=photoVerified?'Verified ✓':(photoPending?'Pending Review…':'Verify My Photo');
-  try{ var _isR=(JSON.parse(localStorage.getItem('whisper_restricted')||'[]').includes(whisperCurrentName())); if(_isR){ if(ps){ ps.textContent='RE-VERIFY REQUIRED'; ps.className='v-status unverified'; } if(pb){ pb.textContent='Re-verify My Photo'; pb.style.background='#7f1d1d'; pb.style.color='#fff'; } } }catch(e){}
+  try{ var _isR=(JSON.parse(localStorage.getItem('whisper_restricted')||'[]').includes(whisperCurrentName())); if(_isR && !photoPending){ if(ps){ ps.textContent='RE-VERIFY REQUIRED'; ps.className='v-status unverified'; } if(pb){ pb.textContent='Re-verify My Photo'; pb.style.background='#7f1d1d'; pb.style.color='#fff'; } } }catch(e){}
     var pct=(emailVerified?50:0)+(photoVerified?50:0);
     var bar=document.getElementById('v-progress-bar'); if(bar) bar.style.width=pct+'%';
     window.updateBumpyRing && window.updateBumpyRing(); window._myVerification = {email: !!emailVerified, photo: !!photoVerified}; try{ if(window.supabase && user){ await window.supabase.from('profiles').update({email_verified:!!emailVerified, photo_verified:!!photoVerified}).eq('user_id', user.id); } }catch(e){}
@@ -765,7 +766,7 @@ async function refreshVerification(){
     renderBadges(emailVerified, photoVerified);
   }
   var _oldRefresh = refreshVerification; refreshVerification = async function(){ var r = await _oldRefresh(); window.updateBumpyRing && window.updateBumpyRing(); return r; }; window.refreshVerification=refreshVerification;
-  document.addEventListener('DOMContentLoaded',async ()=>{ await getRestriction(); refreshVerification(); });
+  document.addEventListener('DOMContentLoaded',async ()=>{ try{ await window.supabase.auth.getSession(); }catch(e){} await getRestriction(); refreshVerification(); });
 })();
 </script>
 
