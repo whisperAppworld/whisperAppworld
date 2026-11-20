@@ -1365,7 +1365,7 @@ setInterval(function(){ if(window.__isRestricted===true && !isPhotoPending()) ap
 
 
 // Wrap refreshVerification: await restriction BEFORE drawing, re-apply AFTER
-try{ var _origRefresh = refreshVerification; refreshVerification = async function(){ await getRestriction(); var r = await _origRefresh(); if(window.__isRestricted===true) applyRestrictionUI(); return r; }; window.refreshVerification = refreshVerification; }catch(e){}
+try{ var _origRefresh = refreshVerification; refreshVerification = async function(){ await getRestriction(); var r = await _origRefresh(); if(typeof isPhotoPending==='function' && isPhotoPending()){ try{ var _ps=document.getElementById('v-photo-status'); if(_ps){ _ps.textContent='PENDING'; _ps.className='v-status pending'; } var _pb=document.getElementById('v-photo-btn'); if(_pb){ _pb.textContent='Pending Review'; _pb.style.background='#f59e0b'; _pb.style.color='#fff'; } }catch(e){} } else if(window.__isRestricted===true) applyRestrictionUI(); return r; }; window.refreshVerification = refreshVerification; }catch(e){}
 // Wrap sendWhisper: block restricted users
 try{ var _origSendWhisper = sendWhisper; sendWhisper = async function(){ if(await getRestriction()){ alert('Your account is restricted. Please re-verify to send messages.'); return; } return _origSendWhisper(); }; window.sendWhisper = sendWhisper; }catch(e){}
 
