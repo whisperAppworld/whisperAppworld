@@ -1342,13 +1342,26 @@ async function getRestriction(force){
   })();
   return window.__restrictionPromise;
 }
+function isPhotoPending(){
+  try{
+    if(window.__photoPending===true) return true;
+    if(localStorage.getItem('photo_verification_pending')==='1'||localStorage.getItem('photo_verification_pending')==='true') return true;
+    var mp=JSON.parse(localStorage.getItem('my_profile')||'{}');
+    if(mp.photo_pending===true||mp.photo_verification_status==='pending'||mp.verification_status==='pending') return true;
+    var el=document.getElementById('v-photo-status');
+    if(el && /PENDING/i.test(el.textContent||'')) return true;
+  }catch(e){}
+  return false;
+}
 function applyRestrictionUI(){
   if(window.__isRestricted!==true) return;
+  if(isPhotoPending()) return;
+
   try{ var ps=document.getElementById('v-photo-status'); if(ps){ ps.textContent='RE-VERIFY REQUIRED'; ps.className='v-status unverified'; } }catch(e){}
   try{ var pb=document.getElementById('v-photo-btn'); if(pb){ pb.textContent='Re-verify My Photo'; pb.style.background='#7f1d1d'; pb.style.color='#fff'; } }catch(e){}
 }
 // Guard: if any other code redraws the panel, re-apply within 1s
-setInterval(function(){ if(window.__isRestricted===true) applyRestrictionUI(); }, 1000);
+setInterval(function(){ if(window.__isRestricted===true && !isPhotoPending()) applyRestrictionUI(); }, 1000);
 
 
 // Wrap refreshVerification: await restriction BEFORE drawing, re-apply AFTER
@@ -1356,7 +1369,41 @@ try{ var _origRefresh = refreshVerification; refreshVerification = async functio
 // Wrap sendWhisper: block restricted users
 try{ var _origSendWhisper = sendWhisper; sendWhisper = async function(){ if(await getRestriction()){ alert('Your account is restricted. Please re-verify to send messages.'); return; } return _origSendWhisper(); }; window.sendWhisper = sendWhisper; }catch(e){}
 
-async function checkRestrictionNotice(){ try{ let me=whisperCurrentName(); let r=JSON.parse(localStorage.getItem('whisper_restricted')||'[]'); let isLocal=r.includes(me); let supa=null; try{ if(window.supabase){ let u=(await window.supabase.auth.getUser()).data.user; if(u){ let q=await window.supabase.from('profiles').select('is_restricted,restriction_reason,restriction_note').eq('user_id',u.id).maybeSingle(); if(q&&q.data&&q.data.is_restricted) supa=q.data; } } }catch(e){} if(!isLocal && !supa) return; if(document.getElementById('restrictionBanner')) return; let msg=(supa?(supa.restriction_note||'Your account has been restricted by our team. Please re-verify your account to continue.'):'Your account has been restricted by our team. Please re-verify your account to continue.').replace(/by Admin/g,'by our team'); let reasonTxt=supa&&supa.restriction_reason?'<div style="font-size:12px;font-weight:400;margin-top:4px">Reason: '+supa.restriction_reason+'</div>':''; let b=document.createElement('div'); b.id='restrictionBanner'; b.innerHTML='<div style="position:fixed;top:0;left:0;right:0;z-index:99998;background:#7f1d1d;color:#fff;padding:12px 14px;font-size:13px;font-weight:700;text-align:center">⛔ '+msg+reasonTxt+'<div style="margin-top:8px"><button onclick="if(window.openPhotoVerification) openPhotoVerification(); else if(window.startVerification) startVerification(); else alert(\'Please go to Profile > Verify Photo to re-verify.\')" style="background:#fff;color:#7f1d1d;border:0;padding:8px 16px;border-radius:999px;font-weight:800">📸 Re-verify Now</button></div></div>'; document.body.prepend(b);
+
+// patch6: pending + location instant update
+try{
+  var _origSubmitPhoto = submitPhotoVerification;
+  submitPhotoVerification = async function(){
+    var r = await _origSubmitPhoto.apply(this, arguments);
+    try{
+      window.__photoPending = true;
+      localStorage.setItem('photo_verification_pending','1');
+      var mp=JSON.parse(localStorage.getItem('my_profile')||'{}'); mp.photo_pending=true; mp.photo_verification_status='pending'; localStorage.setItem('my_profile', JSON.stringify(mp));
+      var ps=document.getElementById('v-photo-status'); if(ps){ ps.textContent='PENDING'; ps.className='v-status pending'; }
+      var pb=document.getElementById('v-photo-btn'); if(pb){ pb.textContent='Pending Review'; pb.style.background='#f59e0b'; pb.style.color='#fff'; }
+    }catch(e){}
+    return r;
+  }; window.submitPhotoVerification = submitPhotoVerification;
+}catch(e){}
+try{
+  var _origVerifyLoc = verifyMyLocation;
+  verifyMyLocation = async function(){
+    var r = await _origVerifyLoc.apply(this, arguments);
+    try{
+      var mp2=JSON.parse(localStorage.getItem('my_profile')||'{}'); mp2.location_verified=true; localStorage.setItem('my_profile', JSON.stringify(mp2));
+      var al=JSON.parse(localStorage.getItem('all_profiles')||'[]'); var f=al.find(function(x){return x&&x.name===mp2.name;}); if(f){ f.location_verified=true; localStorage.setItem('all_profiles', JSON.stringify(al)); }
+      // Force panel redraw NOW, don't wait for reload
+      if(typeof refreshVerification==='function') refreshVerification();
+      // Directly flip any location status element if present
+      var els=document.querySelectorAll('[id*="location"],[id*="loc-"]'); els.forEach(function(el){ if(/Location/i.test(el.textContent||'') && el.id){} });
+      var ls=document.getElementById('v-location-status'); if(ls){ ls.textContent='VERIFIED'; ls.className='v-status verified'; }
+      var lb=document.getElementById('v-location-btn'); if(lb){ lb.textContent='Verified'; }
+    }catch(e){}
+    return r;
+  }; window.verifyMyLocation = verifyMyLocation;
+}catch(e){}
+
+async function checkRestrictionNotice(){ try{ let me=whisperCurrentName(); let r=JSON.parse(localStorage.getItem('whisper_restricted')||'[]'); let isLocal=r.includes(me); let supa=null; try{ if(window.supabase){ let u=(await window.supabase.auth.getUser()).data.user; if(u){ let q=await window.supabase.from('profiles').select('is_restricted,restriction_reason,restriction_note').eq('user_id',u.id).maybeSingle(); if(q&&q.data&&q.data.is_restricted) supa=q.data; } } }catch(e){} if(!isLocal && !supa) return; if(document.getElementById('restrictionBanner')) return; let msg=(supa?(supa.restriction_note||'Your account has been restricted by our team. Please re-verify your account to continue.'):'Your account has been restricted by our team. Please re-verify your account to continue.').replace(/by Admin/g,'by our team'); let reasonTxt=''; let b=document.createElement('div'); b.id='restrictionBanner'; b.innerHTML='<div style="position:fixed;top:0;left:0;right:0;z-index:99998;background:#7f1d1d;color:#fff;padding:12px 14px;font-size:13px;font-weight:700;text-align:center">⛔ '+msg+reasonTxt+'<div style="margin-top:8px"><button onclick="if(window.openPhotoVerification) openPhotoVerification(); else if(window.startVerification) startVerification(); else alert(\'Please go to Profile > Verify Photo to re-verify.\')" style="background:#fff;color:#7f1d1d;border:0;padding:8px 16px;border-radius:999px;font-weight:800">📸 Re-verify Now</button></div></div>'; document.body.prepend(b);
   try{ let _me2=whisperCurrentName(); let _r2=JSON.parse(localStorage.getItem('whisper_restricted')||'[]'); if(_me2 && !_r2.includes(_me2)){ _r2.push(_me2); localStorage.setItem('whisper_restricted',JSON.stringify(_r2)); } }catch(e){}
   try{ var _ps=document.getElementById('v-photo-status'); if(_ps){ _ps.textContent='RE-VERIFY REQUIRED'; _ps.className='v-status unverified'; } var _pb=document.getElementById('v-photo-btn'); if(_pb){ _pb.textContent='Re-verify My Photo'; _pb.style.background='#7f1d1d'; _pb.style.color='#fff'; } }catch(e){} }catch(e){} }
 (async function(){ await getRestriction(); if(window.__isRestricted===true){ applyRestrictionUI(); } if(typeof checkRestrictionNotice==='function') checkRestrictionNotice(); })();
