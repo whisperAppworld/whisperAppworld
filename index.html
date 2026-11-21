@@ -743,7 +743,7 @@ async function refreshVerification(){
           emailVerified=!!user.email_confirmed_at;
           var q=await window.supabase.from('verification_requests').select('status').eq('user_id',user.id).eq('type','photo').order('created_at',{ascending:false}).limit(1);
           if(!q.error && q.data && q.data[0]){
-            photoVerified=String(q.data[0].status||'').trim().toLowerCase()==='approved';
+            photoVerified=String(q.data[0].status||'').trim().toLowerCase()==='approved'; try{ var _pv = await window.supabase.from('profiles').select('photo_verified').eq('user_id', user.id).maybeSingle(); if(_pv && _pv.data && _pv.data.photo_verified) photoVerified=true; }catch(e){}
             photoPending=String(q.data[0].status||'').trim().toLowerCase()==='pending';
           }
         }
