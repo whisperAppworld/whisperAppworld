@@ -812,8 +812,17 @@ async function loadAdmin(){
 async function adminDecision(id, status){
   if(!confirm(status==="approved" ? "Approve this photo?" : "Reject this photo?")) return;
   try{
+    var get = await window.supabase.from("verification_requests").select("user_id").eq("id", id).maybeSingle();
+    var uid = get && get.data ? get.data.user_id : null;
     var r = await window.supabase.from("verification_requests").update({status: status}).eq("id", id);
     if(r.error) throw r.error;
+    if(uid){
+      if(status==="approved"){
+        await window.supabase.from("profiles").update({photo_verified:true, is_restricted:false, restriction_reason:'', restriction_note:'', restricted_at:null}).eq("user_id", uid);
+      } else {
+        await window.supabase.from("profiles").update({photo_verified:false}).eq("user_id", uid);
+      }
+    }
     alert(status==="approved" ? "Approved - user will get badge on next reload" : "Rejected");
     loadAdmin();
   }catch(e){ alert("Error: "+(e.message||e)); }
