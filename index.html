@@ -749,7 +749,9 @@ async function refreshVerification(){
         }
       }
     }catch(e){}
-    if(localStorage.getItem('verification_photo_pending')==='1' && !photoVerified) photoPending=true;
+    if(photoVerified){
+      try{ localStorage.removeItem('verification_photo_pending'); localStorage.removeItem('photo_verification_pending'); window.__photoPending=false; var _mpc=JSON.parse(localStorage.getItem('my_profile')||'{}'); _mpc.photo_pending=false; _mpc.photo_verification_status='approved'; _mpc.verification_status='approved'; localStorage.setItem('my_profile', JSON.stringify(_mpc)); }catch(e){}
+    } else if(localStorage.getItem('verification_photo_pending')==='1') photoPending=true;
     try{ var _lp=JSON.parse(localStorage.getItem('my_profile')||'{}'); var _ls=document.getElementById('v-location-status'); if(_ls&&_lp.location_verified){ _ls.textContent='VERIFIED'; _ls.className='v-status verified'; } var _lc=document.getElementById('v-location-city'); if(_lc&&_lp.location_verified) _lc.textContent='Verified in '+(_lp.location_city||''); var _lb=document.getElementById('v-location-btn'); if(_lb&&_lp.location_verified) _lb.textContent='Verified ✓'; var _lc2=document.getElementById('v-location-status'); if(_lc2&&_lc2.parentElement&&_lp.location_verified){_lc2.parentElement.style.opacity='1';_lc2.parentElement.style.background='#dcfce7';} else if(_lc2&&_lc2.parentElement){_lc2.parentElement.style.background='';} }catch(e){}
   try{ if(window.supabase){ var _lu=(await window.supabase.auth.getUser()).data.user; if(_lu){ var _lq=await window.supabase.from('profiles').select('location_verified,location_city,location_country').eq('user_id',_lu.id).maybeSingle(); if(_lq.data&&_lq.data.location_verified){ var _mp2=JSON.parse(localStorage.getItem('my_profile')||'{}'); _mp2.location_verified=true; _mp2.location_city=_lq.data.location_city||_mp2.location_city||''; _mp2.location_country=_lq.data.location_country||''; localStorage.setItem('my_profile', JSON.stringify(_mp2));
   try{ var _ls2=document.getElementById('v-location-status'); if(_ls2){ _ls2.textContent='VERIFIED'; _ls2.className='v-status verified'; } var _lc3=document.getElementById('v-location-city'); if(_lc3) _lc3.textContent='Verified in '+(_lq.data.location_city||_mp2.location_city||''); var _lb2=document.getElementById('v-location-btn'); if(_lb2) _lb2.textContent='Verified ✓'; if(_ls2&&_ls2.parentElement){ _ls2.parentElement.style.opacity='1'; _ls2.parentElement.style.background='#dcfce7'; } }catch(e){} } } } }catch(e){}
@@ -758,7 +760,7 @@ async function refreshVerification(){
     var ps=document.getElementById('v-photo-status'); if(ps){ ps.textContent=photoVerified?'VERIFIED':(photoPending?'PENDING REVIEW':'NOT VERIFIED'); ps.className='v-status '+(photoVerified?'verified':(photoPending?'pending':'unverified')); }
     var pc=document.getElementById('v-card-photo'); if(pc) pc.classList.toggle('done', photoVerified);
     var pb=document.getElementById('v-photo-btn'); if(pb) pb.textContent=photoVerified?'Verified ✓':(photoPending?'Pending Review…':'Verify My Photo');
-  try{ var _isR=(window.__isRestricted===true); if(_isR && !photoPending){ if(ps){ ps.textContent='RE-VERIFY REQUIRED'; ps.className='v-status unverified'; } if(pb){ pb.textContent='Re-verify My Photo'; pb.style.background='#7f1d1d'; pb.style.color='#fff'; } } }catch(e){}
+  try{ var _isR=(window.__isRestricted===true); if(_isR && !photoPending && !photoVerified){ if(ps){ ps.textContent='RE-VERIFY REQUIRED'; ps.className='v-status unverified'; } if(pb){ pb.textContent='Re-verify My Photo'; pb.style.background='#7f1d1d'; pb.style.color='#fff'; } } }catch(e){}
     var pct=(emailVerified?50:0)+(photoVerified?50:0);
     var bar=document.getElementById('v-progress-bar'); if(bar) bar.style.width=pct+'%';
     window.updateBumpyRing && window.updateBumpyRing(); window._myVerification = {email: !!emailVerified, photo: !!photoVerified}; try{ if(window.supabase && user){ await window.supabase.from('profiles').update({email_verified:!!emailVerified, photo_verified:!!photoVerified}).eq('user_id', user.id); } }catch(e){}
@@ -1327,7 +1329,7 @@ async function restrictReported(name,idx){ let r=JSON.parse(localStorage.getItem
 // === SINGLE SOURCE OF TRUTH FOR RESTRICTION (patch5) ===
 window.__isRestricted = null; window.__restrictionPromise = null;
 async function getRestriction(force){
-  if(window.__isRestricted===true) return true;
+  if(force){ window.__restrictionPromise=null; window.__isRestricted=undefined; }
   if(window.__restrictionPromise && !force) return window.__restrictionPromise;
   window.__restrictionPromise = (async function(){
     try{
@@ -1364,6 +1366,7 @@ function isPhotoPending(){
 }
 function applyRestrictionUI(){
   if(window.__isRestricted!==true) return;
+  if(window._myVerification && window._myVerification.photo) return;
   if(isPhotoPending()) return;
 
   try{ var ps=document.getElementById('v-photo-status'); if(ps){ ps.textContent='RE-VERIFY REQUIRED'; ps.className='v-status unverified'; } }catch(e){}
@@ -1374,7 +1377,7 @@ setInterval(function(){ if(window.__isRestricted===true && !isPhotoPending()) ap
 
 
 // Wrap refreshVerification: await restriction BEFORE drawing, re-apply AFTER
-try{ var _origRefresh = refreshVerification; refreshVerification = async function(){ await getRestriction(); var r = await _origRefresh(); if(typeof isPhotoPending==='function' && isPhotoPending()){ try{ var _ps=document.getElementById('v-photo-status'); if(_ps){ _ps.textContent='PENDING'; _ps.className='v-status pending'; } var _pb=document.getElementById('v-photo-btn'); if(_pb){ _pb.textContent='Pending Review'; _pb.style.background='#f59e0b'; _pb.style.color='#fff'; } }catch(e){} } else if(window.__isRestricted===true) applyRestrictionUI(); return r; }; window.refreshVerification = refreshVerification; }catch(e){}
+try{ var _origRefresh = refreshVerification; refreshVerification = async function(){ await getRestriction(true); var r = await _origRefresh(); if(typeof isPhotoPending==='function' && isPhotoPending()){ try{ var _ps=document.getElementById('v-photo-status'); if(_ps){ _ps.textContent='PENDING'; _ps.className='v-status pending'; } var _pb=document.getElementById('v-photo-btn'); if(_pb){ _pb.textContent='Pending Review'; _pb.style.background='#f59e0b'; _pb.style.color='#fff'; } }catch(e){} } else if(window.__isRestricted===true) applyRestrictionUI(); return r; }; window.refreshVerification = refreshVerification; }catch(e){}
 // Wrap sendWhisper: block restricted users
 try{ var _origSendWhisper = sendWhisper; sendWhisper = async function(){ if(await getRestriction()){ alert('Your account is restricted. Please re-verify to send messages.'); return; } return _origSendWhisper(); }; window.sendWhisper = sendWhisper; }catch(e){}
 
