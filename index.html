@@ -763,7 +763,7 @@ async function refreshVerification(){
   try{ var _isR=(window.__isRestricted===true); if(_isR && !photoPending && !photoVerified){ if(ps){ ps.textContent='RE-VERIFY REQUIRED'; ps.className='v-status unverified'; } if(pb){ pb.textContent='Re-verify My Photo'; pb.style.background='#7f1d1d'; pb.style.color='#fff'; } } }catch(e){}
     var pct=(emailVerified?50:0)+(photoVerified?50:0);
     var bar=document.getElementById('v-progress-bar'); if(bar) bar.style.width=pct+'%';
-    window.updateBumpyRing && window.updateBumpyRing(); window._myVerification = {email: !!emailVerified, photo: !!photoVerified}; try{ if(window.supabase && user){ await window.supabase.from('profiles').update({email_verified:!!emailVerified, photo_verified:!!photoVerified}).eq('user_id', user.id); } }catch(e){}
+    window.updateBumpyRing && window.updateBumpyRing(); window._myVerification = {email: !!emailVerified, photo: !!photoVerified}; try{ if(window.supabase && user){ if(photoVerified){ await window.supabase.from('profiles').update({email_verified:!!emailVerified, photo_verified:true}).eq('user_id', user.id); } } }catch(e){}
     try{ var _mp = JSON.parse(localStorage.getItem('my_profile')||'{}'); if(_mp && _mp.name){ _mp.email_verified = !!emailVerified; _mp.photo_verified = !!photoVerified; localStorage.setItem('my_profile', JSON.stringify(_mp)); var _al = JSON.parse(localStorage.getItem('all_profiles')||'[]'); var _f = _al.find(function(x){return x && x.name===_mp.name;}); if(_f){ _f.email_verified=!!emailVerified; _f.photo_verified=!!photoVerified; localStorage.setItem('all_profiles', JSON.stringify(_al)); } } }catch(e){}
     renderBadges(emailVerified, photoVerified);
   }
