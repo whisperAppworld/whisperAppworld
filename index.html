@@ -1426,6 +1426,24 @@ setTimeout(async function(){
  }catch(e){ alert('DIAG ERROR: '+e.message); }
 },4000);
 </script>
+<script>
+async function showRestrictionBannerDirect(){
+ try{
+  var u=(await window.supabase.auth.getUser()).data.user;
+  if(!u) return;
+  var q=await window.supabase.from('profiles').select('is_restricted,restriction_note').eq('user_id',u.id).maybeSingle();
+  if(!q.data || !q.data.is_restricted) return;
+  if(document.getElementById('restrictionBanner') || document.getElementById('restrictionBanner2')) return;
+  var b=document.createElement('div');
+  b.id='restrictionBanner2';
+  b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:999999;background:#7f1d1d;color:#fff;padding:12px 14px;font-size:13px;font-weight:700;text-align:center';
+  b.innerHTML='⛔ '+(q.data.restriction_note||'Your account has been restricted by our team. Please re-verify your account to continue.')+'<div style="margin-top:8px"><button onclick="if(window.openPhotoVerification) openPhotoVerification(); else alert(\'Please go to Profile > Verify Photo to re-verify.\')" style="background:#fff;color:#7f1d1d;border:0;padding:8px 16px;border-radius:999px;font-weight:800">📸 Re-verify Now</button></div>';
+  document.body.prepend(b);
+ }catch(e){}
+}
+setInterval(showRestrictionBannerDirect, 2000);
+setTimeout(showRestrictionBannerDirect, 1500);
+</script>
 </body>
 </html>
 
