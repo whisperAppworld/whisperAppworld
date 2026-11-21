@@ -437,7 +437,7 @@ async function refreshAuthUI(){
   }catch(e){}
 }
 document.addEventListener('DOMContentLoaded', function(){ setTimeout(refreshAuthUI, 500); });
-if(window.supabase) window.supabase.auth.onAuthStateChange(async function(e){ window.__isRestricted=undefined; window.__restrictionPromise=null; try{ var _bb=document.getElementById('restrictionBanner'); if(_bb) _bb.remove(); }catch(err){} if(e==='SIGNED_OUT'){ clearLocalProfileAndForm(); refreshAuthUI(); return; } refreshAuthUI(); if(e==='SIGNED_IN'||e==='INITIAL_SESSION'){ try{ await loadMyProfileFromCloud(); }catch(err){} try{ await getRestriction(); }catch(err){} try{ await refreshVerification(); }catch(err){} } });
+if(window.supabase) window.supabase.auth.onAuthStateChange(async function(e){ window.__isRestricted=undefined; window.__restrictionPromise=null; try{ var _bb=document.getElementById('restrictionBanner'); if(_bb) _bb.remove(); }catch(err){} if(e==='SIGNED_OUT'){ clearLocalProfileAndForm(); refreshAuthUI(); return; } refreshAuthUI(); if(e==='SIGNED_IN'||e==='INITIAL_SESSION'){ try{ await loadMyProfileFromCloud(); }catch(err){} try{ await getRestriction(); }catch(err){} try{ await refreshVerification(); }catch(err){} try{ if(typeof checkRestrictionNotice==='function') await checkRestrictionNotice(); }catch(err){} } });
 </script>
 <script src="app.js?v=104"></script>
 <script src="chat-fix.js?v=21"></script>
