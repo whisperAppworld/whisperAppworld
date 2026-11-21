@@ -1451,6 +1451,54 @@ async function unrestrictById(uid,name){
 }
 try{ window.renderAdminReports=renderAdminReportsSupabase; }catch(e){}
 </script>
+
+<script>
+window.__reportsCache=[];
+async function reportUser(name){
+  let r=prompt('Report '+name+'\nType reason: Fake / Harassment / Scam / Inappropriate / Other'); if(!r) return;
+  let me=''; try{ me=whisperCurrentName(); }catch(e){}
+  try{ if(window.supabase){ await window.supabase.from('reports').insert({reported:name,reporter:me,reason:r,time:new Date().toLocaleString()}); } }catch(e){ console.warn('report supabase failed',e); }
+  try{ let all=JSON.parse(localStorage.getItem('whisper_reports')||'[]'); all.unshift({reported:name,reporter:me,reason:r,time:new Date().toLocaleString()}); localStorage.setItem('whisper_reports',JSON.stringify(all)); }catch(e){}
+  alert('Report sent to Admin. Thank you.');
+}
+async function renderAdminReports(){
+  let el=document.getElementById('reportsList'); if(!el) return;
+  el.innerHTML='<p style="color:#888">Loading reports...</p>';
+  try{
+    let q=await window.supabase.from('reports').select('*').order('id',{ascending:false});
+    let rows=(q&&q.data)?q.data:[];
+    window.__reportsCache=rows;
+    let rq=await window.supabase.from('profiles').select('name,user_id,restriction_reason').eq('is_restricted',true).order('restricted_at',{ascending:false});
+    let restricted=(rq&&rq.data)?rq.data:[];
+    let html='';
+    html+='<div style="color:#fff;font-weight:800;margin-bottom:8px">Reports ('+rows.length+')</div>';
+    if(!rows.length) html+='<p style="color:#888">No reports yet.</p>';
+    html+=rows.map(function(x){
+      let rep=x.reported||'?';
+      let esc=rep.replace(/'/g,"");
+      return '<div style="background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:12px;margin-bottom:8px"><div style="font-size:12px;color:#888">Reported by: <b style="color:#ccc">'+(x.reporter||'Unknown')+'</b> &bull; '+(x.time||'')+'</div><div style="margin:4px 0"><b style="font-size:16px;color:#fff">'+rep+'</b></div><div>Reason: <b style="color:#ffb02e">'+(x.reason||'')+'</b></div><div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button onclick="restrictReported(\''+esc+'\','+x.id+')" style="padding:8px 12px;border-radius:8px;background:#dc2626;color:#fff;border:none;font-weight:700">Restrict Account</button><button onclick="dismissReport('+x.id+')" style="padding:8px 12px;border-radius:8px;background:#333;color:#fff;border:none">Dismiss</button></div></div>';
+    }).join('');
+    html+='<div style="color:#fff;font-weight:800;margin:16px 0 8px">Restricted Accounts ('+restricted.length+')</div>';
+    if(!restricted.length) html+='<p style="color:#888">No restricted accounts.</p>';
+    html+=restricted.map(function(x){
+      let esc=(x.name||'').replace(/'/g,"");
+      return '<div style="background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:12px;margin-bottom:8px"><b style="color:#fff">'+(x.name||'?')+'</b><div style="font-size:12px;color:#888">'+(x.restriction_reason||'')+'</div><button onclick="unrestrictById(\''+x.user_id+'\',\''+esc+'\')" style="margin-top:8px;padding:8px 12px;border-radius:8px;background:#16a34a;color:#fff;border:none;font-weight:700">Un-restrict</button></div>';
+    }).join('');
+    el.innerHTML=html;
+  }catch(e){ console.warn(e); el.innerHTML='<p style="color:#888">Failed to load reports. Check Supabase.</p>'; }
+}
+async function dismissReport(id){
+  try{ await window.supabase.from('reports').delete().eq('id',id); }catch(e){}
+  renderAdminReports();
+}
+async function restrictReported(name,idx){
+  if(!confirm('Restrict '+name+'? They will see: Your account has been restricted. Please re-verify.')) return;
+  let reason='Reported by our team'; let found=window.__reportsCache.find(function(x){return x.id===idx;}); if(found&&found.reason) reason=found.reason;
+  try{ let q=await window.supabase.from('profiles').select('user_id').eq('name',name).maybeSingle(); let uid=q&&q.data?q.data.user_id:null; if(!uid){ let q2=await window.supabase.from('profiles').select('user_id').ilike('name','%'+name+'%').limit(1); if(q2&&q2.data&&q2.data[0]) uid=q2.data[0].user_id; } if(uid){ await window.supabase.from('profiles').update({is_restricted:true,restriction_reason:reason,restriction_note:'Your account has been restricted by our team. Please re-verify your account to continue.',restricted_at:new Date().toISOString()}).eq('user_id',uid); } }catch(e){ console.warn(e); }
+  alert(name+' restricted');
+  renderAdminReports();
+}
+</script>
 </body>
 </html>
 
