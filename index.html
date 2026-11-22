@@ -476,7 +476,7 @@ async function saveMyProfile(){ alert('Saving...');
   var pf=document.getElementById('pf-name'); if(pf&&n&&n.value.trim()) pf.value=n.value.trim();
   var ageEl=document.getElementById('p-age'); var age=ageEl?ageEl.value.trim():'';
   var genEl=document.getElementById('p-gender'); var gender=genEl?genEl.value:'';
-  var locEl=document.getElementById('p-location'); var country=locEl&&locEl.value.trim()?locEl.value.trim():'Equatorial Guinea'; var bioEl=document.getElementById('p-bio'); var intEl=document.getElementById('p-interests'); var langEl=document.getElementById('p-language'); var lookEl=document.getElementById('p-looking'); var relEl=document.getElementById('p-relationship'); var c={value:country};
+  var locEl=document.getElementById('p-location'); var _pfC=document.getElementById('pf-country'); var country=(_pfC&&_pfC.value.trim())? _pfC.value.trim() : (locEl&&locEl.value.trim()?locEl.value.trim():'Equatorial Guinea'); if(locEl) locEl.value=country; var bioEl=document.getElementById('p-bio'); var intEl=document.getElementById('p-interests'); var langEl=document.getElementById('p-language'); var lookEl=document.getElementById('p-looking'); var relEl=document.getElementById('p-relationship'); var c={value:country};
   if(!n || !n.value.trim()){ alert('Please enter your name'); return; }
   var urlPhotos=[]; for(var i=0;i<9;i++){ var u=document.getElementById('p-img-'+i); if(u&&u.value.trim()) urlPhotos[i]=u.value.trim(); }
   var finalPhotos=[]; for(var i=0;i<9;i++){ finalPhotos[i]=window._myPhotos[i]||urlPhotos[i]||''; }
@@ -486,17 +486,17 @@ async function saveMyProfile(){ alert('Saving...');
   var n=document.getElementById('p-name')||document.getElementById('pf-name');
   var ageEl=document.getElementById('p-age'); var age=ageEl?ageEl.value.trim():'';
   var genEl=document.getElementById('p-gender'); var gender=genEl?genEl.value:'';
-  var locEl=document.getElementById('p-location'); var country=locEl&&locEl.value.trim()?locEl.value.trim():'Equatorial Guinea';
+  var locEl=document.getElementById('p-location'); var _pfC=document.getElementById('pf-country'); var country=(_pfC&&_pfC.value.trim())? _pfC.value.trim() : (locEl&&locEl.value.trim()?locEl.value.trim():'Equatorial Guinea'); if(locEl) locEl.value=country;
   var bioEl=document.getElementById('p-bio'); var intEl=document.getElementById('p-interests');
   var langEl=document.getElementById('p-language'); var lookEl=document.getElementById('p-looking'); var relEl=document.getElementById('p-relationship'); window._myPhoto=finalPhotos[0]||'';
-  var _prev=null; try{ var _a0=JSON.parse(localStorage.getItem('all_profiles')||'[]'); _prev=_a0.find(function(x){return x&&x.name===n.value.trim();}); }catch(e){} var _ver=window._myVerification||(_prev?{email:_prev.email_verified,photo:_prev.photo_verified}:{email:false,photo:false}); var prof={name:n.value.trim(), age:age, gender:gender, country:country, bio:bioEl?bioEl.value.trim():'', interests:intEl?intEl.value.trim():'', language:langEl?langEl.value.trim():'', looking:lookEl?lookEl.value:'', relationship:relEl?relEl.value:'', photo:window._myPhoto||'', photos:finalPhotos, time:Date.now(), email_verified:!!_ver.email, photo_verified:!!_ver.photo};
+  var _prev=null; try{ var _a0=JSON.parse(localStorage.getItem('all_profiles')||'[]'); _prev=_a0.find(function(x){return x&&x.name===n.value.trim();}); }catch(e){} var _ver=window._myVerification||(_prev?{email:_prev.email_verified,photo:_prev.photo_verified}:{email:false,photo:false}); var _oldCountry=''; try{ _oldCountry=JSON.parse(localStorage.getItem('my_profile')||'{}').country||''; }catch(e){} var _countryChanged=_oldCountry && country && _oldCountry.toLowerCase()!==country.toLowerCase(); var prof={name:n.value.trim(), age:age, gender:gender, country:country, bio:bioEl?bioEl.value.trim():'', interests:intEl?intEl.value.trim():'', language:langEl?langEl.value.trim():'', looking:lookEl?lookEl.value:'', relationship:relEl?relEl.value:'', photo:window._myPhoto||'', photos:finalPhotos, time:Date.now(), email_verified:!!_ver.email, photo_verified:!!_ver.photo};
   try{ localStorage.setItem('my_profile', JSON.stringify(prof)); var all=[]; try{all=JSON.parse(localStorage.getItem('all_profiles')||'[]');}catch(e){} all=all.filter(function(x){return x.name!==prof.name}); all.unshift(prof); localStorage.setItem('all_profiles', JSON.stringify(all));
   try{
     if(window.supabase){
       var _u = await window.supabase.auth.getUser();
       var _user = _u && _u.data && _u.data.user;
       if(_user){
-        var _row = {user_id:_user.id, email:_user.email, name:prof.name, age:prof.age?parseInt(prof.age):null, gender:prof.gender, country:prof.country, bio:prof.bio, interests:prof.interests, language:prof.language, looking:prof.looking, relationship:prof.relationship, photo:prof.photo, photos:prof.photos?JSON.stringify(prof.photos):null, email_verified:!!_ver.email, photo_verified:!!_ver.photo, updated_at:new Date().toISOString()};
+        var _row = {user_id:_user.id, email:_user.email, name:prof.name, age:prof.age?parseInt(prof.age):null, gender:prof.gender, country:prof.country, bio:prof.bio, interests:prof.interests, language:prof.language, looking:prof.looking, relationship:prof.relationship, photo:prof.photo, photos:prof.photos?JSON.stringify(prof.photos):null, email_verified:!!_ver.email, photo_verified:!!_ver.photo, location_verified: _countryChanged? false : undefined, location_city: _countryChanged? null : undefined, location_country: _countryChanged? null : undefined, updated_at:new Date().toISOString()};
         var _up = await window.supabase.from('profiles').upsert(_row, {onConflict:'user_id'});
         if(_up.error){ console.error('Supabase profile save failed:', _up.error.message); alert('CLOUD SAVE FAILED: '+_up.error.message); return; }
         else console.log('Saved to Supabase cloud ✅');
