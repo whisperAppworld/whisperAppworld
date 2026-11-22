@@ -1562,36 +1562,36 @@ async function viewReportedProfileSupa(name,id){
 
 <script>
 
+
+
 <script>
-// FIX9: Hide Profile/Settings/BottomNav when logged out
-function whisperUpdateNav(){
-  var loginBox = document.getElementById('login-box');
-  var loggedOut = loginBox && loginBox.style.display !== 'none' && loginBox.offsetParent !== null;
-  // Top tabs - hide My Profile + Settings when logged out
-  document.querySelectorAll('button, a, div').forEach(function(el){
-    var txt = (el.textContent||'').trim();
-    if(txt === 'My Profile' || txt === 'Settings'){
-      // only hide the small tab button, not big content
-      if(el.tagName==='BUTTON' || el.tagName==='A'){
-        el.style.display = loggedOut ? 'none' : '';
-      }
+// FIX10: Hide My Profile / Settings / Bottom Nav when logged out - REAL IDs
+function whisperUpdateNav10(){
+  var lb = document.getElementById('login-box');
+  if(!lb) return;
+  var loggedOut = lb.style.display !== 'none';
+  var myBtn = document.getElementById('psub-my-btn');
+  var setBtn = document.getElementById('psub-settings-btn');
+  if(myBtn) myBtn.style.display = loggedOut ? 'none' : '';
+  if(setBtn) setBtn.style.display = loggedOut ? 'none' : '';
+  var nav = document.querySelector('nav');
+  if(nav) nav.style.display = loggedOut ? 'none' : '';
+  var fab = document.getElementById('whisperFab');
+  if(fab) fab.style.display = loggedOut ? 'none' : '';
+  // Force back to login view when logged out
+  if(loggedOut){
+    var profSub = document.getElementById('profile-sub-login');
+    if(profSub && profSub.style.display === 'none'){
+      if(typeof showProfileSub === 'function') showProfileSub('login');
     }
-  });
-  // Bottom nav - the bar that contains Discover
-  document.querySelectorAll('div, nav, footer').forEach(function(el){
-    if((el.textContent||'').includes('Discover') && (el.textContent||'').includes('Matches')){
-      // only the smallest container that holds all items
-      if(el.querySelectorAll('a,button').length >= 4 && el.children.length <= 8){
-        el.style.display = loggedOut ? 'none' : '';
-      }
-    }
-  });
+  }
 }
-setInterval(whisperUpdateNav, 500);
-document.addEventListener('click', function(){ setTimeout(whisperUpdateNav, 300); });
-window.addEventListener('load', whisperUpdateNav);
+setInterval(whisperUpdateNav10, 400);
+document.addEventListener('click', function(){ setTimeout(whisperUpdateNav10, 300); });
+window.addEventListener('load', whisperUpdateNav10);
 </script>
 </body>
+
 
 </html>
 
