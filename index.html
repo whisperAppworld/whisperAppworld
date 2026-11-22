@@ -1589,7 +1589,7 @@ setInterval(whisperUpdateNav10, 400);
 document.addEventListener('click', function(){ setTimeout(whisperUpdateNav10, 300); });
 window.addEventListener('load', whisperUpdateNav10);
 </script>
-</body>
+<div id='login-gate' style='position:fixed;inset:0;z-index:99999;background:#0f0f1a;display:flex;align-items:center;justify-content:center;padding:20px'><div style='background:white;border-radius:20px;padding:28px;width:100%;max-width:360px;text-align:center'><h2>Whisper</h2><p>Log in to continue</p><input id='gate-user' placeholder='Username' style='width:100%;padding:12px;margin-bottom:10px'><input id='gate-pass' type='password' placeholder='Password' style='width:100%;padding:12px;margin-bottom:16px'><button onclick='gateLogin()' style='width:100%;padding:13px;background:#6c5ce7;color:white;border:none;border-radius:10px' >Log In</button><p id='gate-msg' style='color:red'></p></div></div><script>function gateIsLoggedIn(){var v=localStorage.getItem('whisper_user')||localStorage.getItem('currentUser')||localStorage.getItem('user');return v!==null&&v!=='';}function gateLogin(){var u=document.getElementById('gate-user').value.trim();var p=document.getElementById('gate-pass').value;if(u===''||p===''){document.getElementById('gate-msg').innerText='Enter username and password';return;}localStorage.setItem('whisper_user',u);location.reload();}if(gateIsLoggedIn()===false){document.getElementById('login-gate').style.display='flex';}else{document.getElementById('login-gate').style.display='none';}</script></body>
 
 
 </html>
