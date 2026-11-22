@@ -1561,7 +1561,38 @@ async function viewReportedProfileSupa(name,id){
 </script>
 
 <script>
+
+<script>
+// FIX9: Hide Profile/Settings/BottomNav when logged out
+function whisperUpdateNav(){
+  var loginBox = document.getElementById('login-box');
+  var loggedOut = loginBox && loginBox.style.display !== 'none' && loginBox.offsetParent !== null;
+  // Top tabs - hide My Profile + Settings when logged out
+  document.querySelectorAll('button, a, div').forEach(function(el){
+    var txt = (el.textContent||'').trim();
+    if(txt === 'My Profile' || txt === 'Settings'){
+      // only hide the small tab button, not big content
+      if(el.tagName==='BUTTON' || el.tagName==='A'){
+        el.style.display = loggedOut ? 'none' : '';
+      }
+    }
+  });
+  // Bottom nav - the bar that contains Discover
+  document.querySelectorAll('div, nav, footer').forEach(function(el){
+    if((el.textContent||'').includes('Discover') && (el.textContent||'').includes('Matches')){
+      // only the smallest container that holds all items
+      if(el.querySelectorAll('a,button').length >= 4 && el.children.length <= 8){
+        el.style.display = loggedOut ? 'none' : '';
+      }
+    }
+  });
+}
+setInterval(whisperUpdateNav, 500);
+document.addEventListener('click', function(){ setTimeout(whisperUpdateNav, 300); });
+window.addEventListener('load', whisperUpdateNav);
+</script>
 </body>
+
 </html>
 
 
