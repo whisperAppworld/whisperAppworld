@@ -1560,36 +1560,8 @@ async function viewReportedProfileSupa(name,id){
 }
 </script>
 
-<script>
 
-
-
-// FIX10: Hide My Profile / Settings / Bottom Nav when logged out - REAL IDs
-function whisperUpdateNav10(){
-  var lb = document.getElementById('login-box');
-  if(!lb) return;
-  var loggedOut = lb.style.display !== 'none';
-  var myBtn = document.getElementById('psub-my-btn');
-  var setBtn = document.getElementById('psub-settings-btn');
-  if(myBtn) myBtn.style.display = loggedOut ? 'none' : '';
-  if(setBtn) setBtn.style.display = loggedOut ? 'none' : '';
-  var nav = document.querySelector('nav');
-  if(nav) nav.style.display = loggedOut ? 'none' : '';
-  var fab = document.getElementById('whisperFab');
-  if(fab) fab.style.display = loggedOut ? 'none' : '';
-  // Force back to login view when logged out
-  if(loggedOut){
-    var profSub = document.getElementById('profile-sub-login');
-    if(profSub && profSub.style.display === 'none'){
-      if(typeof showProfileSub === 'function') showProfileSub('login');
-    }
-  }
-}
-setInterval(whisperUpdateNav10, 400);
-document.addEventListener('click', function(){ setTimeout(whisperUpdateNav10, 300); });
-window.addEventListener('load', whisperUpdateNav10);
-</script>
-<div id='login-gate' style='position:fixed;inset:0;z-index:99999;background:#0f0f1a;display:flex;align-items:center;justify-content:center;padding:20px'><div style='background:white;border-radius:20px;padding:28px;width:100%;max-width:360px;text-align:center'><h2>Whisper</h2><p>Log in to continue</p><input id='gate-user' placeholder='Username' style='width:100%;padding:12px;margin-bottom:10px'><input id='gate-pass' type='password' placeholder='Password' style='width:100%;padding:12px;margin-bottom:16px'><button onclick='gateLogin()' style='width:100%;padding:13px;background:#6c5ce7;color:white;border:none;border-radius:10px' >Log In</button><p id='gate-msg' style='color:red'></p></div></div><script>function gateIsLoggedIn(){var v=localStorage.getItem('whisper_user')||localStorage.getItem('currentUser')||localStorage.getItem('user');return v!==null&&v!=='';}function gateLogin(){var u=document.getElementById('gate-user').value.trim();var p=document.getElementById('gate-pass').value;if(u===''||p===''){document.getElementById('gate-msg').innerText='Enter username and password';return;}localStorage.setItem('whisper_user',u);location.reload();}if(gateIsLoggedIn()===false){document.getElementById('login-gate').style.display='flex';}else{document.getElementById('login-gate').style.display='none';}</script></body>
+</body>
 
 
 </html>
