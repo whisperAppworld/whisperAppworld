@@ -13,8 +13,10 @@
     window.__authed = !!loggedIn;
     var nav = document.querySelector('nav');
     if(nav) nav.style.display = loggedIn ? '' : 'none';
+    var loginBtn = document.getElementById('psub-login-btn');
     var myBtn = document.getElementById('psub-my-btn');
     var setBtn = document.getElementById('psub-settings-btn');
+    if(loginBtn) loginBtn.style.display = 'none';
     if(myBtn) myBtn.style.display = loggedIn ? '' : 'none';
     if(setBtn) setBtn.style.display = loggedIn ? '' : 'none';
     if(!loggedIn){
