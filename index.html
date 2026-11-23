@@ -263,7 +263,7 @@ function renderSwipe(){
   if(swipeIdx>=list.length) swipeIdx=0;
   while(swipeIdx<list.length && liked.includes(deck[list[swipeIdx]].name)) swipeIdx++;
   if(swipeIdx>=list.length && list.length>0){ swipeIdx=0; }
-  if(swipeIdx>=list.length){ if(window._discoverLoading){ el.innerHTML='<div style="text-align:center;padding:30px;color:#aaa">⏳ Loading people...</div>'; return; } el.innerHTML='<div class="card" style="text-align:center;padding:30px"><h3>🎉 No more people in this country</h3><p>Try All Countries or come back tomorrow.</p></div>'; return; }
+  if(swipeIdx>=list.length){ if(window._discoverLoading){ el.innerHTML='<div style="text-align:center;padding:30px;color:#aaa">⏳ Loading people...</div>'; return; } var _dbg='deck='+deck.length+' all_profiles='+(function(){try{return JSON.parse(localStorage.getItem('all_profiles')||'[]').length}catch(e){return '?'}})()+' filter='+(cf?cf.value:'?'); el.innerHTML='<div class="card" style="text-align:center;padding:30px"><h3>🎉 No more people in this country</h3><p>Try All Countries or come back tomorrow.</p><p style="font-size:11px;color:#888">'+_dbg+'</p></div>'; return; }
   let idx=list[swipeIdx], d=deck[idx], n=d.name, c=d.country, age=d.age;
   var _ph=d.photos; if(typeof _ph==='string'){ try{_ph=JSON.parse(_ph);}catch(e){_ph=_ph?_ph.split(','):[];} } if(!Array.isArray(_ph)) _ph=[]; var _allPhotos=_ph.filter(function(x){return x;}); if(!_allPhotos.length && d.photo) _allPhotos=[d.photo]; if(window._swipePhotoFor!==n){window._swipePhotoFor=n; window._swipePhotoIdx=0;} if(window._swipePhotoIdx>=_allPhotos.length) window._swipePhotoIdx=0; window._swipePhotos=_allPhotos; let photo=_allPhotos[window._swipePhotoIdx]||''; let _dots=_allPhotos.map(function(_,i){return '<span style="font-size:18px;color:'+(i===window._swipePhotoIdx?'#fff':'rgba(255,255,255,.4)')+'">●</span>';}).join(' ');
   el.innerHTML = `
@@ -973,8 +973,8 @@ async function loadCloudDiscover(){
       return true;
     });
     console.log('CLOUD index.html: total='+(r.data||[]).length+' others='+others.map(function(x){return x.name;}).join(', '));
-    // Replace local list with cloud others ONLY - never yourself
-    try{ localStorage.setItem('all_profiles', JSON.stringify(others)); }catch(e){}
+    // Replace local list with cloud others ONLY - never yourself, never wipe if empty
+    if(others.length>0){ try{ localStorage.setItem('all_profiles', JSON.stringify(others)); }catch(e){} } else { console.log('CLOUD discover empty - keeping existing all_profiles'); }
     // Re-render using existing render functions if they exist
     if(typeof renderCircles==='function') renderCircles();
     if(typeof renderSwipe==='function') renderSwipe();
