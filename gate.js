@@ -47,3 +47,5 @@
     });
   }
 })();
+
+setInterval(function(){ var lb=document.getElementById('login-box'); var logo=document.getElementById('appLogo'); if(lb&&logo){ logo.style.display=(lb.style.display!=='none')?'none':'flex'; } },300);
