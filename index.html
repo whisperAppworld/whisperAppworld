@@ -24,7 +24,7 @@ section.active{display:block}
 #map{height:calc(100vh - 210px);min-height:520px;border-radius:16px;margin:10px 0;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12)}
 #tab-discover{padding-bottom:10px}
 #tab-discover h2{margin:6px 0 8px}
-#tab-discover #map-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:none;flex-direction:column;padding:12px}#map-modal.open{display:flex}#map-modal #map{flex:1;width:100%;height:auto !important;min-height:0}.swipe-card{background:#1a1a1a;border-radius:22px;overflow:hidden;margin:12px 0;box-shadow:0 12px 35px rgba(0,0,0,.55);border:1px solid #2a2a2a}.swipe-card .photo img{width:100%;height:100%;object-fit:cover;display:block}.swipe-card .photo{height:440px;background:linear-gradient(135deg,#ff5a8a,#ff8a5c);display:flex;align-items:center;justify-content:center;font-size:110px}.swipe-card .info{padding:16px}.swipe-card .info h3{margin:0;font-size:26px}.swipe-card .info p{margin:6px 0;color:#bbb}.swipe-actions{display:flex;gap:12px;padding:0 16px 16px}.swipe-actions button{flex:1;padding:16px;font-size:18px;border-radius:50px;font-weight:800}.swipe-actions{align-items:center}.btn-pass{background:#333 !important}.btn-like{background:linear-gradient(135deg,#ff5a8a,#ff8a5c) !important;box-shadow:0 6px 20px rgba(255,90,138,.5);transform:scale(1.08)}.counter{margin-bottom:8px}
+#tab-discover #map-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:none;flex-direction:column;padding:12px}#map-modal.open{display:flex}#map-modal #map{flex:1;width:100%;height:auto !important;min-height:0}.counter.counter{margin-bottom:8px}
 .counter{background:#ff5a8a;padding:10px;border-radius:10px;text-align:center;font-weight:bold}
 #verification-panel h3, .v-panel h3{color:#111827 !important} #verification-panel, .v-panel{color:#111827 !important} #verification-panel .sub, .v-panel .sub{color:#4b5563 !important}
 .btn-pass:active{background:#555 !important;transform:scale(0.95);} .btn-pass{transition:all 0.15s;}
@@ -266,14 +266,65 @@ function renderSwipe(){
   if(swipeIdx>=list.length){ if(window._discoverLoading){ el.innerHTML='<div style="text-align:center;padding:30px;color:#aaa">⏳ Loading people...</div>'; return; } el.innerHTML='<div class="card" style="text-align:center;padding:30px"><h3>🎉 No more people in this country</h3><p>Try All Countries or come back tomorrow.</p></div>'; return; }
   let idx=list[swipeIdx], d=deck[idx], n=d.name, c=d.country, age=d.age;
   var _ph=d.photos; if(typeof _ph==='string'){ try{_ph=JSON.parse(_ph);}catch(e){_ph=_ph?_ph.split(','):[];} } if(!Array.isArray(_ph)) _ph=[]; var _allPhotos=_ph.filter(function(x){return x;}); if(!_allPhotos.length && d.photo) _allPhotos=[d.photo]; if(window._swipePhotoFor!==n){window._swipePhotoFor=n; window._swipePhotoIdx=0;} if(window._swipePhotoIdx>=_allPhotos.length) window._swipePhotoIdx=0; window._swipePhotos=_allPhotos; let photo=_allPhotos[window._swipePhotoIdx]||''; let _dots=_allPhotos.map(function(_,i){return '<span style="font-size:18px;color:'+(i===window._swipePhotoIdx?'#fff':'rgba(255,255,255,.4)')+'">●</span>';}).join(' ');
-  el.innerHTML = `<div class="swipe-card"><div class="photo" onclick="nextSwipePhoto()" style="position:relative;cursor:pointer"><div style="font-size:110px">${n.charAt(0)}</div><img src="${photo}" onerror="this.remove()" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" /><div style="position:absolute;bottom:8px;left:0;right:0;text-align:center">${_dots}</div><div style="position:absolute;top:8px;right:10px;background:rgba(0,0,0,.55);padding:4px 10px;border-radius:999px;font-size:12px">👆 ${((localStorage.getItem('whisper_lang')||'English')==='French'?'Touche la photo pour suivant':(localStorage.getItem('whisper_lang')||'English')==='Spanish'?'Toca la foto para siguiente':'Tap photo for next')}</div></div><div class="info"><h3>${n}${(getVerifiedFor(n)&&(getVerifiedFor(n).email||getVerifiedFor(n).photo))?'<svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:-4px;margin-left:2px;margin-right:0;display:inline-block"><circle cx="12" cy="12" r="10.5" fill="#0095F6"/><path d="M17.2 7.8L10.6 14.4L7 10.8" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>':''} - ${age}</h3><p><svg width="13" height="13" viewBox="0 0 24 24" style="vertical-align:-2px"><path d="M12 2C7 2 3 6 3 11c0 5.5 9 11 9 11s9-5.5 9-11c0-5-4-9-9-9z" fill="#e11d48"/><circle cx="12" cy="11" r="3.5" fill="white"/></svg> ${countryFlag(c)} ${c}${d.location_city?`, `+d.location_city:''}</p>${d.location_verified?`<span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:800">Location verified</span>`:`<span style="background:#f3f4f6;color:#6b7280;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:800">Location not verified</span>`}${chipsHtml(d)}${aboutHtml(d)}${basicsHtml(d)}${badgesHtmlFor(n)}</div><div class="swipe-actions" style="flex-wrap:wrap"><button class="btn-pass" onclick="passPerson()">Pass</button><button onclick="superLikePerson('${n}')" style="background:linear-gradient(135deg,#FFD700,#FFA500) !important;color:#000">⭐ Super</button><button class="btn-like" onclick="likePerson('${n}')">Like</button><button onclick="openChatLocked('${n}')" style="background:#333 !important">💬 🔒 Message</button><button onclick="reportUser('${n}')" style="background:#1a1a1a !important;color:#ffb02e;border:1px solid #333">⚠️ Report</button><button onclick="blockUser('${n}')" style="background:#1a1a1a !important;color:#ff5b5b;border:1px solid #333">🚫 Block</button></div></div>`;
+  el.innerHTML = `
+<div class="new-card">
+  <div class="new-photo" onclick="nextSwipePhoto()">
+    <div class="new-initial">${n.charAt(0)}</div>
+    <img src="${photo}" onerror="this.remove()" />
+    <div class="new-dots">${_dots}</div>
+  </div>
+  <div class="new-body">
+    <h3>${n} ${verifiedBadge} - ${age}</h3>
+    <p class="new-loc">📍 ${d.location_city || ''}${d.location_city && d.country ? ', ' : ''}${d.country || c}</p>
+    ${d.location_verified ? '<span class="pill-green">Location verified</span>' : '<span class="pill-grey">Location not verified</span>'}
+    ${d.about ? '<div class="new-label">ABOUT ME</div><p class="new-about">'+d.about+'</p>' : ''}
+    ${d.looking_for ? '<div class="new-label">LOOKING FOR</div><div class="new-pills">'+d.looking_for.split(',').map(x=>'<span>'+x.trim()+'</span>').join('')+'</div>' : ''}
+    <div class="new-label">BASICS</div>
+    <div class="new-basics">
+      ${d.education ? '<span>🎓 '+d.education+'</span>' : ''}
+      ${d.work ? '<span>💼 '+d.work+'</span>' : ''}
+      ${d.country ? '<span>📍 '+(d.location_city ? d.location_city+', ' : '')+d.country+'</span>' : ''}
+      ${d.language ? '<span>🗣️ '+d.language+'</span>' : ''}
+      ${d.body_type ? '<span>🏋️ '+d.body_type+'</span>' : ''}
+      ${d.height ? '<span>📏 '+d.height+'</span>' : ''}
+    </div>
+    <div class="new-actions">
+      <button onclick="passPerson()">Pass</button>
+      <button onclick="superLikePerson('${n}')">⭐ Super</button>
+      <button onclick="likePerson('${n}')">Like</button>
+      <button onclick="openChatLocked('${n}')">💬 Message</button>
+      <button onclick="blockUser('${n}')">🚫 Block</button>
+      <button onclick="reportUser('${n}')">⚠️ Report</button>
+    </div>
+  </div>
+</div>
+<style>
+.new-card{background:#fff;border-radius:18px;overflow:hidden}
+.new-photo{position:relative;height:280px;background:#333;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.new-initial{font-size:110px}
+.new-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.new-dots{position:absolute;bottom:8px;left:0;right:0;text-align:center}
+.new-body{padding:14px}
+.new-body h3{margin:0;font-size:20px;color:#111}
+.new-loc{color:#666;font-size:13px;margin:6px 0}
+.pill-green{background:#dcfce7;color:#166534;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:800}
+.pill-grey{background:#f3f4f6;color:#6b7280;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:800}
+.new-label{font-size:11px;letter-spacing:1px;color:#9ca3af;font-weight:800;margin:12px 0 6px}
+.new-about{font-size:14px;color:#333;margin:0}
+.new-pills{display:flex;flex-wrap:wrap;gap:6px}
+.new-pills span{background:#f3f4f6;padding:6px 10px;border-radius:999px;font-size:12px}
+.new-basics{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.new-basics span{background:#f3f4f6;color:#111827;border:1px solid #e5e7eb;padding:7px 10px;border-radius:999px;font-size:12px;font-weight:600;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.new-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.new-actions button{flex:1;padding:10px;border-radius:999px;border:0;font-weight:700;cursor:pointer}
+</style>`;
 }
 
 function countryFlag(c){var m={'france':'🇫🇷','spain':'🇪🇸','equatorial guinea':'🇬🇶','gq':'🇬🇶','nigeria':'🇳🇬','cameroon':'🇨🇲','gabon':'🇬🇦','ghana':'🇬🇭','usa':'🇺🇸','uk':'🇬🇧'};return m[String(c||'').trim().toLowerCase()]||'🌍';}
 function getVerifiedFor(name){ try{ var deck=null; try{ deck = (typeof getDeck==='function') ? getDeck() : null; }catch(e){} if(deck){ var fd=deck.find(function(x){return x&&x.name===name;}); if(fd && (fd.email_verified||fd.photo_verified)) return {email:!!fd.email_verified, photo:!!fd.photo_verified}; } var all=JSON.parse(localStorage.getItem('all_profiles')||'[]'); var f=all.find(function(x){return x&&x.name===name;}); if(!f) return null; return {email:!!f.email_verified, photo:!!f.photo_verified}; }catch(e){ return null; } }
 function badgesHtmlFor(name){ var v=getVerifiedFor(name); if(!v||(!v.email&&!v.photo)) return ''; var s='<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">'; if(v.email) s+='<span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:800">Email Verified</span>'; if(v.photo) s+='<span style="background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:800">📸 Photo Verified</span>'; return s+'</div>'; }
 
-window._swipePhotoIdx=0; window._swipePhotoFor=null; function nextSwipePhoto(){ var photos=window._swipePhotos||[]; if(!photos.length) return; window._swipePhotoIdx=((window._swipePhotoIdx||0)+1)%photos.length; var img=document.querySelector('#swipe-card .photo img'); if(img){ img.src=photos[window._swipePhotoIdx]; } var dots=document.querySelectorAll('#swipe-card .photo div span'); dots.forEach(function(s,i){ s.style.color=(i===window._swipePhotoIdx?'#fff':'rgba(255,255,255,.4)'); }); } function passPerson(){
+window._swipePhotoIdx=0; window._swipePhotoFor=null; function nextSwipePhoto(){ var photos=window._swipePhotos||[]; if(!photos.length) return; window._swipePhotoIdx=((window._swipePhotoIdx||0)+1)%photos.length; var img=document.querySelector('#swipe-card .new-photo img'); if(img){ img.src=photos[window._swipePhotoIdx]; } var dots=document.querySelectorAll('#swipe-card .new-dots span'); dots.forEach(function(s,i){ s.style.color=(i===window._swipePhotoIdx?'#fff':'rgba(255,255,255,.4)'); }); } function passPerson(){
   try{
     var btn=document.querySelector('.btn-pass');
     if(btn){ btn.style.background='#555 !important'; btn.style.transform='scale(0.95)'; setTimeout(function(){ btn.style.background=''; btn.style.transform=''; },200); }
