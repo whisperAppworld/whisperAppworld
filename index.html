@@ -248,7 +248,7 @@ function getFiltered(){
   let v=f?f.value:'ALL';
   return names.map(function(n,i){return i;}).filter(function(i){return v==='ALL'||countries[i]===v;});
 }
-function renderSwipe(){
+function renderSwipe(){ try{ return renderSwipeInner(); }catch(e){ var d=document.getElementById('discover-debug'); if(d) d.textContent='RENDER CRASH: '+e.message+' | stack: '+(e.stack||'').slice(0,300); document.getElementById('swipe-card').innerHTML='<div style="color:red;padding:20px">RENDER CRASH: '+e.message+'</div>'; } } function renderSwipeInner(){
   let cf=document.getElementById('country-filter');
   if(cf && cf.options.length<=1){
     let uniq=[...new Set(getDeck().map(function(d){return d.country;}))].sort();
@@ -992,6 +992,7 @@ setInterval(function(){
     var deck=[]; try{deck=(typeof getDeck==='function')?getDeck():[];}catch(e){deck=['ERR:'+e.message];}
     var me=''; try{me=JSON.parse(localStorage.getItem('my_profile')||'{}').name||'';}catch(e){}
     dbg.textContent='DEBUG: loading='+window._discoverLoading+' | all='+all.length+' | deck='+deck.length+' | me='+me+' | supabase='+(!!window.supabase);
+    try{ if(all.length>0) dbg.textContent += ' | first='+JSON.stringify(all[0]).slice(0,200); }catch(e){}
     if(window._discoverLoading && !window._dbgLoadStart) window._dbgLoadStart=Date.now();
     if(window._discoverLoading && window._dbgLoadStart && Date.now()-window._dbgLoadStart>5000){ window._discoverLoading=false; window._dbgLoadStart=0; if(typeof renderSwipe==='function') renderSwipe(); }
   }catch(e){ var d2=document.getElementById('discover-debug'); if(d2) d2.textContent='DEBUG ERR: '+e.message; }
