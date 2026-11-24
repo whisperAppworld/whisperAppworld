@@ -249,7 +249,13 @@ function getFiltered(){
   let v=f?f.value:'ALL';
   return names.map(function(n,i){return i;}).filter(function(i){return v==='ALL'||countries[i]===v;});
 }
-function renderSwipe(){ try{ return renderSwipeInner(); }catch(e){ console.error(e); document.getElementById('swipe-card').innerHTML='<div style="color:red;padding:20px">RENDER CRASH: '+e.message+'</div>'; } } function renderSwipeInner(){
+function renderSwipe(){ try{ return renderSwipeInner(); }catch(e){ console.error(e); document.getElementById('swipe-card').innerHTML='<div style="color:red;padding:20px">RENDER CRASH: '+e.message+'</div>'; } } 
+function swipePass(){ window._swipeIdx=(window._swipeIdx||0)+1; if(window._swipeIdx>=window._swipeList.length) window._swipeIdx=0; renderSwipe(); }
+function swipeLike(){ var u=(window._swipeList||[])[window._swipeIdx||0]; if(u) likePerson(u.name||u.display_name); window._swipeIdx=(window._swipeIdx||0)+1; if(window._swipeIdx>=window._swipeList.length) window._swipeIdx=0; renderSwipe(); }
+function openChatFromSwipe(){ var u=(window._swipeList||[])[window._swipeIdx||0]; if(u) openChat(u.name||u.display_name); }
+function swipeSuper(){ var u=(window._swipeList||[])[window._swipeIdx||0]; if(u) superLikePerson(u.name||u.display_name); }
+
+function renderSwipeInner(){
   var card = document.getElementById('swipe-card');
   if(!card) return;
   if(!window._swipeList || window._swipeList.length===0){
