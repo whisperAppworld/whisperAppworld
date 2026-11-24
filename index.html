@@ -175,7 +175,7 @@ function showProfileSub(n){
 
 <section id="tab-discover" class="active">
 <div style="display:flex;align-items:center;justify-content:space-between"><h2 style="margin:0">🔥 Discover</h2><div style="display:flex;align-items:center;gap:8px"><div id="coins-pill" style="width:44px;height:64px;border:2px solid #FFD700;border-radius:30px;background:#1a1a1a;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1"><span style="font-size:18px">🪙</span><span id="coins-count" style="font-size:15px;font-weight:800;color:#fff;margin-top:2px">10</span></div><div id="likes-circle" style="width:58px;height:58px;border:2px solid #FF2E88;border-radius:50%;background:#1a1a1a;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1"><span id="likes-count" style="font-size:20px;font-weight:900;color:#fff">30</span><span style="font-size:8px;font-weight:700;color:#FF2E88;letter-spacing:1px;margin-top:3px">LIKES</span></div><button onclick="openMap()" style="font-size:26px;background:#222;padding:10px 14px;border-radius:50%;border:none">🌎</button></div></div>
-<div id="discover-loading" style="display:none;text-align:center;padding:30px;color:#aaa">⏳ Loading people...<br><span style="font-size:13px">Fetching from cloud</span></div><div id="discover-debug" style="background:#222;color:#0f0;padding:8px;font-size:11px;text-align:center">DEBUG: waiting...</div><div id="swipe-card"></div><div id="map-modal"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">🌎 People Near You</h3><button onclick="closeMap()" style="background:#333">✖️ Close</button></div><div id="map"></div></div>
+<div id="discover-loading" style="display:none;text-align:center;padding:30px;color:#aaa">⏳ Loading people...<br><span style="font-size:13px">Fetching from cloud</span></div><div id="discover-debug" style="display:none"></div><div id="swipe-card"></div><div id="map-modal"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">🌎 People Near You</h3><button onclick="closeMap()" style="background:#333">✖️ Close</button></div><div id="map"></div></div>
 <div class="circles" id="circles" style="display:none"></div>
 </p>
 <div id="discover-list"></div>
@@ -992,8 +992,8 @@ setInterval(function(){
     var all=[]; try{all=JSON.parse(localStorage.getItem('all_profiles')||'[]');}catch(e){}
     var deck=[]; try{deck=(typeof getDeck==='function')?getDeck():[];}catch(e){deck=['ERR:'+e.message];}
     var me=''; try{me=JSON.parse(localStorage.getItem('my_profile')||'{}').name||'';}catch(e){}
-    dbg.textContent='DEBUG: loading='+window._discoverLoading+' | all='+all.length+' | deck='+deck.length+' | me='+me+' | supabase='+(!!window.supabase);
-    try{ if(all.length>0) dbg.textContent += ' | first='+JSON.stringify(all[0]).slice(0,200); }catch(e){}
+    /* debug removed */
+    try{ if(all.length>0) /* debug removed */ }catch(e){}
     if(window._discoverLoading && !window._dbgLoadStart) window._dbgLoadStart=Date.now();
     if(window._discoverLoading && window._dbgLoadStart && Date.now()-window._dbgLoadStart>5000){ window._discoverLoading=false; window._dbgLoadStart=0; if(typeof renderSwipe==='function') renderSwipe(); }
   }catch(e){ var d2=document.getElementById('discover-debug'); if(d2) d2.textContent='DEBUG ERR: '+e.message; }
