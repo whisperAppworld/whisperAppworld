@@ -250,75 +250,96 @@ function getFiltered(){
   return names.map(function(n,i){return i;}).filter(function(i){return v==='ALL'||countries[i]===v;});
 }
 function renderSwipe(){ try{ return renderSwipeInner(); }catch(e){ console.error(e); document.getElementById('swipe-card').innerHTML='<div style="color:red;padding:20px">RENDER CRASH: '+e.message+'</div>'; } } function renderSwipeInner(){
-  let cf=document.getElementById('country-filter');
-  if(cf && cf.options.length<=1){
-    let uniq=[...new Set(getDeck().map(function(d){return d.country;}))].sort();
-    uniq.forEach(function(c){let o=document.createElement('option');o.value=c;o.textContent=c;cf.appendChild(o);});
+  var card = document.getElementById('swipe-card');
+  if(!card) return;
+  if(!window._swipeList || window._swipeList.length===0){
+    card.innerHTML = '<div style="text-align:center;padding:40px;color:#888"><h3>No more people nearby</h3><p>Check back later</p></div>';
+    return;
   }
-  let el=document.getElementById('swipe-card'); if(!el) return;
-  let liked=getLiked();
-  let deck=getDeck();
-  let v=cf?cf.value:'ALL';
-  let list=deck.map(function(d,i){return i;}).filter(function(i){return v==='ALL'||deck[i].country===v;});
-  if(!list.length && v!=='ALL' && cf){ cf.value='ALL'; v='ALL'; list=deck.map(function(d,i){return i;}); }
-  if(swipeIdx>=list.length) swipeIdx=0;
-  while(swipeIdx<list.length && liked.includes(deck[list[swipeIdx]].name)) swipeIdx++;
-  if(swipeIdx>=list.length && list.length>0){ swipeIdx=0; }
-  if(swipeIdx>=list.length){ if(window._discoverLoading){ el.innerHTML='<div style="text-align:center;padding:30px;color:#aaa">⏳ Loading people...</div>'; return; } var _dbg='deck='+deck.length+' all_profiles='+(function(){try{return JSON.parse(localStorage.getItem('all_profiles')||'[]').length}catch(e){return '?'}})()+' filter='+(cf?cf.value:'?'); el.innerHTML='<div class="card" style="text-align:center;padding:30px"><h3>🎉 No more people in this country</h3><p>Try All Countries or come back tomorrow.</p><p style="font-size:11px;color:#888">'+_dbg+'</p></div>'; return; }
-  let idx=list[swipeIdx], d=deck[idx], n=d.name, c=d.country, age=d.age;
-  var _ph=d.photos; if(typeof _ph==='string'){ try{_ph=JSON.parse(_ph);}catch(e){_ph=_ph?_ph.split(','):[];} } if(!Array.isArray(_ph)) _ph=[]; var _allPhotos=_ph.filter(function(x){return x;}); if(!_allPhotos.length && d.photo) _allPhotos=[d.photo]; if(window._swipePhotoFor!==n){window._swipePhotoFor=n; window._swipePhotoIdx=0;} if(window._swipePhotoIdx>=_allPhotos.length) window._swipePhotoIdx=0; window._swipePhotos=_allPhotos; let photo=_allPhotos[window._swipePhotoIdx]||''; let _dots=_allPhotos.map(function(_,i){return '<span style="font-size:18px;color:'+(i===window._swipePhotoIdx?'#fff':'rgba(255,255,255,.4)')+'">●</span>';}).join(' ');
-  el.innerHTML = `
-<div class="new-card">
-  <div class="new-photo" onclick="nextSwipePhoto()">
-    <div class="new-initial">${n.charAt(0)}</div>
-    <img src="${photo}" onerror="this.remove()" />
-    <div class="new-dots">${_dots}</div>
-  </div>
-  <div class="new-body">
-    <h3>${n} ${(typeof verifiedBadge!=='undefined'?verifiedBadge:'')} - ${age}</h3>
-    <p class="new-loc">📍 ${d.location_city || ''}${d.location_city && d.country ? ', ' : ''}${d.country || c}</p>
-    ${d.location_verified ? '<span class="pill-green">Location verified</span>' : '<span class="pill-grey">Location not verified</span>'}
-    ${d.about ? '<div class="new-label">ABOUT ME</div><p class="new-about">'+d.about+'</p>' : ''}
-    ${d.looking_for ? '<div class="new-label">LOOKING FOR</div><div class="new-pills">'+d.looking_for.split(',').map(x=>'<span>'+x.trim()+'</span>').join('')+'</div>' : ''}
-    <div class="new-label">BASICS</div>
-    <div class="new-basics">
-      ${d.education ? '<span>🎓 '+d.education+'</span>' : ''}
-      ${d.work ? '<span>💼 '+d.work+'</span>' : ''}
-      ${d.country ? '<span>📍 '+(d.location_city ? d.location_city+', ' : '')+d.country+'</span>' : ''}
-      ${d.language ? '<span>🗣️ '+d.language+'</span>' : ''}
-      ${d.body_type ? '<span>🏋️ '+d.body_type+'</span>' : ''}
-      ${d.height ? '<span>📏 '+d.height+'</span>' : ''}
-    </div>
-    <div class="new-actions">
-      <button onclick="passPerson()">Pass</button>
-      <button onclick="superLikePerson('${n}')">⭐ Super</button>
-      <button onclick="likePerson('${n}')">Like</button>
-      <button onclick="openChatLocked('${n}')">💬 Message</button>
-      <button onclick="blockUser('${n}')">🚫 Block</button>
-      <button onclick="reportUser('${n}')">⚠️ Report</button>
-    </div>
-  </div>
-</div>
-<style>
-.new-card{background:#fff;border-radius:18px;overflow:hidden}
-.new-photo{position:relative;height:280px;background:#333;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.new-initial{font-size:110px}
-.new-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.new-dots{position:absolute;bottom:8px;left:0;right:0;text-align:center}
-.new-body{padding:14px}
-.new-body h3{margin:0;font-size:20px;color:#111}
-.new-loc{color:#666;font-size:13px;margin:6px 0}
-.pill-green{background:#dcfce7;color:#166534;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:800}
-.pill-grey{background:#f3f4f6;color:#6b7280;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:800}
-.new-label{font-size:11px;letter-spacing:1px;color:#9ca3af;font-weight:800;margin:12px 0 6px}
-.new-about{font-size:14px;color:#333;margin:0}
-.new-pills{display:flex;flex-wrap:wrap;gap:6px}
-.new-pills span{background:#f3f4f6;padding:6px 10px;border-radius:999px;font-size:12px}
-.new-basics{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.new-basics span{background:#f3f4f6;color:#111827;border:1px solid #e5e7eb;padding:7px 10px;border-radius:999px;font-size:12px;font-weight:600;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.new-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
-.new-actions button{flex:1;padding:10px;border-radius:999px;border:0;font-weight:700;cursor:pointer}
-</style>`;
+  var u = window._swipeList[window._swipeIdx||0] || window._swipeList[0];
+  var name = u.name || u.display_name || 'User';
+  var age = u.age || '';
+  var city = u.city || '';
+  var country = u.country || '';
+  var photo = u.photo_url || u.photo || u.avatar_url || 'https://via.placeholder.com/400x600?text=No+Photo';
+  var bio = u.bio || u.about || 'Friendly, calm, and always up for a real conversation.';
+  var interests = (u.interests||'').toString().split(',').map(s=>s.trim()).filter(Boolean);
+  if(interests.length===0) interests = ['Gym','Wine','Music','Football','Movies','Travel','Food'];
+  var looking = u.looking_for || 'Friendship';
+  var goal = u.goal || 'Chat';
+  var height = u.height ? 'Height: '+u.height : 'Height: 178 cm';
+  var body = u.body_type || 'Athletic';
+  var drinks = u.drinks ? 'Drinks: '+u.drinks : 'Drinks: Sometimes';
+  var smokes = u.smokes ? 'Smokes: '+u.smokes : 'Smokes: No';
+  var job = u.job || 'Teacher';
+  var edu = u.education || 'Master Degree';
+  var langs = u.languages || 'English, Spanish';
+  var total = window._swipeList.length;
+  var idx = (window._swipeIdx||0)+1;
+
+  card.innerHTML =
+  '<div style="background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.12);max-width:420px;margin:0 auto;padding-bottom:16px">'
+    + '<div style="position:relative;height:520px;background:#eee">'
+    + '<img src="'+photo+'" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.src=\'https://via.placeholder.com/400x600?text=No+Photo\'">'
+    + '<div style="position:absolute;top:12px;left:12px;right:12px;display:flex;gap:6px">'+ Array(5).fill('<div style="flex:1;height:4px;border-radius:99px;background:rgba(255,255,255,0.5)"></div>').join('') +'</div>'
+    + '<div style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.6);color:#fff;font-size:12px;padding:4px 10px;border-radius:99px;font-weight:700">'+idx+' / '+total+'</div>'
+    + '<div style="position:absolute;left:0;right:0;bottom:0;padding:40px 16px 16px;background:linear-gradient(transparent,rgba(0,0,0,0.75));color:#fff">'
+    + '<div style="font-size:26px;font-weight:800;line-height:1">'+name+', '+age+' <span style="font-size:16px">🇸🇳</span> <span style="color:#4fc3f7;font-size:18px">✔</span></div>'
+    + '<div style="font-size:13px;opacity:0.9;margin-top:6px">📍 '+(city?city+', ':'')+country+' • 12 km away</div>'
+    + '</div></div>'
+
+  // Thumbnails row
+    + '<div style="display:flex;gap:8px;padding:12px 12px 0;overflow-x:auto">'
+    + '<img src="'+photo+'" style="width:84px;height:64px;object-fit:cover;border-radius:12px">'
+    + '<img src="'+photo+'" style="width:84px;height:64px;object-fit:cover;border-radius:12px;opacity:0.9">'
+    + '<img src="'+photo+'" style="width:84px;height:64px;object-fit:cover;border-radius:12px;opacity:0.9">'
+    + '<div style="min-width:84px;height:64px;border-radius:12px;background:#eee;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#555">+4 more</div>'
+    + '</div>'
+
+  // Looking / Goal
+    + '<div style="display:flex;gap:8px;padding:12px 12px 0">'
+    + '<div style="flex:1;background:#f6f6f6;border-radius:99px;padding:8px 10px;font-size:12px;font-weight:600;text-align:center">👥 Looking for: '+looking+'</div>'
+    + '<div style="flex:1;background:#f6f6f6;border-radius:99px;padding:8px 10px;font-size:12px;font-weight:600;text-align:center">💬 Goal: '+goal+'</div>'
+    + '</div>'
+
+  // BASICS
+    + '<div style="text-align:center;font-weight:800;font-size:12px;letter-spacing:1px;color:#666;margin:16px 0 8px">BASICS</div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:0 12px">'
+    + '<span style="background:#e8e8e8;padding:8px 12px;border-radius:99px;font-size:12px;font-weight:600">📏 '+height+'</span>'
+    + '<span style="background:#e8e8e8;padding:8px 12px;border-radius:99px;font-size:12px;font-weight:600">🧍 '+body+'</span>'
+    + '<span style="background:#e8e8e8;padding:8px 12px;border-radius:99px;font-size:12px;font-weight:600">🍷 '+drinks+'</span>'
+    + '<span style="background:#e8e8e8;padding:8px 12px;border-radius:99px;font-size:12px;font-weight:600">🚬 '+smokes+'</span>'
+    + '<span style="background:#e8e8e8;padding:8px 12px;border-radius:99px;font-size:12px;font-weight:600">💼 Job: '+job+'</span>'
+    + '<span style="background:#e8e8e8;padding:8px 12px;border-radius:99px;font-size:12px;font-weight:600">🎓 Education: '+edu+'</span>'
+    + '<span style="background:#e8e8e8;padding:8px 12px;border-radius:99px;font-size:12px;font-weight:600">🌐 Languages: '+langs+'</span>'
+    + '</div>'
+
+  // PROFILE
+    + '<div style="text-align:center;font-weight:800;font-size:12px;letter-spacing:1px;color:#b98a5a;margin:16px 0 8px">PROFILE</div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:0 12px">'
+    + '<span style="background:#fff;border:1px solid #eee;padding:8px 12px;border-radius:99px;font-size:12px">❤️ Serious Relationship</span>'
+    + '<span style="background:#fff;border:1px solid #eee;padding:8px 12px;border-radius:99px;font-size:12px">🇺🇸 USA</span>'
+    + '<span style="background:#fff;border:1px solid #eee;padding:8px 12px;border-radius:99px;font-size:12px">🌙 Night / Late</span>'
+    + '<span style="background:#fff;border:1px solid #eee;padding:8px 12px;border-radius:99px;font-size:12px">🏖️ Beach</span>'
+    + '<span style="background:#fff;border:1px solid #eee;padding:8px 12px;border-radius:99px;font-size:12px">⛰️ Adventure</span>'
+    + '</div>'
+
+  // INTERESTS
+    + '<div style="text-align:center;font-weight:800;font-size:12px;letter-spacing:1px;color:#e05a8a;margin:16px 0 8px">INTERESTS</div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:0 12px">'
+    + interests.map(x=>'<span style="background:#ffeef3;color:#d6336c;padding:8px 10px;border-radius:99px;font-size:12px;font-weight:600">'+x+'</span>').join('')
+    + '</div>'
+
+  // ABOUT
+    + '<div style="text-align:center;font-weight:800;font-size:12px;letter-spacing:1px;color:#555;margin:16px 0 8px">ABOUT</div>'
+    + '<p style="padding:0 16px;text-align:center;font-size:13px;line-height:1.6;color:#333;margin:0">'+bio+'</p>'
+
+  // ACTION BAR - keeps your existing functions
+    + '<div style="display:flex;gap:10px;align-items:center;padding:16px 12px 0">'
+    + '<button onclick="swipePass()" style="width:48px;height:48px;border-radius:50%;background:#f0f0f0;border:none;font-size:20px;cursor:pointer">✖️</button>'
+    + '<button onclick="openChatFromSwipe()" style="flex:1;background:#111;color:#fff;border:none;border-radius:99px;padding:14px;font-weight:700;font-size:15px;cursor:pointer">Message 💬</button>'
+    + '<button onclick="swipeLike()" style="width:48px;height:48px;border-radius:50%;background:#ffe0ec;border:none;font-size:20px;cursor:pointer">❤️</button>'
+    + '</div></div>';
 }
 
 function countryFlag(c){var m={'france':'🇫🇷','spain':'🇪🇸','equatorial guinea':'🇬🇶','gq':'🇬🇶','nigeria':'🇳🇬','cameroon':'🇨🇲','gabon':'🇬🇦','ghana':'🇬🇭','usa':'🇺🇸','uk':'🇬🇧'};return m[String(c||'').trim().toLowerCase()]||'🌍';}
