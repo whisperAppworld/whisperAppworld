@@ -254,7 +254,7 @@ function renderSwipeInner(){
   var list = [];
   try{ list = getDeck(); }catch(e){ list = window._swipeList||[]; }
   if(!list || list.length===0){
-    var card = document.getElementById('swipeCard'); if(!card) return;
+    var card = document.getElementById('swipe-card'); if(!card) return;
     card.innerHTML = '<div style="text-align:center;padding:40px;color:#888"><h3>No more people nearby</h3><p>Check back later</p></div>';
     return;
   }
@@ -277,7 +277,7 @@ function renderSwipeInner(){
   var thumbs = photos.slice(0,3).map(function(ph){ return '<img src="'+ph+'" style="width:72px;height:72px;object-fit:cover;border-radius:12px">'; }).join('');
   var interests = (u.interests||['Gym','Music','Football','Movies','Travel','Food']).map(interest).join('');
   var tags = (u.tags||['Serious Relationship','Beach','Adventure']).map(function(x){ return chip('♡', x); }).join('');
-  var cardEl = document.getElementById('swipeCard'); if(!cardEl) return;
+  var cardEl = document.getElementById('swipe-card'); if(!cardEl) return;
   cardEl.innerHTML =
   '<div style="background:#fff;border-radius:24px;overflow:hidden;padding-bottom:12px">'+
     '<div style="position:relative"><img src="'+main+'" style="width:100%;height:420px;object-fit:cover;display:block">'+
