@@ -259,7 +259,7 @@ function renderSwipeInner(){
   var card = document.getElementById('swipe-card');
   if(!card) return;
   if(!window._swipeList || window._swipeList.length===0){
-    card.innerHTML = '<div style="text-align:center;padding:40px;color:#888"><h3>No more people nearby</h3><p>Check back later</p></div>';
+    card.innerHTML = '<div style="text-align:center;padding:20px;color:#333;background:#fff;border-radius:16px"><h3>No more people nearby</h3><p>DEBUG:</p><p style="font-size:12px;text-align:left;background:#f5f5f5;padding:10px;border-radius:10px">LIST_LEN: '+(window._swipeList?window._swipeList.length:'undefined')+'<br>IDX: '+(window._swipeIdx||0)+'<br>NAMES: '+(typeof names!=='undefined'?names.length+' ['+names.join(', ')+']':'names undefined')+'<br>LOCAL_KEYS: '+Object.keys(localStorage).join(', ')+'</p><button onclick="localStorage.clear();location.reload()" style="padding:10px 16px;border-radius:99px;background:#111;color:#fff;border:none">Reset + Reload</button></div>';
     return;
   }
   var u = window._swipeList[window._swipeIdx||0] || window._swipeList[0];
