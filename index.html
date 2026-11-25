@@ -228,7 +228,12 @@ function renderPeople(){
   var all=getDeck();
   all=all.filter(function(x){return x && x.name;});
   if(!all.length){ all=[]; }
-  var dbg='<p style="font-size:12px;color:#888">Check back later</div>' + (p.location_verified?'<div style="font-size:12px;color:#166534;background:#dcfce7;display:inline-block;padding:3px 8px;border-radius:10px;margin-top:4px;font-weight:700">Location verified</div>':'<div style="font-size:12px;color:#6b7280;background:#f3f4f6;display:inline-block;padding:3px 8px;border-radius:10px;margin-top:4px">Location not verified</div>') + ((p.language||p.looking)?'<div style="font-size:12px;color:#ddd;margin-top:4px">'+(p.language?('Lang '+p.language+' '):'')+(p.looking?('Looking: '+p.looking):'')+'</div>':'')+'</div></div><div style="padding:14px">'+chipsHtml(p)+''+aboutHtml(p)+basicsHtml(p)+'<button onclick="openChat(\''+p.name+'\')" style="width:100%;margin-top:12px;background:linear-gradient(135deg,#ff5a8a,#ff8a5c);color:white;border:none;padding:12px;border-radius:12px;font-weight:800;font-size:15px">💬 Message</button><div style="display:flex;gap:8px;margin-top:8px"><button onclick="blockUser(\''+p.name+'\')" style="flex:1;background:#1a1a1a;color:#ff5b5b;border:1px solid #333;padding:10px;border-radius:12px;font-weight:700">🚫 Block</button><button onclick="reportUser(\''+p.name+'\')" style="flex:1;background:#1a1a1a;color:#ffb02e;border:1px solid #333;padding:10px;border-radius:12px;font-weight:700">⚠️ Report</button></div></div></div>';
+  var dbg='<p style="font-size:12px;color:#888">DEBUG: all_profiles='+all.length+' | my_profile='+(function(){try{return JSON.parse(localStorage.getItem('my_profile')||'{}').name||'(empty)'}catch(e){return '(err)'}})()+'</p>';
+  if(!all.length){ el.innerHTML=dbg+'<p style="color:#aaa">No people yet. Go to Profile, fill Name + Age + Country, tap Save, then come back here.</p>'; return; }
+  el.innerHTML=dbg+el.innerHTML;
+  el.innerHTML=all.map(function(p){
+    var photo=p.photo||p.photos&&p.photos[0]||'';
+    var relPill=''; var intPills=''; return '<div class="card" style="padding:0;overflow:hidden;border-radius:18px;background:white;box-shadow:0 4px 20px rgba(0,0,0,0.08);margin-bottom:16px"><div style="height:220px;background:#333;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative">'+(photo?'<img src="'+photo+'" style="width:100%;height:100%;object-fit:cover">':'<span style="font-size:80px;color:white">'+(p.name||'?').charAt(0)+'</span>')+'<div style="position:absolute;bottom:10px;left:12px;right:12px;color:white;text-shadow:0 2px 8px rgba(0,0,0,0.7)"><b style="font-size:20px">'+p.name+((p.photo_verified||p.email_verified)?'<svg width="22" height="22" viewBox="0 0 24 24" style="vertical-align:-4px;margin-left:2px;display:inline-block"><circle cx="12" cy="12" r="10.5" fill="#0095F6"/><path d="M17.2 7.8L10.6 14.4L7 10.8" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>':'')+' • '+(p.age||'')+'</b>'+badgesHtmlFor(p.name)+'<div style="font-size:13px;opacity:0.95"><svg width="13" height="13" viewBox="0 0 24 24" style="vertical-align:-2px"><path d="M12 2C7 2 3 6 3 11c0 5.5 9 11 9 11s9-5.5 9-11c0-5-4-9-9-9z" fill="#e11d48"/><circle cx="12" cy="11" r="3.5" fill="white"/></svg> ' + countryFlag(p.country) + (p.country||'') + ((p.location_city||p.city)?', '+(p.location_city||p.city):'') + '</div>' + (p.location_verified?'<div style="font-size:12px;color:#166534;background:#dcfce7;display:inline-block;padding:3px 8px;border-radius:10px;margin-top:4px;font-weight:700">Location verified</div>':'<div style="font-size:12px;color:#6b7280;background:#f3f4f6;display:inline-block;padding:3px 8px;border-radius:10px;margin-top:4px">Location not verified</div>') + ((p.language||p.looking)?'<div style="font-size:12px;color:#ddd;margin-top:4px">'+(p.language?('Lang '+p.language+' '):'')+(p.looking?('Looking: '+p.looking):'')+'</div>':'')+'</div></div><div style="padding:14px">'+chipsHtml(p)+''+aboutHtml(p)+basicsHtml(p)+'<button onclick="openChat(\''+p.name+'\')" style="width:100%;margin-top:12px;background:linear-gradient(135deg,#ff5a8a,#ff8a5c);color:white;border:none;padding:12px;border-radius:12px;font-weight:800;font-size:15px">💬 Message</button><div style="display:flex;gap:8px;margin-top:8px"><button onclick="blockUser(\''+p.name+'\')" style="flex:1;background:#1a1a1a;color:#ff5b5b;border:1px solid #333;padding:10px;border-radius:12px;font-weight:700">🚫 Block</button><button onclick="reportUser(\''+p.name+'\')" style="flex:1;background:#1a1a1a;color:#ffb02e;border:1px solid #333;padding:10px;border-radius:12px;font-weight:700">⚠️ Report</button></div></div></div>';
   }).join('');
 }
 
@@ -251,52 +256,97 @@ function openChatFromSwipe(){ var u=(window._swipeList||[])[window._swipeIdx||0]
 function swipeSuper(){ var u=(window._swipeList||[])[window._swipeIdx||0]; if(u) superLikePerson(u.name||u.display_name); }
 
 function renderSwipeInner(){
-  var list = [];
-  try{ list = getDeck(); }catch(e){ list = window._swipeList||[]; }
-  if(!list || list.length===0){
-    var card = document.getElementById('swipe-card'); if(!card) return;
+  var card = document.getElementById('swipe-card');
+  if(!card) return;
+  if(!window._swipeList || window._swipeList.length===0){
     card.innerHTML = '<div style="text-align:center;padding:40px;color:#888"><h3>No more people nearby</h3><p>Check back later</p></div>';
     return;
   }
-  var idx = window._swipeIdx||0; if(idx>=list.length) idx=0; window._swipeIdx=idx;
-  var u = list[idx]||{};
-  var photos = u.photos||u.gallery||[];
-  if(!photos.length && (u.photo||u.photo_url||u.avatar)) photos=[u.photo||u.photo_url||u.avatar];
-  if(!photos.length) photos=['https://via.placeholder.com/600x800?text=No+Photo'];
-  var main = photos[0];
-  var name = u.name||u.display_name||'Unknown';
-  var age = u.age||'';
-  var city = u.city||''; var country = u.country||'';
-  var dist = u.distance ? Math.round(u.distance)+' km away' : (city? city : 'Nearby');
-  var about = u.about||u.bio||'Friendly, calm, and always up for a real conversation.';
-  var looking = u.looking_for||u.lookingFor||'Friendship';
-  var goal = u.goal||'Chat';
-  function chip(icon, txt){ if(!txt) return ''; return '<span style="display:inline-flex;align-items:center;gap:6px;background:#f1f1f1;padding:7px 12px;border-radius:99px;font-size:12px;margin:3px">'+icon+' '+txt+'</span>'; }
-  function basic(icon, txt){ if(!txt) return ''; return '<span style="display:inline-flex;align-items:center;gap:6px;background:#e8e8e8;padding:8px 12px;border-radius:12px;font-size:12px;margin:3px">'+icon+' '+txt+'</span>'; }
-  function interest(txt){ if(!txt) return ''; return '<span style="display:inline-flex;flex-direction:column;align-items:center;gap:4px;background:#ffeef0;padding:10px 8px;border-radius:12px;font-size:11px;min-width:52px;margin:3px">'+txt+'</span>'; }
-  var thumbs = photos.slice(0,3).map(function(ph){ return '<img src="'+ph+'" style="width:72px;height:72px;object-fit:cover;border-radius:12px">'; }).join('');
-  var interests = (u.interests||['Gym','Music','Football','Movies','Travel','Food']).map(interest).join('');
-  var tags = (u.tags||['Serious Relationship','Beach','Adventure']).map(function(x){ return chip('♡', x); }).join('');
-  var cardEl = document.getElementById('swipe-card'); if(!cardEl) return;
-  cardEl.innerHTML =
-  '<div style="background:#fff;border-radius:24px;overflow:hidden;padding-bottom:12px">'+
-    '<div style="position:relative"><img src="'+main+'" style="width:100%;height:420px;object-fit:cover;display:block">'+
-    '<span style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.7);color:#fff;font-size:12px;padding:4px 10px;border-radius:99px">1 / '+photos.length+'</span>'+
-    '<div style="position:absolute;bottom:0;left:0;right:0;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,0.75));color:#fff"><div style="font-size:22px;font-weight:800">'+name+', '+age+'</div><div style="font-size:13px;opacity:0.9">📍 '+(city?city+', ':'')+country+' • '+dist+'</div></div></div>'+
-    '<div style="display:flex;gap:8px;padding:10px 12px 0">'+thumbs+'<span style="width:72px;height:72px;background:#eee;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#666">+'+Math.max(0,photos.length-3)+' more</span></div>'+
-    '<div style="padding:8px 12px;display:flex;gap:8px;flex-wrap:wrap">'+chip('👥','Looking for: '+looking)+chip('💬','Goal: '+goal)+'</div>'+
-    '<div style="text-align:center;font-size:11px;font-weight:800;letter-spacing:1px;color:#666;margin-top:6px">BASICS</div>'+
-    '<div style="padding:6px 12px;text-align:center">'+basic('📏','Height: '+(u.height||'178 cm'))+basic('🏃',u.body_type||'Athletic')+basic('🍷','Drinks: '+(u.drinks||'Sometimes'))+basic('🚭','Smokes: '+(u.smokes||'No'))+basic('💼','Job: '+(u.job||'—'))+basic('🎓','Education: '+(u.education||'—'))+basic('🌐','Languages: '+((u.languages||['English']).join(', ')))+'</div>'+
-    '<div style="text-align:center;font-size:11px;font-weight:800;letter-spacing:1px;color:#b98a2f;margin-top:6px">PROFILE</div>'+
-    '<div style="padding:6px 12px;text-align:center">'+tags+'</div>'+
-    '<div style="text-align:center;font-size:11px;font-weight:800;letter-spacing:1px;color:#e05a8a;margin-top:6px">INTERESTS</div>'+
-    '<div style="padding:6px 12px;text-align:center">'+interests+'</div>'+
-    '<div style="text-align:center;font-size:11px;font-weight:800;letter-spacing:1px;margin-top:6px">ABOUT</div>'+
-    '<p style="padding:6px 16px;font-size:13px;line-height:1.5;text-align:center;color:#444">'+about+'</p>'+
-    '<div style="display:flex;gap:10px;padding:8px 16px;align-items:center"><button onclick="swipePass()" style="width:48px;height:48px;border-radius:50%;border:1px solid #ddd;background:#fff;font-size:18px">✕</button><button onclick="messageCurrent()" style="flex:1;background:#111;color:#fff;border:none;padding:14px;border-radius:99px;font-weight:700">Message 💬</button><button onclick="swipeLike()" style="width:48px;height:48px;border-radius:50%;border:none;background:#ffd6e0;font-size:18px">♡</button></div>'+
-  '</div>';
-}
+  var u = window._swipeList[window._swipeIdx||0] || window._swipeList[0];
+  var name = u.name || u.display_name || 'User';
+  var age = u.age || '';
+  var city = u.city || '';
+  var country = u.country || '';
+  var photo = u.photo_url || u.photo || u.avatar_url || 'https://via.placeholder.com/400x600?text=No+Photo';
+  var bio = u.bio || u.about || 'Friendly, calm, and always up for a real conversation.';
+  var interests = (u.interests||'').toString().split(',').map(s=>s.trim()).filter(Boolean);
+  if(interests.length===0) interests = ['Gym','Wine','Music','Football','Movies','Travel','Food'];
+  var looking = u.looking_for || 'Friendship';
+  var goal = u.goal || 'Chat';
+  var height = u.height ? 'Height: '+u.height : 'Height: 178 cm';
+  var body = u.body_type || 'Athletic';
+  var drinks = u.drinks ? 'Drinks: '+u.drinks : 'Drinks: Sometimes';
+  var smokes = u.smokes ? 'Smokes: '+u.smokes : 'Smokes: No';
+  var job = u.job || 'Teacher';
+  var edu = u.education || 'Master Degree';
+  var langs = u.languages || 'English, Spanish';
+  var total = window._swipeList.length;
+  var idx = (window._swipeIdx||0)+1;
 
+  card.innerHTML =
+  '<div style="background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.12);max-width:420px;margin:0 auto;padding-bottom:16px">'
+    + '<div style="position:relative;height:520px;background:#eee">'
+    + '<img src="'+photo+'" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.src=\'https://via.placeholder.com/400x600?text=No+Photo\'">'
+    + '<div style="position:absolute;top:12px;left:12px;right:12px;display:flex;gap:6px">'+ Array(5).fill('<div style="flex:1;height:4px;border-radius:99px;background:rgba(255,255,255,0.5)"></div>').join('') +'</div>'
+    + '<div style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.6);color:#fff;font-size:12px;padding:4px 10px;border-radius:99px;font-weight:700">'+idx+' / '+total+'</div>'
+    + '<div style="position:absolute;left:0;right:0;bottom:0;padding:40px 16px 16px;background:linear-gradient(transparent,rgba(0,0,0,0.75));color:#fff">'
+    + '<div style="font-size:26px;font-weight:800;line-height:1">'+name+', '+age+' <span style="font-size:16px">🇸🇳</span> <span style="color:#4fc3f7;font-size:18px">✔</span></div>'
+    + '<div style="font-size:13px;opacity:0.9;margin-top:6px">📍 '+(city?city+', ':'')+country+' • 12 km away</div>'
+    + '</div></div>'
+
+  // Thumbnails row
+    + '<div style="display:flex;gap:8px;padding:12px 12px 0;overflow-x:auto">'
+    + '<img src="'+photo+'" style="width:84px;height:64px;object-fit:cover;border-radius:12px">'
+    + '<img src="'+photo+'" style="width:84px;height:64px;object-fit:cover;border-radius:12px;opacity:0.9">'
+    + '<img src="'+photo+'" style="width:84px;height:64px;object-fit:cover;border-radius:12px;opacity:0.9">'
+    + '<div style="min-width:84px;height:64px;border-radius:12px;background:#eee;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#555">+4 more</div>'
+    + '</div>'
+
+  // Looking / Goal
+    + '<div style="display:flex;gap:8px;padding:12px 12px 0">'
+    + '<div style="flex:1;background:#f6f6f6;border-radius:99px;padding:8px 10px;font-size:12px;font-weight:600;text-align:center">👥 Looking for: '+looking+'</div>'
+    + '<div style="flex:1;background:#f6f6f6;border-radius:99px;padding:8px 10px;font-size:12px;font-weight:600;text-align:center">💬 Goal: '+goal+'</div>'
+    + '</div>'
+
+  // BASICS
+    + '<div style="text-align:center;font-weight:800;font-size:12px;letter-spacing:1px;color:#666;margin:16px 0 8px">BASICS</div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:0 12px">'
+    + '<span style="background:#e8e8e8;padding:8px 12px;border-radius:99px;font-size:12px;font-weight:600">📏 '+height+'</span>'
+    + '<span style="background:#e8e8e8;padding:8px 12px;border-radius:99px;font-size:12px;font-weight:600">🧍 '+body+'</span>'
+    + '<span style="background:#e8e8e8;padding:8px 12px;border-radius:99px;font-size:12px;font-weight:600">🍷 '+drinks+'</span>'
+    + '<span style="background:#e8e8e8;padding:8px 12px;border-radius:99px;font-size:12px;font-weight:600">🚬 '+smokes+'</span>'
+    + '<span style="background:#e8e8e8;padding:8px 12px;border-radius:99px;font-size:12px;font-weight:600">💼 Job: '+job+'</span>'
+    + '<span style="background:#e8e8e8;padding:8px 12px;border-radius:99px;font-size:12px;font-weight:600">🎓 Education: '+edu+'</span>'
+    + '<span style="background:#e8e8e8;padding:8px 12px;border-radius:99px;font-size:12px;font-weight:600">🌐 Languages: '+langs+'</span>'
+    + '</div>'
+
+  // PROFILE
+    + '<div style="text-align:center;font-weight:800;font-size:12px;letter-spacing:1px;color:#b98a5a;margin:16px 0 8px">PROFILE</div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:0 12px">'
+    + '<span style="background:#fff;border:1px solid #eee;padding:8px 12px;border-radius:99px;font-size:12px">❤️ Serious Relationship</span>'
+    + '<span style="background:#fff;border:1px solid #eee;padding:8px 12px;border-radius:99px;font-size:12px">🇺🇸 USA</span>'
+    + '<span style="background:#fff;border:1px solid #eee;padding:8px 12px;border-radius:99px;font-size:12px">🌙 Night / Late</span>'
+    + '<span style="background:#fff;border:1px solid #eee;padding:8px 12px;border-radius:99px;font-size:12px">🏖️ Beach</span>'
+    + '<span style="background:#fff;border:1px solid #eee;padding:8px 12px;border-radius:99px;font-size:12px">⛰️ Adventure</span>'
+    + '</div>'
+
+  // INTERESTS
+    + '<div style="text-align:center;font-weight:800;font-size:12px;letter-spacing:1px;color:#e05a8a;margin:16px 0 8px">INTERESTS</div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:0 12px">'
+    + interests.map(x=>'<span style="background:#ffeef3;color:#d6336c;padding:8px 10px;border-radius:99px;font-size:12px;font-weight:600">'+x+'</span>').join('')
+    + '</div>'
+
+  // ABOUT
+    + '<div style="text-align:center;font-weight:800;font-size:12px;letter-spacing:1px;color:#555;margin:16px 0 8px">ABOUT</div>'
+    + '<p style="padding:0 16px;text-align:center;font-size:13px;line-height:1.6;color:#333;margin:0">'+bio+'</p>'
+
+  // ACTION BAR - keeps your existing functions
+    + '<div style="display:flex;gap:10px;align-items:center;padding:16px 12px 0">'
+    + '<button onclick="swipePass()" style="width:48px;height:48px;border-radius:50%;background:#f0f0f0;border:none;font-size:20px;cursor:pointer">✖️</button>'
+    + '<button onclick="openChatFromSwipe()" style="flex:1;background:#111;color:#fff;border:none;border-radius:99px;padding:14px;font-weight:700;font-size:15px;cursor:pointer">Message 💬</button>'
+    + '<button onclick="swipeLike()" style="width:48px;height:48px;border-radius:50%;background:#ffe0ec;border:none;font-size:20px;cursor:pointer">❤️</button>'
+    + '</div></div>';
+}
 
 function countryFlag(c){var m={'france':'🇫🇷','spain':'🇪🇸','equatorial guinea':'🇬🇶','gq':'🇬🇶','nigeria':'🇳🇬','cameroon':'🇨🇲','gabon':'🇬🇦','ghana':'🇬🇭','usa':'🇺🇸','uk':'🇬🇧'};return m[String(c||'').trim().toLowerCase()]||'🌍';}
 function getVerifiedFor(name){ try{ var deck=null; try{ deck = (typeof getDeck==='function') ? getDeck() : null; }catch(e){} if(deck){ var fd=deck.find(function(x){return x&&x.name===name;}); if(fd && (fd.email_verified||fd.photo_verified)) return {email:!!fd.email_verified, photo:!!fd.photo_verified}; } var all=JSON.parse(localStorage.getItem('all_profiles')||'[]'); var f=all.find(function(x){return x&&x.name===name;}); if(!f) return null; return {email:!!f.email_verified, photo:!!f.photo_verified}; }catch(e){ return null; } }
