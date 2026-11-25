@@ -256,10 +256,24 @@ function openChatFromSwipe(){ var u=(window._swipeList||[])[window._swipeIdx||0]
 function swipeSuper(){ var u=(window._swipeList||[])[window._swipeIdx||0]; if(u) superLikePerson(u.name||u.display_name); }
 
 function renderSwipeInner(){
+  // FIX: build list from real source - all_profiles in localStorage
+  try{
+    if(!window._swipeList || window._swipeList.length===0){
+      var all = JSON.parse(localStorage.getItem('all_profiles')||'[]');
+      var me = {};
+      try{ me = JSON.parse(localStorage.getItem('my_profile')||'{}'); }catch(e){}
+      var myId = me.id || me.uid || me.email || '';
+      // filter out me
+      window._swipeList = all.filter(function(u){ return u.id!==myId && u.uid!==myId && u.email!==myId; });
+      if(window._swipeList.length===0 && all.length>0) window._swipeList = all;
+      window._swipeIdx = 0;
+    }
+  }catch(e){ console.log('swipe load err', e); }
+
   var card = document.getElementById('swipe-card');
   if(!card) return;
   if(!window._swipeList || window._swipeList.length===0){
-    card.innerHTML = '<div style="text-align:center;padding:20px;color:#333;background:#fff;border-radius:16px"><h3>No more people nearby</h3><p>DEBUG:</p><p style="font-size:12px;text-align:left;background:#f5f5f5;padding:10px;border-radius:10px">LIST_LEN: '+(window._swipeList?window._swipeList.length:'undefined')+'<br>IDX: '+(window._swipeIdx||0)+'<br>NAMES: '+(typeof names!=='undefined'?names.length+' ['+names.join(', ')+']':'names undefined')+'<br>LOCAL_KEYS: '+Object.keys(localStorage).join(', ')+'</p><button onclick="localStorage.clear();location.reload()" style="padding:10px 16px;border-radius:99px;background:#111;color:#fff;border:none">Reset + Reload</button></div>';
+    card.innerHTML = '<div style="text-align:center;padding:20px;color:#333;background:#fff;border-radius:16px"><h3>No more people nearby</h3><p>DEBUG:</p><p style="font-size:12px;text-align:left;background:#f5f5f5;padding:10px;border-radius:10px">LIST_LEN: '+(window._swipeList?window._swipeList.length:'undefined')+'<br>ALL_PROFILES: '+(function(){try{return JSON.parse(localStorage.getItem('all_profiles')||'[]').length}catch(e){return 'err'}})()+'<br>FIRST: '+(function(){try{var a=JSON.parse(localStorage.getItem('all_profiles')||'[]'); return a[0]?JSON.stringify(a[0]).slice(0,300):'none'}catch(e){return 'err'}})()<br>IDX: '+(window._swipeIdx||0)+'<br>NAMES: '+(typeof names!=='undefined'?names.length+' ['+names.join(', ')+']':'names undefined')+'<br>LOCAL_KEYS: '+Object.keys(localStorage).join(', ')+'</p><button onclick="localStorage.clear();location.reload()" style="padding:10px 16px;border-radius:99px;background:#111;color:#fff;border:none">Reset + Reload</button></div>';
     return;
   }
   var u = window._swipeList[window._swipeIdx||0] || window._swipeList[0];
